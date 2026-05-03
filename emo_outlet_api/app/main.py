@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import time
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import close_db, init_db
+from app.core.error_handler import register_exception_handlers
 
 # ============================================================
 # 应用生命周期
@@ -46,6 +48,21 @@ app = FastAPI(
     "- 安全过滤：敏感词 + 高风险中断",
     lifespan=lifespan,
 )
+
+# 注册全局异常处理器
+register_exception_handlers(app)
+
+
+# 请求日志中间件
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """记录每个请求的方法、路径、耗时"""
+    start = time.time()
+    response = await call_next(request)
+    elapsed = time.time() - start
+    print(f"  {request.method} {request.url.path} -> {response.status_code} ({elapsed:.3f}s)")
+    return response
+
 
 # CORS 配置（允许 Flutter 客户端跨域）
 app.add_middleware(

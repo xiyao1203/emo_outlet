@@ -17,6 +17,7 @@ from app.schemas.message import (
 )
 from app.services.ai_service import ai_service
 from app.utils.sensitive_filter import sensitive_filter
+import datetime
 
 router = APIRouter(prefix="/api/sessions", tags=["消息"])
 
@@ -62,7 +63,6 @@ async def get_messages(
     # 计算剩余时间
     remaining = 0
     if session.status == "active" and session.start_time:
-        import datetime
 
         elapsed = (datetime.datetime.now(datetime.timezone.utc) - session.start_time).total_seconds()
         remaining = max(0, int(session.duration_minutes * 60 - elapsed))
@@ -181,7 +181,6 @@ async def send_message(
     await db.refresh(ai_msg)
 
     # 检查是否超时
-    import datetime
     if session.start_time:
         elapsed = (datetime.datetime.now(datetime.timezone.utc) - session.start_time).total_seconds()
         if elapsed >= session.duration_minutes * 60:

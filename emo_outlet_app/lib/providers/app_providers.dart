@@ -213,7 +213,7 @@ class SessionProvider extends ChangeNotifier {
         sessionId: _currentSession!.id!,
         content: '开始释放你的情绪吧，有什么想说的尽管说出来！',
         sender: MessageSender.ai,
-        timestamp: DateTime.now(),
+        createdAt: DateTime.now(),
         isSystem: true,
       ),
     ];
@@ -233,7 +233,7 @@ class SessionProvider extends ChangeNotifier {
       sessionId: _currentSession!.id!,
       content: content,
       sender: MessageSender.user,
-      timestamp: DateTime.now(),
+      createdAt: DateTime.now(),
     ));
     notifyListeners();
 
@@ -246,7 +246,7 @@ class SessionProvider extends ChangeNotifier {
           sessionId: _currentSession!.id!,
           content: result['ai_reply']['content'],
           sender: MessageSender.ai,
-          timestamp: DateTime.now(),
+          createdAt: DateTime.now(),
           isSensitive: result['ai_reply']['is_sensitive'] == true,
         ));
         notifyListeners();
@@ -257,7 +257,7 @@ class SessionProvider extends ChangeNotifier {
         sessionId: _currentSession!.id!,
         content: _mockAiReply(content),
         sender: MessageSender.ai,
-        timestamp: DateTime.now(),
+        createdAt: DateTime.now(),
       ));
       notifyListeners();
     }
@@ -292,7 +292,6 @@ class SessionProvider extends ChangeNotifier {
       _currentSession = _currentSession!.copyWith(
         endTime: DateTime.now(),
         status: 'completed',
-        isActive: false,
         isCompleted: true,
       );
     }

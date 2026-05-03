@@ -51,7 +51,7 @@ async def register(req: UserRegisterRequest, db: AsyncSession = Depends(get_db))
 
     # 创建用户
     user = UserModel(
-        nickname=req.nickname or f"用户{UserModel.id}",
+        nickname=req.nickname or f"用户{user.id}",
         phone=req.phone,
         email=req.email,
         password_hash=hash_password(req.password),
@@ -166,4 +166,5 @@ async def delete_account(
     current_user.is_deleted = True
     current_user.is_active = False
     db.add(current_user)
+    await db.flush()
     return {"message": "账号已注销"}

@@ -38,7 +38,12 @@ async def get_current_user(
             detail="令牌中缺少用户信息",
         )
 
-    result = await db.execute(select(UserModel).where(UserModel.id == user_id))
+    result = await db.execute(
+        select(UserModel).where(
+            UserModel.id == user_id,
+            UserModel.is_deleted == False,
+        )
+    )
     user = result.scalar_one_or_none()
     if user is None:
         raise HTTPException(
@@ -65,5 +70,10 @@ async def get_optional_user(
     if user_id is None:
         return None
 
-    result = await db.execute(select(UserModel).where(UserModel.id == user_id))
+    result = await db.execute(
+        select(UserModel).where(
+            UserModel.id == user_id,
+            UserModel.is_deleted == False,
+        )
+    )
     return result.scalar_one_or_none()

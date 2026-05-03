@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -13,6 +14,7 @@ from app.models.message import MessageModel
 from app.models.session import SessionModel
 from app.models.target import TargetModel
 from app.models.user import UserModel
+from app.config import settings
 from app.schemas.message import MessageListResponse, MessageResponse
 from app.schemas.session import (
     SessionCreateRequest,
@@ -21,6 +23,29 @@ from app.schemas.session import (
     SessionSummaryResponse,
 )
 from app.services.emotion_service import emotion_service
+
+
+# 辅助：将 Session ORM 对象转为响应，附带 target 关联信息
+def _session_to_response(session: SessionModel) -> SessionResponse:
+    """将 Session ORM 转为响应，填充 target_name / target_avatar_url"""
+    return SessionResponse(
+        id=session.id,
+        user_id=session.user_id,
+        target_id=session.target_id,
+        target_name=session.target.name if session.target else "",
+        target_avatar_url=session.target.avatar_url if session.target else None,
+        mode=session.mode,
+        chat_style=session.chat_style,
+        dialect=session.dialect,
+        duration_minutes=session.duration_minutes,
+        start_time=session.start_time,
+        end_time=session.end_time,
+        status=session.status,
+        is_completed=session.is_completed,
+        emotion_summary=session.emotion_summary,
+        summary_text=session.summary_text,
+        created_at=session.created_at,
+    )
 
 router = APIRouter(prefix="/api/sessions", tags=["会话"])
 
@@ -44,15 +69,21 @@ async def create_session(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="目标不存在")
 
     # 检查每日限制
-    # （简化处理：生产环境应基于日期统计）
-    if current_user.daily_session_count >= 10:
+    today = datetime.now(timezone.utc).date()
+    if current_user.last_active_date != str(today):
+        # 新的一天，重置计数
+        current_user.daily_session_count = 0
+        current_user.last_active_date = str(today)
+
+    if current_user.daily_session_count >= settings.MAX_DAILY_FREE_SESSIONS:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="已达每日会话上限",
+            detail=f"每日会话上限（{settings.MAX_DAILY_FREE_SESSIONS}次）已到，明天再来吧",
         )
 
     # 更新用户计数
     current_user.daily_session_count += 1
+    current_user.last_active_date = str(today)
     db.add(current_user)
 
     # 创建会话
@@ -70,7 +101,9 @@ async def create_session(
     await db.flush()
     await db.refresh(session)
 
-    return SessionResponse.model_validate(session)
+    # 重新加载 target 关系
+    await db.refresh(session, ["target"])
+    return _session_to_response(session)
 
 
 @router.get("", response_model=list[SessionResponse])
@@ -94,7 +127,7 @@ async def list_sessions(
     result = await db.execute(query)
     sessions = result.scalars().all()
 
-    return [SessionResponse.model_validate(s) for s in sessions]
+    return [_session_to_response(s) for s in sessions]
 
 
 @router.get("/active", response_model=SessionResponse | None)
@@ -112,7 +145,7 @@ async def get_active_session(
     session = result.scalar_one_or_none()
     if not session:
         return None
-    return SessionResponse.model_validate(session)
+    return _session_to_response(session)
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
@@ -132,7 +165,7 @@ async def get_session(
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
 
-    return SessionResponse.model_validate(session)
+    return _session_to_response(session)
 
 
 @router.post("/{session_id}/end", response_model=SessionSummaryResponse)
@@ -183,7 +216,6 @@ async def end_session(
     emotion_result = await emotion_service.analyze_messages(msg_dicts)
 
     # 保存分析结果
-    import json
     session.emotion_summary = json.dumps(
         {
             "primary_emotion": emotion_result.primary_emotion,
@@ -201,7 +233,7 @@ async def end_session(
     await db.refresh(session)
 
     return SessionSummaryResponse(
-        session=SessionResponse.model_validate(session),
+        session=_session_to_response(session),
         messages=[MessageResponse.model_validate(m) for m in messages],
         emotion_analysis=emotion_result.model_dump(),
     )

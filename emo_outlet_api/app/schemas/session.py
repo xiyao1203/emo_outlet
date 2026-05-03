@@ -28,6 +28,8 @@ class SessionResponse(BaseModel):
     id: str
     user_id: str
     target_id: str
+    target_name: str = ""
+    target_avatar_url: str | None = None
     mode: str
     chat_style: str | None = None
     dialect: str

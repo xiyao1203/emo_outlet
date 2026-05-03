@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
@@ -9,10 +10,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user
 from app.database import get_db
+from app.models.message import MessageModel
 from app.models.poster import PosterModel
 from app.models.session import SessionModel
+from app.models.target import TargetModel
 from app.models.user import UserModel
 from app.schemas.poster import (
+    EmotionAnalysisResult,
     EmotionReportResponse,
     PosterGenerateRequest,
     PosterResponse,
@@ -62,7 +66,6 @@ async def generate_poster(
             pass
 
     # 获取目标名称
-    from app.models.target import TargetModel
     target_result = await db.execute(
         select(TargetModel).where(TargetModel.id == session.target_id)
     )
@@ -71,7 +74,6 @@ async def generate_poster(
 
     # 生成海报内容
     if emotion_data:
-        from app.schemas.poster import EmotionAnalysisResult
         emotion_result = EmotionAnalysisResult(
             primary_emotion=emotion_data.get("primary_emotion", "平静"),
             emotions=emotion_data.get("emotions", {"平静": 100}),
@@ -82,7 +84,6 @@ async def generate_poster(
         )
     else:
         # 没有情绪分析，用会话消息做简单分析
-        from app.models.message import MessageModel
         msg_result = await db.execute(
             select(MessageModel)
             .where(MessageModel.session_id == req.session_id)
@@ -146,8 +147,6 @@ async def get_emotion_report(
     db: AsyncSession = Depends(get_db),
 ):
     """获取情绪报告（周/月/年）"""
-    import datetime
-
     now = datetime.datetime.now(datetime.timezone.utc)
 
     # 计算时间范围

@@ -302,18 +302,150 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
-// 情绪 Tab（占位）
+// 情绪 Tab
 class _EmotionTab extends StatelessWidget {
   const _EmotionTab();
 
   @override
   Widget build(BuildContext context) {
+    final emotionProvider = context.watch<EmotionProvider>();
+    final report = emotionProvider.currentReport;
+
     return Scaffold(
       appBar: AppBar(title: const Text('情绪')),
-      body: const Center(
-        child: Text('情绪分析功能开发中...', style: AppTextStyles.bodySmall),
+      body: Padding(
+        padding: AppSpacing.screenPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            // 今日统计卡片
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('本周情绪概览',
+                      style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 16),
+                  if (report != null) ...[
+                    _StatRow('总会话', '${report.totalSessions} 次'),
+                    _StatRow('总时长', '${report.totalDurationMinutes} 分钟'),
+                    _StatRow('主导情绪', report.dominantEmotion),
+                  ] else
+                    const Text('暂无数据，快去释放情绪吧~',
+                        style: TextStyle(color: Colors.white70, fontSize: 14)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            if (report != null && report.emotions.isNotEmpty) ...[
+              const Text('情绪分布', style: AppTextStyles.heading3),
+              const SizedBox(height: 16),
+              ...report.emotions.entries.map((e) => _EmotionBar(
+                    label: e.key,
+                    value: e.value,
+                  )),
+            ],
+            if (report?.suggestion != null) ...[
+              const SizedBox(height: 24),
+              const Text('贴心建议', style: AppTextStyles.heading3),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBackground,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Text(report!.suggestion!,
+                    style: AppTextStyles.bodyMedium),
+              ),
+            ],
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _StatRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _StatRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmotionBar extends StatelessWidget {
+  final String label;
+  final double value;
+  const _EmotionBar({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _emotionColor(label);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: AppTextStyles.bodySmall),
+              Text('${value.toStringAsFixed(0)}%',
+                  style: AppTextStyles.bodySmall),
+            ],
+          ),
+          const SizedBox(height: 4),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: value / 100,
+              backgroundColor: color.withOpacity(0.15),
+              color: color,
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _emotionColor(String emotion) {
+    switch (emotion) {
+      case '愤怒':
+        return AppColors.emotionAnger;
+      case '悲伤':
+        return AppColors.emotionSadness;
+      case '焦虑':
+        return AppColors.emotionAnxiety;
+      case '疲惫':
+        return AppColors.emotionPower;
+      default:
+        return AppColors.emotionCalm;
+    }
   }
 }
 

@@ -54,11 +54,12 @@ class ApiService {
     return response.data as Map<String, dynamic>;
   }
 
-  /// 注册 — POST /api/auth/register { nickname, phone, password }
+  /// 注册 — POST /api/auth/register { nickname, phone/email, password }
   Future<Map<String, dynamic>> register(
-      String phone, String password, String? nickname) async {
+      String account, String password, String? nickname) async {
+    final isEmail = account.contains('@');
     final response = await _dio.post('/auth/register', data: {
-      'phone': phone,
+      if (isEmail) 'email': account else 'phone': account,
       'password': password,
       if (nickname != null && nickname.isNotEmpty) 'nickname': nickname,
     });

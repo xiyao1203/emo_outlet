@@ -45,18 +45,9 @@ class _LoginScreenState extends State<LoginScreen> {
           _passwordController.text,
         );
       } else {
-        // 注册模式：检测是否为邮箱
-        final account = _accountController.text;
-        final isEmail = account.contains('@');
-        if (isEmail) {
-          // 邮箱注册：调用 register 时 phone 传空，但实际上后端 register 需要 phone
-          // 这里使用 login 方式处理邮箱注册，或通过 visitor + update
-          _showTip('邮箱注册功能暂未开放，请使用手机号注册或登录');
-          setState(() => _isLoading = false);
-          return;
-        }
+        // 注册模式（手机号/邮箱均可）
         await _authService.register(
-          account,
+          _accountController.text,
           _passwordController.text,
           _nicknameController.text.isNotEmpty ? _nicknameController.text : null,
         );
