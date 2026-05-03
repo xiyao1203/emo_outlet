@@ -121,11 +121,14 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
                     case '焦虑':
                       color = AppColors.emotionAnxiety;
                       break;
-                    case '力量':
-                      color = AppColors.emotionPower;
-                      break;
                     case '悲伤':
                       color = AppColors.emotionSadness;
+                      break;
+                    case '疲惫':
+                      color = AppColors.emotionPower;
+                      break;
+                    case '无奈':
+                      color = AppColors.emotionCalm;
                       break;
                     default:
                       color = AppColors.emotionCalm;

@@ -11,8 +11,9 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _accountController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _nicknameController = TextEditingController();
   final _authService = AuthService();
   bool _isLogin = true;
   bool _obscurePassword = true;
@@ -20,18 +21,46 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _accountController.dispose();
     _passwordController.dispose();
+    _nicknameController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
+    if (_accountController.text.isEmpty) {
+      _showTip('请输入手机号或邮箱');
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      _showTip('请输入密码');
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      await _authService.login(
-        _phoneController.text,
-        _passwordController.text,
-      );
+      if (_isLogin) {
+        await _authService.login(
+          _accountController.text,
+          _passwordController.text,
+        );
+      } else {
+        // 注册模式：检测是否为邮箱
+        final account = _accountController.text;
+        final isEmail = account.contains('@');
+        if (isEmail) {
+          // 邮箱注册：调用 register 时 phone 传空，但实际上后端 register 需要 phone
+          // 这里使用 login 方式处理邮箱注册，或通过 visitor + update
+          _showTip('邮箱注册功能暂未开放，请使用手机号注册或登录');
+          setState(() => _isLoading = false);
+          return;
+        }
+        await _authService.register(
+          account,
+          _passwordController.text,
+          _nicknameController.text.isNotEmpty ? _nicknameController.text : null,
+        );
+      }
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -39,9 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('登录失败：$e')),
-        );
+        _showTip('登录失败，请检查账号密码');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -51,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleVisitorLogin() async {
     setState(() => _isLoading = true);
     try {
-      await _authService.visitorLogin();
+      await _authService.visitorLogin('访客用户');
       if (mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -60,6 +87,12 @@ class _LoginScreenState extends State<LoginScreen> {
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showTip(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg)),
+    );
   }
 
   @override
@@ -98,16 +131,28 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 48),
 
-              // 手机号输入
+              // 手机号/邮箱输入
               TextField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                controller: _accountController,
+                keyboardType: TextInputType.text,
                 decoration: const InputDecoration(
-                  hintText: '手机号',
-                  prefixIcon: Icon(Icons.phone_android_outlined),
+                  hintText: '手机号 / 邮箱',
+                  prefixIcon: Icon(Icons.person_outline),
                 ),
               ),
               const SizedBox(height: 16),
+
+              // 昵称（注册模式）
+              if (!_isLogin) ...[
+                TextField(
+                  controller: _nicknameController,
+                  decoration: const InputDecoration(
+                    hintText: '昵称（可选）',
+                    prefixIcon: Icon(Icons.face_outlined),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // 密码输入
               TextField(
@@ -130,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
 
-              // 登录按钮
+              // 登录/注册按钮
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -144,10 +189,23 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('登录 / 注册'),
+                      : Text(_isLogin ? '登录' : '注册'),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // 切换登录/注册
+              TextButton(
+                onPressed: () => setState(() => _isLogin = !_isLogin),
+                child: Text(
+                  _isLogin ? '没有账号？点击注册' : '已有账号？去登录',
+                  style: const TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // 游客登录
               TextButton(

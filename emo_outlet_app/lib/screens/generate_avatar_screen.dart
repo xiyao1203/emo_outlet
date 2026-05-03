@@ -26,6 +26,9 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
   }
 
   void _startGeneration() {
+    final target = context.read<TargetProvider>().currentTarget;
+    final targetId = target?.id;
+
     const totalSteps = 50;
     int currentStep = 0;
     _timer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
@@ -36,7 +39,11 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
         timer.cancel();
         setState(() => _isComplete = true);
 
-        // 模拟AI生成完成
+        // 调用后端 API 生成形象
+        if (targetId != null) {
+          context.read<TargetProvider>().generateAvatar(targetId);
+        }
+
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             Navigator.of(context).pushReplacement(

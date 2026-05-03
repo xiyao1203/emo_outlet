@@ -13,9 +13,10 @@ class SessionModel {
   final int durationMinutes;
   final DateTime? startTime;
   final DateTime? endTime;
-  final bool isActive;
+  final String status; // active / completed / interrupted
   final bool isCompleted;
-  final String? summary;
+  final String? emotionSummary;
+  final String? summaryText;
 
   SessionModel({
     this.id,
@@ -28,10 +29,13 @@ class SessionModel {
     this.durationMinutes = 3,
     this.startTime,
     this.endTime,
-    this.isActive = false,
+    this.status = 'active',
     this.isCompleted = false,
-    this.summary,
+    this.emotionSummary,
+    this.summaryText,
   });
+
+  bool get isActive => status == 'active';
 
   factory SessionModel.fromJson(Map<String, dynamic> json) {
     return SessionModel(
@@ -41,7 +45,7 @@ class SessionModel {
       targetAvatarUrl: json['target_avatar_url'] as String?,
       mode: json['mode'] == 'dual' ? SessionMode.dual : SessionMode.single,
       chatStyle: _parseChatStyle(json['chat_style'] as String?),
-      dialect: json['dialect'] as String? ?? '普通话',
+      dialect: _parseDialect(json['dialect'] as String?),
       durationMinutes: json['duration_minutes'] as int? ?? 3,
       startTime: json['start_time'] != null
           ? DateTime.parse(json['start_time'] as String)
@@ -49,10 +53,23 @@ class SessionModel {
       endTime: json['end_time'] != null
           ? DateTime.parse(json['end_time'] as String)
           : null,
-      isActive: json['is_active'] as bool? ?? false,
+      status: json['status'] as String? ?? 'active',
       isCompleted: json['is_completed'] as bool? ?? false,
-      summary: json['summary'] as String?,
+      emotionSummary: json['emotion_summary'] as String?,
+      summaryText: json['summary_text'] as String?,
     );
+  }
+
+  /// 将后端英文方言代码转换为前端中文显示
+  static String _parseDialect(String? value) {
+    const map = {
+      'mandarin': '普通话',
+      'cantonese': '粤语',
+      'sichuan': '四川话',
+      'northeastern': '东北话',
+      'shanghainese': '上海话',
+    };
+    return map[value] ?? value ?? '普通话';
   }
 
   static ChatStyle? _parseChatStyle(String? value) {
@@ -109,9 +126,10 @@ class SessionModel {
     int? durationMinutes,
     DateTime? startTime,
     DateTime? endTime,
-    bool? isActive,
+    String? status,
     bool? isCompleted,
-    String? summary,
+    String? emotionSummary,
+    String? summaryText,
   }) {
     return SessionModel(
       id: id ?? this.id,
@@ -124,9 +142,10 @@ class SessionModel {
       durationMinutes: durationMinutes ?? this.durationMinutes,
       startTime: startTime ?? this.startTime,
       endTime: endTime ?? this.endTime,
-      isActive: isActive ?? this.isActive,
+      status: status ?? this.status,
       isCompleted: isCompleted ?? this.isCompleted,
-      summary: summary ?? this.summary,
+      emotionSummary: emotionSummary ?? this.emotionSummary,
+      summaryText: summaryText ?? this.summaryText,
     );
   }
 }

@@ -9,6 +9,8 @@ import 'target_list_screen.dart';
 import 'session_mode_screen.dart';
 import 'history_screen.dart';
 import 'emotion_report_screen.dart';
+import 'chat_screen.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TargetProvider>().loadTargets();
       context.read<SessionProvider>().loadSessions();
-      context.read<EmotionProvider>().loadReports();
+      context.read<EmotionProvider>().loadOverviewReport();
     });
   }
 
@@ -225,6 +227,32 @@ class _HomePage extends StatelessWidget {
                 ),
               ],
             ),
+          const SizedBox(height: 12),
+          // 快速出气按钮
+          SizedBox(
+            width: double.infinity,
+            child: _QuickActionCard(
+              icon: Icons.flash_on,
+              label: '快速出气（匿名模式）',
+              color: AppColors.emotionAnger,
+              onTap: () {
+                // 直接创建匿名会话进入聊天
+                final session = context.read<SessionProvider>();
+                session.createSession(
+                  targetId: 'quick_vent',
+                  targetName: '出气筒',
+                  mode: SessionMode.single,
+                  dialect: '普通话',
+                  durationMinutes: 3,
+                );
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const ChatScreen(),
+                  ),
+                );
+              },
+            ),
+          ),
           ],
         ),
       ),
@@ -307,7 +335,9 @@ class _ProfileTab extends StatelessWidget {
               radius: 40,
               backgroundColor: AppColors.primary,
               child: Text(
-                auth.currentUser?.nickname?.substring(0, 1) ?? '?',
+                auth.currentUser?.nickname?.isNotEmpty == true
+                    ? auth.currentUser!.nickname!.substring(0, 1)
+                    : '?',
                 style: const TextStyle(
                   fontSize: 28,
                   color: Colors.white,
@@ -326,15 +356,22 @@ class _ProfileTab extends StatelessWidget {
             _profileMenuItem(Icons.help_outline, '帮助与反馈', () {}),
             _profileMenuItem(Icons.info_outline, '关于', () {}),
             const Spacer(),
+            if (!(auth.currentUser?.isVisitor ?? true))
+              TextButton(
+                onPressed: () => _showDeleteAccountDialog(context, auth),
+                child: const Text(
+                  '注销账号',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+              ),
+            const SizedBox(height: 8),
             TextButton(
               onPressed: () async {
                 await auth.logout();
                 if (context.mounted) {
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                      builder: (_) => const Scaffold(
-                        body: Center(child: Text('已退出登录')),
-                      ),
+                      builder: (_) => const LoginScreen(),
                     ),
                     (route) => false,
                   );
@@ -345,8 +382,43 @@ class _ProfileTab extends StatelessWidget {
                 style: TextStyle(color: AppColors.textHint),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, AuthService auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('注销账号'),
+        content: const Text(
+          '注销后所有数据将被清除，此操作不可恢复。\n确定要注销吗？',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              await auth.deleteAccount();
+              if (context.mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('确认注销'),
+          ),
+        ],
       ),
     );
   }

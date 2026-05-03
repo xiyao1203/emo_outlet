@@ -39,7 +39,7 @@ class TargetCard extends StatelessWidget {
               imageUrl: target.avatarUrl,
               name: target.name,
               size: 56,
-              isGenerating: target.isGenerating,
+              isGenerating: false,
             ),
             const SizedBox(width: 14),
             Expanded(

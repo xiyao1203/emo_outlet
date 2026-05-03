@@ -7,15 +7,22 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API
-  static const String baseUrl = 'http://localhost:8080/api';
+  static const String baseUrl = 'http://localhost:8000/api';
   static const Duration connectTimeout = Duration(seconds: 30);
   static const Duration receiveTimeout = Duration(seconds: 30);
 
-  // 会话
+  // 会话时长（分钟）
   static const List<int> sessionDurations = [1, 3, 5, 10];
   static const int defaultSessionDuration = 3;
 
-  // 方言列表
+  // 方言列表（中文显示 → 后端代码）
+  static const Map<String, String> dialectMap = {
+    '普通话': 'mandarin',
+    '粤语': 'cantonese',
+    '四川话': 'sichuan',
+    '东北话': 'northeastern',
+    '上海话': 'shanghainese',
+  };
   static const List<String> dialects = [
     '普通话',
     '粤语',
@@ -23,6 +30,15 @@ class AppConstants {
     '东北话',
     '上海话',
   ];
+
+  // 对话风格（中文显示 → 后端代码）
+  static const Map<String, String> chatStyleMap = {
+    '嘴硬型': 'stubborn',
+    '道歉型': 'apologetic',
+    '冷漠型': 'cold',
+    '阴阳型': 'sarcastic',
+    '理性型': 'rational',
+  };
 
   // 对话风格
   static const Map<String, String> chatStyles = {
@@ -33,42 +49,25 @@ class AppConstants {
     '理性型': '讲道理',
   };
 
-  // 目标类型
-  static const List<String> targetTypes = [
-    'boss',
-    'colleague',
-    'partner',
-    'family',
-    'friend',
-    'other',
-  ];
-
-  // 目标类型中文映射
-  static const Map<String, String> targetTypeLabels = {
-    'boss': '老板',
-    'colleague': '同事',
-    'partner': '伴侣',
-    'family': '家人',
-    'friend': '朋友',
-    'other': '其他',
-  };
-
-  // 对象形象风格
-  static const List<String> avatarStyles = [
-    '漫画',
-    '写实',
-    'Q版',
-    '简约',
-  ];
-
-  // 情绪类型
+  // 情绪类型（与后端 emotion_service 保持一致）
   static const List<String> emotionTypes = [
     '愤怒',
-    '焦虑',
     '悲伤',
-    '力量',
+    '焦虑',
+    '疲惫',
+    '无奈',
     '平静',
   ];
+
+  // 情绪颜色
+  static const Map<String, int> emotionColors = {
+    '愤怒': 0xFFE57373,
+    '悲伤': 0xFF64B5F6,
+    '焦虑': 0xFFFFB74D,
+    '疲惫': 0xFFA1887F,
+    '无奈': 0xFF90A4AE,
+    '平静': 0xFF81C784,
+  };
 
   // 存储 key
   static const String tokenKey = 'auth_token';

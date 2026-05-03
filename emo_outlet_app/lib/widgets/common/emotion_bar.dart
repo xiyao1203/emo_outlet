@@ -70,11 +70,10 @@ class EmotionPieChart extends StatelessWidget {
     final colors = {
       '愤怒': AppColors.emotionAnger,
       '焦虑': AppColors.emotionAnxiety,
-      '力量': AppColors.emotionPower,
       '悲伤': AppColors.emotionSadness,
+      '疲惫': AppColors.emotionPower,
+      '无奈': AppColors.emotionCalm,
       '平静': AppColors.emotionCalm,
-      '混乱': Colors.grey,
-      '内置': AppColors.accent,
     };
 
     final total = emotions.values.fold(0.0, (a, b) => a + b);

@@ -33,7 +33,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
     super.dispose();
   }
 
-  void _handleCreate() {
+  void _handleCreate() async {
     if (!_formKey.currentState!.validate()) return;
 
     final targetData = {
@@ -46,14 +46,15 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
     };
 
     final provider = context.read<TargetProvider>();
-    final target = TargetModel.fromJson(targetData);
-    provider.setCurrentTarget(target);
+    await provider.createTarget(targetData);
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => const GenerateAvatarScreen(),
-      ),
-    );
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => const GenerateAvatarScreen(),
+        ),
+      );
+    }
   }
 
   @override
@@ -145,6 +146,50 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                 controller: _relationshipController,
                 decoration: const InputDecoration(
                   hintText: '例如：直属领导',
+                ),
+              ),
+              const SizedBox(height: 8),
+              // AI 补全按钮
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: () async {
+                    if (_nameController.text.isEmpty ||
+                        _relationshipController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('请先填写对象名称和关系')),
+                      );
+                      return;
+                    }
+                    final provider = context.read<TargetProvider>();
+                    final result = await provider.aiComplete(
+                      _nameController.text,
+                      _relationshipController.text,
+                    );
+                    if (result != null && mounted) {
+                      if (result['appearance'] != null) {
+                        _appearanceController.text = result['appearance'] as String;
+                      }
+                      if (result['personality'] != null) {
+                        _personalityController.text = result['personality'] as String;
+                      }
+                      if (result['type'] != null) {
+                        setState(() => _selectedType = result['type'] as String);
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('AI 已自动补全！')),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('AI 补全暂不可用，请手动填写')),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.auto_fix_high, size: 18),
+                  label: const Text('AI 自动补全'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 20),

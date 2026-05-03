@@ -55,32 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     final sessionProvider = context.read<SessionProvider>();
-    sessionProvider.addMessage(text, sender: MessageSender.user);
-
-    // 模拟 AI 回复
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        final session = sessionProvider.currentSession;
-        final targetName = session?.targetName ?? 'AI';
-        final style = session?.chatStyleLabel ?? '';
-
-        String reply;
-        if (session?.mode == SessionMode.single) {
-          reply = '我理解你的感受，$text';
-        } else {
-          final styles = {
-            '嘴硬型': '这不能怪我啊，你也有问题',
-            '道歉型': '对不起，是我错了...',
-            '冷漠型': '哦，知道了。',
-            '阴阳型': '呵呵，你说得都对~',
-            '理性型': '我们来客观分析一下这个问题',
-          };
-          reply = styles[style] ?? '你继续说，我在听';
-        }
-
-        sessionProvider.addMessage(reply, sender: MessageSender.ai);
-      }
-    });
+    sessionProvider.sendMessage(text);
 
     _messageController.clear();
     setState(() => _isComposing = false);

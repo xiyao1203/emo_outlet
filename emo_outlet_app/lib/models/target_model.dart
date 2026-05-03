@@ -7,7 +7,7 @@ class TargetModel {
   final String? relationship;
   final String style;
   final String? avatarUrl;
-  final bool isGenerating;
+  final bool isHidden;
   final DateTime? createdAt;
 
   TargetModel({
@@ -19,7 +19,7 @@ class TargetModel {
     this.relationship,
     this.style = '漫画',
     this.avatarUrl,
-    this.isGenerating = false,
+    this.isHidden = false,
     this.createdAt,
   });
 
@@ -33,7 +33,7 @@ class TargetModel {
       relationship: json['relationship'] as String?,
       style: json['style'] as String? ?? '漫画',
       avatarUrl: json['avatar_url'] as String?,
-      isGenerating: json['is_generating'] as bool? ?? false,
+      isHidden: json['is_hidden'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
@@ -50,7 +50,7 @@ class TargetModel {
       if (relationship != null) 'relationship': relationship,
       'style': style,
       if (avatarUrl != null) 'avatar_url': avatarUrl,
-      'is_generating': isGenerating,
+      'is_hidden': isHidden,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
     };
   }
@@ -64,7 +64,7 @@ class TargetModel {
     String? relationship,
     String? style,
     String? avatarUrl,
-    bool? isGenerating,
+    bool? isHidden,
     DateTime? createdAt,
   }) {
     return TargetModel(
@@ -76,7 +76,7 @@ class TargetModel {
       relationship: relationship ?? this.relationship,
       style: style ?? this.style,
       avatarUrl: avatarUrl ?? this.avatarUrl,
-      isGenerating: isGenerating ?? this.isGenerating,
+      isHidden: isHidden ?? this.isHidden,
       createdAt: createdAt ?? this.createdAt,
     );
   }
