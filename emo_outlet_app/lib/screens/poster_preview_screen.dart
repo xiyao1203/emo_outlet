@@ -47,12 +47,10 @@ class PosterPreviewScreen extends StatelessWidget {
             onPressed: () async {
               // 分享海报
               try {
-                await SharePlus.instance.share(
-                  ShareParams(
-                    text: '我刚在「情绪出口」释放了情绪！\n'
-                        '今天的主要情绪是 $dominantEmotion，强度 $dominantValue%\n'
-                        '说出来好多了！😤➡️😌',
-                  ),
+                await Share.share(
+                  '我刚在「情绪出口」释放了情绪！\n'
+                  '今天的主要情绪是 $dominantEmotion，强度 $dominantValue%\n'
+                  '说出来好多了！😤➡️😌',
                 );
               } catch (e) {
                 // share_plus 不可用时 fallback

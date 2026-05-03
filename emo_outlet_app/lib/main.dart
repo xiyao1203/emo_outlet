@@ -80,7 +80,7 @@ class EmoOutletApp extends StatelessWidget {
             ),
             hintStyle: AppTextStyles.label,
           ),
-          cardTheme: CardTheme(
+          cardTheme: CardThemeData(
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),

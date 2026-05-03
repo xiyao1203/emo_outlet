@@ -12,6 +12,7 @@ import 'history_screen.dart';
 import 'emotion_report_screen.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
+import '../models/session_model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

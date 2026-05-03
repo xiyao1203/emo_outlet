@@ -169,7 +169,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   final String text;
 
-  const _SectionTitle({required this.text});
+  const _SectionTitle(this.text);
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +191,7 @@ class _SectionTitle extends StatelessWidget {
 class _BodyText extends StatelessWidget {
   final String text;
 
-  const _BodyText({required this.text});
+  const _BodyText(this.text);
 
   @override
   Widget build(BuildContext context) {
