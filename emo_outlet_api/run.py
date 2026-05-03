@@ -9,12 +9,12 @@
 # 启动服务（开发环境）
 # ============================================================
 # cd emo_outlet_api
-# uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# uvicorn app.main:app --reload --host 0.0.0.0 --port 8686
 
 # ============================================================
 # 启动服务（生产环境）
 # ============================================================
-# uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+# uvicorn app.main:app --host 0.0.0.0 --port 8686 --workers 4
 
 # ============================================================
 # Docker 部署
@@ -25,6 +25,6 @@
 # ============================================================
 # API 文档
 # ============================================================
-# Swagger UI:    http://localhost:8000/docs
-# ReDoc:         http://localhost:8000/redoc
-# 健康检查:      http://localhost:8000/health
+# Swagger UI:    http://localhost:8686/docs
+# ReDoc:         http://localhost:8686/redoc
+# 健康检查:      http://localhost:8686/health
