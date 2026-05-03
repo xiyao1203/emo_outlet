@@ -1,6 +1,7 @@
 """敏感词过滤模块"""
 from __future__ import annotations
 
+import random
 import re
 from typing import ClassVar
 
@@ -68,8 +69,6 @@ class SensitiveFilter:
 
     def get_high_risk_response(self) -> str:
         """获取高风险触发的温和引导响应"""
-        import random
-
         responses = [
             "听起来你现在情绪非常激动。要不要先停下来，深呼吸几次？",
             "我能感受到你非常愤怒，但我们先冷静一下。安全和健康最重要。",

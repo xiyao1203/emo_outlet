@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../config/constants.dart';
 import '../config/theme.dart';
 import '../providers/app_providers.dart';
 import '../models/target_model.dart';
@@ -21,7 +22,7 @@ class TargetListScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(isSelectMode ? '选择泄愤对象' : '我的对象'),
         actions: [
-          if (targets.length < AppSpacing.xxl.toInt())
+          if (targets.length < AppConstants.maxTargetsPerUser)
             IconButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
@@ -121,7 +122,7 @@ class TargetListScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              _actionItem(context, '催毁到情绪', Icons.send_outlined, () {
+              _actionItem(context, '释放到情绪', Icons.send_outlined, () {
                 provider.setCurrentTarget(target);
                 Navigator.of(context).pop();
                 Navigator.of(context).push(
@@ -137,7 +138,7 @@ class TargetListScreen extends StatelessWidget {
                 Navigator.of(context).pop();
               }),
               _actionItem(context, '隐藏', Icons.visibility_off_outlined, () {
-                provider.removeTarget(target.id!);
+                provider.updateTarget(target.id!, {'is_hidden': true});
                 Navigator.of(context).pop();
               }),
             ],

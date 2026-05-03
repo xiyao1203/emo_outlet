@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../config/theme.dart';
+import '../providers/app_providers.dart';
 import '../widgets/common/emotion_bar.dart';
 
 class EmotionReportScreen extends StatefulWidget {
@@ -17,6 +19,20 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    // 初始加载周报
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<EmotionProvider>().loadOverviewReport(period: 'weekly');
+    });
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      final periods = ['weekly', 'monthly', 'yearly'];
+      context.read<EmotionProvider>().loadOverviewReport(
+            period: periods[_tabController.index],
+          );
+    }
   }
 
   @override
@@ -27,6 +43,10 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
 
   @override
   Widget build(BuildContext context) {
+    final emotionProvider = context.watch<EmotionProvider>();
+    final report = emotionProvider.currentReport;
+    final isLoading = emotionProvider.isLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('情绪报告'),
@@ -45,22 +65,22 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _buildReport('本周情绪报告'),
-          _buildReport('本月情绪报告'),
-          _buildReport('本年情绪报告'),
+          _buildReport(context, '本周情绪报告'),
+          _buildReport(context, '本月情绪报告'),
+          _buildReport(context, '本年情绪报告'),
         ],
       ),
     );
   }
 
-  Widget _buildReport(String title) {
-    // 模拟数据
-    const emotions = {
-      '愤怒': 40.0,
-      '焦虑': 25.0,
-      '力量': 20.0,
-      '悲伤': 15.0,
-    };
+  Widget _buildReport(BuildContext context, String title) {
+    final emotionProvider = context.watch<EmotionProvider>();
+    final report = emotionProvider.currentReport;
+    final emotions = report?.emotions ?? {};
+
+    if (emotionProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return SingleChildScrollView(
       padding: AppSpacing.screenPadding,
@@ -68,13 +88,13 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 统计概览
+          if (report != null)
           Row(
             children: [
-              _StatCard(label: '总次数', value: '6次'),
+              _StatCard(label: '总次数', value: '${report?.totalSessions ?? 0}次'),
               const SizedBox(width: 12),
-              _StatCard(label: '总时长', value: '28分钟'),
-              const SizedBox(width: 12),
-              _StatCard(label: '最高情绪', value: '愤怒'),
+              _StatCard(label: '总时长', value: '${report?.totalDurationMinutes ?? 0}分钟'),
+              _StatCard(label: '最高情绪', value: report?.dominantEmotion ?? '-'),
             ],
           ),
           const SizedBox(height: 24),
@@ -167,15 +187,15 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         '情绪建议',
                         style: AppTextStyles.heading3,
                       ),
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        '本周你的主导情绪是愤怒，建议适当增加放松活动，如听音乐、散步等。连续使用 7 天后，不妨给自己一个情绪调节日。',
-                        style: TextStyle(
+                        report?.suggestion ?? '继续保持良好的情绪释放习惯！',
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textSecondary,
                           height: 1.6,

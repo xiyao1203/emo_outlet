@@ -98,10 +98,54 @@ class _HistoryItem extends StatelessWidget {
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () => _showSessionActions(context),
             icon: const Icon(Icons.more_horiz, color: AppColors.textHint),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showSessionActions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.divider,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.article_outlined,
+                    color: AppColors.textSecondary),
+                title: const Text('查看详情', style: AppTextStyles.bodyMedium),
+                onTap: () => Navigator.of(ctx).pop(),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline,
+                    color: AppColors.textSecondary),
+                title: const Text('删除记录', style: AppTextStyles.bodyMedium),
+                onTap: () {
+                  Navigator.of(ctx).pop();
+                  context.read<SessionProvider>().sessions
+                      .removeWhere((s) => s.id == session.id);
+                },
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

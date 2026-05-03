@@ -350,12 +350,12 @@ class EmotionProvider extends ChangeNotifier {
   }
 
   /// 获取周期情绪报告
-  Future<void> loadOverviewReport() async {
+  Future<void> loadOverviewReport({String period = 'weekly'}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final data = await _api.getEmotionReport();
+      final data = await _api.getEmotionReport(period: period);
       _currentReport = EmotionReportModel.fromOverviewJson(data);
     } catch (_) {
       final data = _api.mockEmotionReport();

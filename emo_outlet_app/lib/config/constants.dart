@@ -75,7 +75,7 @@ class AppConstants {
   static const String onboardingKey = 'onboarding_complete';
 
   // 限制
-  static const int maxDialyFreeSessions = 3;
+  static const int maxDailyFreeSessions = 3;
   static const int maxMessageLength = 5000;
   static const int maxTargetsPerUser = 20;
 
