@@ -8,9 +8,6 @@ class ComplianceManager {
   factory ComplianceManager() => _instance;
   ComplianceManager._internal();
 
-  // 本地缓存的敏感词
-  List<String> _localSensitiveWords = [];
-
   /// 合规版本号
   static const String currentVersion = '1.0.0';
 

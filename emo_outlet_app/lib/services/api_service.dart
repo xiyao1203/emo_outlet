@@ -1,12 +1,5 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/constants.dart';
-import '../../models/user_model.dart';
-import '../../models/target_model.dart';
-import '../../models/session_model.dart';
-import '../../models/message_model.dart';
-import '../../models/emotion_report_model.dart';
 
 /// 后端 API 服务
 /// 所有接口与后端 FastAPI 严格对齐
@@ -304,16 +297,6 @@ class ApiService {
       if (ageRange != null) 'age_range': ageRange,
     });
     return response.data as Map<String, dynamic>;
-  }
-
-  Future<String?> _getDeviceUuid() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? uuid = prefs.getString('device_uuid');
-    if (uuid == null) {
-      uuid = 'device_${DateTime.now().millisecondsSinceEpoch}';
-      await prefs.setString('device_uuid', uuid);
-    }
-    return uuid;
   }
 
   List<Map<String, dynamic>> mockTargets() {

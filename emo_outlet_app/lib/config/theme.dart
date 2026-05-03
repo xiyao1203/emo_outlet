@@ -7,11 +7,11 @@ class AppColors {
   static const Color primaryDark = Color(0xFFE06040);
 
   // 辅助色
-  static const Color secondary = Color(0xFF4F8B9C);
+  static const Color secondary = Color(0xFF4F8A56);
   static const Color accent = Color(0xFF6B5CE7);
 
   // 背景色
-  static const Color background = Color(0xFFF5F5F5);
+  static const Color background = Color(0xFFF8F8F8);
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color surfaceLight = Color(0xFFFEF5F0);
 
@@ -39,8 +39,8 @@ class AppColors {
   ];
 
   static const List<Color> splashGradient = [
-    Color(0xFFFF7A56),
-    Color(0xFFFFB088),
+    Color(0xFFFFE5D9),
+    Color(0xFFFFC6A5),
   ];
 
   // 阴影
@@ -165,6 +165,9 @@ class AppSpacing {
   static const double xl = 20;
   static const double xxl = 24;
   static const double xxxl = 32;
+
+  // 图标与文字间距
+  static const double iconTextGap = 8;
 
   static const EdgeInsets screenPadding = EdgeInsets.symmetric(
     horizontal: 20,

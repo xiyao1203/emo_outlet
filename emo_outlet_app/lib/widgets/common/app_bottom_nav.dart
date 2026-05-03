@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../config/theme.dart';
-import '../../config/constants.dart';
 
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
@@ -29,10 +28,9 @@ class AppBottomNav extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _navItem(0, Icons.home_outlined, Icons.home, '首页'),
-              _navItem(1, Icons.emoji_emotions_outlined,
-                  Icons.emoji_emotions, '情绪'),
-              _mainButton(),
-              _navItem(3, Icons.history_outlined, Icons.history, '历史'),
+              _navItem(1, Icons.group_outlined, Icons.group, '对象'),
+              _navItem(2, Icons.list_alt_outlined, Icons.list_alt, '记录'),
+              _navItem(3, Icons.chat_outlined, Icons.chat, '消息'),
               _navItem(4, Icons.person_outline, Icons.person, '我的'),
             ],
           ),
@@ -68,30 +66,6 @@ class AppBottomNav extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _mainButton() {
-    return GestureDetector(
-      onTap: () => onTap(AppConstants.navIndexMain),
-      child: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          shape: BoxShape.circle,
-          boxShadow: [AppColors.buttonShadow],
-        ),
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 28,
         ),
       ),
     );

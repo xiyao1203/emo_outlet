@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/app_providers.dart';
-import '../models/target_model.dart';
-import '../widgets/common/avatar_circle.dart';
 import 'avatar_result_screen.dart';
 
 class GenerateAvatarScreen extends StatefulWidget {
@@ -39,7 +37,6 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
         timer.cancel();
         setState(() => _isComplete = true);
 
-        // 调用后端 API 生成形象
         if (targetId != null) {
           context.read<TargetProvider>().generateAvatar(targetId);
         }
@@ -47,9 +44,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
         Future.delayed(const Duration(milliseconds: 500), () {
           if (mounted) {
             Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => const AvatarResultScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const AvatarResultScreen()),
             );
           }
         });
@@ -71,58 +66,82 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('生成形象'),
+        title: const Text('生成形象', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF8F8F8),
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, color: Color(0xFF666666)),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Center(
         child: Padding(
-          padding: AppSpacing.screenPadding,
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // 生成中头像
-              AvatarCircle(
-                name: name,
-                size: 160,
-                isGenerating: !_isComplete,
-                progress: _isComplete ? 1 : _progress,
+              // 动画头像
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: _isComplete ? 180 : 140,
+                height: _isComplete ? 180 : 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 24, offset: const Offset(0, 8)),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    name.length >= 2 ? name.substring(0, 2) : name[0],
+                    style: TextStyle(fontSize: _isComplete ? 64 : 48, color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
-              // 进度文字
+              // 标题
               Text(
-                _isComplete ? '生成完成！' : '正在生成 ${name} 的形象...',
-                style: AppTextStyles.heading2,
+                _isComplete ? '生成完成！' : '正在创造形象...',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _isComplete ? '看起来就很欠骂！' : 'AI 正在根据你的描述为你创作 $name 的形象',
+                style: const TextStyle(fontSize: 14, color: Color(0xFF999999)),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 12),
-
-              Text(
-                _isComplete ? '看起来就很欠骂！' : 'AI 正在根据你的描述创作...',
-                style: AppTextStyles.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
 
               // 进度条
               if (!_isComplete)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: _progress,
-                      backgroundColor: AppColors.divider,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                          AppColors.primary),
-                      minHeight: 6,
+                Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: _progress,
+                          backgroundColor: const Color(0xFFE0E0E0),
+                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          minHeight: 6,
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Text(
+                      '${(_progress * 100).toStringAsFixed(0)}%',
+                      style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ),
-
               const SizedBox(height: 40),
 
               // 取消按钮
@@ -132,13 +151,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                     _timer.cancel();
                     Navigator.of(context).pop();
                   },
-                  child: const Text(
-                    '取消生成',
-                    style: TextStyle(
-                      color: AppColors.textHint,
-                      fontSize: 15,
-                    ),
-                  ),
+                  child: const Text('取消生成', style: TextStyle(fontSize: 15, color: Color(0xFF999999))),
                 ),
             ],
           ),

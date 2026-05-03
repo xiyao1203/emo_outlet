@@ -10,55 +10,40 @@ class SessionEndScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sessionProvider = context.read<SessionProvider>();
-    final targetName =
-        sessionProvider.currentSession?.targetName ?? '未知对象';
+    final targetName = sessionProvider.currentSession?.targetName ?? '未知对象';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
-          padding: AppSpacing.screenPadding,
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(flex: 2),
-
               // 闹钟图标
               Container(
-                width: 100,
-                height: 100,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.alarm,
-                  size: 48,
-                  color: AppColors.primary,
-                ),
+                child: const Icon(Icons.alarm, size: 56, color: AppColors.primary),
               ),
-              const SizedBox(height: 24),
-
-              // 文案
-              const Text(
-                '时间到啦！',
-                style: AppTextStyles.displayMedium,
-              ),
+              const SizedBox(height: 32),
+              const Text('时间到啦！', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
               const SizedBox(height: 12),
-
               Text(
                 '对 $targetName 的情绪释放结束',
-                style: AppTextStyles.bodySmall,
+                style: const TextStyle(fontSize: 15, color: Color(0xFF999999)),
               ),
-              const SizedBox(height: 8),
-
-              Text(
+              const SizedBox(height: 4),
+              const Text(
                 '来看看你的情绪分析吧',
-                style: AppTextStyles.bodySmall,
+                style: const TextStyle(fontSize: 15, color: Color(0xFF999999)),
               ),
-
               const Spacer(flex: 2),
-
               // 按钮
               SizedBox(
                 width: double.infinity,
@@ -67,32 +52,21 @@ class SessionEndScreen extends StatelessWidget {
                   onPressed: () {
                     final session = sessionProvider.currentSession;
                     if (session?.id != null) {
-                      context
-                          .read<EmotionProvider>()
-                          .generateReport(session!.id!);
+                      context.read<EmotionProvider>().generateReport(session!.id!);
                     }
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const EmotionSummaryScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const EmotionSummaryScreen()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 4,
+                    shadowColor: AppColors.primary.withOpacity(0.3),
                   ),
-                  child: const Text(
-                    '结束并查看',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                  child: const Text('结束并查看', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white)),
                 ),
               ),
-
               const Spacer(flex: 1),
             ],
           ),

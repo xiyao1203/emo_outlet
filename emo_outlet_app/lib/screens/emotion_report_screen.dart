@@ -20,7 +20,6 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
-    // 初始加载周报
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EmotionProvider>().loadOverviewReport(period: 'weekly');
     });
@@ -29,9 +28,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
   void _onTabChanged() {
     if (!_tabController.indexIsChanging) {
       final periods = ['weekly', 'monthly', 'yearly'];
-      context.read<EmotionProvider>().loadOverviewReport(
-            period: periods[_tabController.index],
-          );
+      context.read<EmotionProvider>().loadOverviewReport(period: periods[_tabController.index]);
     }
   }
 
@@ -43,22 +40,21 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
 
   @override
   Widget build(BuildContext context) {
-    final emotionProvider = context.watch<EmotionProvider>();
-    final report = emotionProvider.currentReport;
-    final isLoading = emotionProvider.isLoading;
-
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('情绪报告'),
+        title: const Text('情绪报告', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+        centerTitle: true,
+        backgroundColor: const Color(0xFFF8F8F8),
+        elevation: 0,
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textHint,
+          indicatorSize: TabBarIndicatorSize.label,
           tabs: const [
-            Tab(text: '周报'),
-            Tab(text: '月报'),
-            Tab(text: '年报'),
+            Tab(text: '周报'), Tab(text: '月报'), Tab(text: '年报'),
           ],
         ),
       ),
@@ -79,127 +75,94 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
     final emotions = report?.emotions ?? {};
 
     if (emotionProvider.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     return SingleChildScrollView(
-      padding: AppSpacing.screenPadding,
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 统计概览
           if (report != null)
-          Row(
-            children: [
-              _StatCard(label: '总次数', value: '${report?.totalSessions ?? 0}次'),
+            Row(children: [
+              _StatCard(label: '总次数', value: '${report.totalSessions}次'),
               const SizedBox(width: 12),
-              _StatCard(label: '总时长', value: '${report?.totalDurationMinutes ?? 0}分钟'),
-              _StatCard(label: '最高情绪', value: report?.dominantEmotion ?? '-'),
-            ],
-          ),
-          const SizedBox(height: 24),
+              _StatCard(label: '总时长', value: '${report.totalDurationMinutes}分钟'),
+              _StatCard(label: '最高情绪', value: report.dominantEmotion),
+            ]),
+          const SizedBox(height: 20),
 
           // 情绪饼图
           Container(
             width: double.infinity,
-            padding: AppSpacing.cardPadding,
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              boxShadow: [AppColors.cardShadow],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
             ),
-            child: Column(
-              children: [
-                Text(title, style: AppTextStyles.heading3),
-                const SizedBox(height: 20),
-                EmotionPieChart(emotions: emotions),
-              ],
-            ),
+            child: Column(children: [
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+              const SizedBox(height: 20),
+              EmotionPieChart(emotions: emotions),
+            ]),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // 情绪趋势
           Container(
             width: double.infinity,
-            padding: AppSpacing.cardPadding,
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.cardBackground,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              boxShadow: [AppColors.cardShadow],
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('情绪趋势', style: AppTextStyles.heading3),
+                const Text('情绪趋势', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
                 const SizedBox(height: 16),
                 ...emotions.entries.map((entry) {
                   Color color;
                   switch (entry.key) {
-                    case '愤怒':
-                      color = AppColors.emotionAnger;
-                      break;
-                    case '焦虑':
-                      color = AppColors.emotionAnxiety;
-                      break;
-                    case '悲伤':
-                      color = AppColors.emotionSadness;
-                      break;
-                    case '疲惫':
-                      color = AppColors.emotionPower;
-                      break;
-                    case '无奈':
-                      color = AppColors.emotionCalm;
-                      break;
-                    default:
-                      color = AppColors.emotionCalm;
+                    case '愤怒': color = AppColors.emotionAnger; break;
+                    case '焦虑': color = AppColors.emotionAnxiety; break;
+                    case '悲伤': color = AppColors.emotionSadness; break;
+                    case '疲惫': color = AppColors.emotionPower; break;
+                    case '无奈': color = AppColors.emotionCalm; break;
+                    default: color = AppColors.emotionCalm;
                   }
-                  return EmotionBar(
-                    label: entry.key,
-                    value: entry.value,
-                    color: color,
-                  );
+                  return EmotionBar(label: entry.key, value: entry.value, color: color);
                 }),
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           // 建议
           Container(
             width: double.infinity,
-            padding: AppSpacing.cardPadding,
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(
-                color: AppColors.primary.withOpacity(0.2),
-              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.lightbulb_outline,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
+                const Icon(Icons.lightbulb_outline, color: AppColors.primary, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '情绪建议',
-                        style: AppTextStyles.heading3,
-                      ),
+                      const Text('情绪建议', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
                       const SizedBox(height: 8),
                       Text(
                         report?.suggestion ?? '继续保持良好的情绪释放习惯！',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                        ),
+                        style: const TextStyle(fontSize: 14, color: Color(0xFF666666), height: 1.6),
                       ),
                     ],
                   ),
@@ -207,6 +170,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen>
               ],
             ),
           ),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -225,30 +189,15 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          boxShadow: [AppColors.cardShadow],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textHint,
-              ),
-            ),
-          ],
-        ),
+        child: Column(children: [
+          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primary)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF999999))),
+        ]),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'dart:io';
 import '../models/user_model.dart';
 import '../config/constants.dart';
 import 'api_service.dart';
