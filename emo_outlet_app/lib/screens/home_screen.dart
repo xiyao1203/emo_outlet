@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../config/constants.dart';
+import '../config/compliance.dart';
 import '../providers/app_providers.dart';
 import '../services/auth_service.dart';
 import '../widgets/common/app_bottom_nav.dart';
@@ -78,6 +79,9 @@ class _HomePage extends StatelessWidget {
     final user = AuthService().currentUser;
     final nickname = user?.nickname ?? '访客';
     final targetProvider = context.watch<TargetProvider>();
+    final compliance = ComplianceManager();
+    final ageRange = user?.ageRange;
+    final isMinorUser = ageRange == '<14' || ageRange == '14-18';
 
     return Scaffold(
       appBar: AppBar(
@@ -94,6 +98,40 @@ class _HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 未成年保护提示
+            if (isMinorUser)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.2),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.shield_outlined,
+                        size: 20, color: AppColors.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        ageRange == '<14'
+                            ? '青少年模式已开启 · 每日限1次会话'
+                            : '青少年模式已开启 · 每日限2次会话',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             // 主要 CTA
             Container(
               width: double.infinity,

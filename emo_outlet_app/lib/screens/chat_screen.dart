@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../models/message_model.dart';
 import '../providers/app_providers.dart';
+import '../services/api_service.dart';
+import '../utils/helpers.dart';
 import 'session_end_screen.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -50,9 +52,67 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  /// AI 使用确认（首次发送消息前弹窗）
+  bool _aiConfirmed = false;
+
+  Future<void> _confirmAiDisclaimer() async {
+    if (_aiConfirmed) return;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('AI 服务确认'),
+        content: const Text(
+          '本对话由 AI 生成，回复不构成任何心理或医疗建议。\n'
+          '如果您有严重心理困扰，请拨打专业援助热线。\n\n'
+          '全国24小时心理援助热线：010-82951332',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('我知道了'),
+          ),
+        ],
+      ),
+    );
+    _aiConfirmed = result ?? false;
+    if (!_aiConfirmed) return;
+  }
+
   void _sendMessage() {
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
+
+    if (!_aiConfirmed) {
+      _confirmAiDisclaimer().then((_) {
+        if (_aiConfirmed && text.isNotEmpty) {
+          _doSendMessage(text);
+        }
+      });
+      return;
+    }
+
+    _doSendMessage(text);
+  }
+
+  void _doSendMessage(String text) {
+    if (text.isEmpty) return;
+
+    // 前端内容过滤
+    final filterResult = ContentFilter.checkInput(text);
+    if (filterResult != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(filterResult),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
 
     final sessionProvider = context.read<SessionProvider>();
     sessionProvider.sendMessage(text);
@@ -253,10 +313,60 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _showReportDialog(MessageModel msg) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('举报内容'),
+        content: const Text('确认要举报这条消息吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              try {
+                await ApiService().createReport(
+                  sessionId: msg.sessionId,
+                  messageId: msg.id,
+                  reportType: 'inappropriate',
+                  description: '用户举报该消息内容不当',
+                );
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('举报已提交，感谢你的反馈'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (_) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('举报提交失败，请稍后重试'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('确认举报'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMessageBubble(MessageModel msg) {
     final isUser = msg.isUser;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+    return GestureDetector(
+      onLongPress: () => _showReportDialog(msg),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -329,6 +439,7 @@ class _ChatScreenState extends State<ChatScreen> {
           if (isUser) const SizedBox(width: 8),
         ],
       ),
+    ),
     );
   }
 }

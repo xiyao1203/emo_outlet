@@ -1,4 +1,11 @@
-"""AI 服务：LLM 对话 + 图像生成 + ASR/TTS"""
+"""AI 服务：LLM 对话 + 图像生成 + ASR/TTS
+
+合规特性：
+- 增强安全 Guardrails：system prompt 强制安全边界
+- 输出端内容审核集成（ai_content_audit）
+- 未成年人内容限制（年龄感知）
+- 对话轮数上限控制
+"""
 from __future__ import annotations
 
 import json
@@ -8,6 +15,7 @@ from typing import Any
 from openai import AsyncOpenAI
 
 from app.config import settings
+from app.utils.ai_content_audit import ai_content_audit
 
 
 # ============================================================
@@ -23,11 +31,21 @@ STYLE_PROMPTS = {
     "rational": "你是一个极度理性、讲道理的人。对方骂你的时候，你冷静分析、摆事实讲道理。",
 }
 
-# 单向下沉式 Prompt
+# 单向下沉式 Prompt（增强安全边界）
 SINGLE_MODE_SYSTEM_PROMPT = (
     "你是一个情绪承接者。用户的对话是情绪宣泄，"
     "你只允许安抚、倾听、承接情绪，不允许反击或反驳。"
     "你的回复要简短（不超过 50 字），体现理解和接纳。"
+    "即使对方表达极端情绪，你也不得升级冲突、不得鼓励现实暴力。"
+)
+
+# 未成年人系统 Prompt（更温和、更正向引导）
+JUNIOR_SYSTEM_PROMPT = (
+    "你是一个温暖的朋友，帮助用户表达感受。"
+    "你的回复要温柔、正向、简短（不超过 30 字）。"
+    "重点关注用户的感受和情绪健康。"
+    "如果用户有负面情绪，引导他们做些积极的事情。"
+    "绝对不允许：粗口、暴力暗示、任何可能伤害用户的内容。"
 )
 
 # 方言提示词
@@ -86,8 +104,21 @@ class AiService:
         chat_style: str = "apologetic",
         dialect: str = "mandarin",
         history: list[dict] | None = None,
+        age_range: str | None = None,
     ) -> str:
-        """AI 对话"""
+        """AI 对话（合规增强版）
+
+        特性：
+        - 年龄感知：根据 age_range 调整回复策略（未成年更温和）
+        - 输出审核：AI 回复经过 ai_content_audit 审查
+        - 回复不安全时兜底拦截
+        """
+        # 未成年模式：使用更温和的回复策略
+        if age_range in ("<14", "14-18"):
+            return await self._junior_chat(
+                user_message, mode, chat_style, dialect, history, age_range
+            )
+
         if self._use_mock or (client := self._get_client()) is None:
             return self._mock_reply(mode, chat_style, dialect)
 
@@ -101,9 +132,80 @@ class AiService:
                 max_tokens=200,
                 temperature=0.8,
             )
-            return response.choices[0].message.content or ""
+            ai_reply = response.choices[0].message.content or ""
+
+            # 输出端内容审核
+            audit_result = await ai_content_audit.audit_response(ai_reply)
+            if not audit_result["passed"]:
+                # 不安全的回复 -> 兜底
+                return await ai_content_audit.get_safe_fallback(ai_reply)
+
+            return ai_reply
         except Exception as e:
             return f"[AI 服务暂不可用] {str(e)}"
+
+    async def _junior_chat(
+        self,
+        user_message: str,
+        mode: str,
+        chat_style: str,
+        dialect: str,
+        history: list[dict] | None,
+        age_range: str,
+    ) -> str:
+        """未成年人对话（更温和模式）"""
+        if self._use_mock or (client := self._get_client()) is None:
+            return self._mock_junior_reply(dialect, age_range)
+
+        system_parts = [JUNIOR_SYSTEM_PROMPT]
+
+        if age_range == "<14":
+            system_parts.append(
+                "用户年龄在14岁以下。你的回复必须极其温和，"
+                "避免任何可能引起恐惧或焦虑的内容。"
+                "多鼓励用户和父母或老师交流。"
+            )
+        else:
+            system_parts.append(
+                "用户年龄在14-18岁。你的回复要温和正向，"
+                "适当引导情绪、鼓励积极行动。"
+            )
+
+        # 安全限制（未成年人更严格）
+        system_parts.append(
+            "【绝对红线】不允许任何形式：暴力、自伤、色情、"
+            "违法内容暗示。发现用户表达极端情绪，请温和引导。"
+        )
+
+        dialect_prompt = DIALECT_PROMPTS.get(dialect, DIALECT_PROMPTS["mandarin"])
+        system_parts.append(dialect_prompt)
+
+        messages = [{"role": "system", "content": "\n".join(system_parts)}]
+
+        if history:
+            for msg in history[-5:]:  # 未成年模式保留更少的上下文
+                role = "assistant" if msg.get("sender") == "ai" else "user"
+                messages.append({"role": role, "content": msg.get("content", "")})
+
+        messages.append({"role": "user", "content": user_message})
+
+        try:
+            response = await client.chat.completions.create(
+                model=settings.LLM_MODEL,
+                messages=messages,
+                max_tokens=150,
+                temperature=0.6,  # 更低的温度 = 更可控
+            )
+            ai_reply = response.choices[0].message.content or ""
+
+            # 输出审核
+            audit_result = await ai_content_audit.audit_response(ai_reply)
+            if not audit_result["passed"]:
+                return await ai_content_audit.get_safe_fallback(ai_reply)
+
+            return ai_reply
+        except Exception as e:
+            return await ai_content_audit.get_safe_fallback()
 
     def _build_messages(
         self,
@@ -112,7 +214,7 @@ class AiService:
         dialect: str,
         history: list[dict] | None,
     ) -> list[dict]:
-        """构建对话消息"""
+        """构建对话消息（增强安全 Guardrails）"""
         system_parts = []
 
         if mode == "single":
@@ -124,10 +226,13 @@ class AiService:
                 "你的回复要简短（不超过 50 字），符合角色设定。"
             )
 
-        # 系统安全限制
+        # 增强系统安全限制
         system_parts.append(
-            "【安全限制】不允许：1)鼓励现实暴力/伤害 2)自伤/他伤引导 "
-            "3)色情内容 4)违法犯罪。如果用户表达极端危险意图，请温和引导并建议寻求专业帮助。"
+            "【系统安全限制 - 必须遵守】\n"
+            "1) 绝对禁止：鼓励现实暴力、自伤/他伤引导、色情内容、违法犯罪\n"
+            "2) 如果用户表达极端危险意图（自杀、伤害他人），请温和引导并建议寻求专业帮助\n"
+            "3) 在角色扮演中也不得突破上述红线\n"
+            "4) 你的角色是情绪释放助手，不是煽动工具"
         )
 
         # 方言控制
@@ -136,12 +241,32 @@ class AiService:
 
         messages = [{"role": "system", "content": "\n".join(system_parts)}]
 
+        # 最多保留 10 条上下文
         if history:
-            for msg in history[-10:]:  # 保留最近 10 条上下文
+            for msg in history[-10:]:
                 role = "assistant" if msg.get("sender") == "ai" else "user"
                 messages.append({"role": role, "content": msg.get("content", "")})
 
         return messages
+
+    def _mock_junior_reply(self, dialect: str, age_range: str) -> str:
+        """模拟未成年人模式回复"""
+        replies = {
+            "<14": [
+                "我听到你说的了。要不要和爸爸妈妈聊聊？",
+                "你的感受很重要，但安全第一。我们试试深呼吸好吗？",
+                "我理解你有点不开心。我们换个开心的事情聊聊吧？",
+                "小朋友，有情绪很正常。不要憋在心里哦。",
+            ],
+            "14-18": [
+                "我听到你表达的情绪了。要不要换个角度看看？",
+                "你的感受是真的，但我们不用生气来解决问题。",
+                "这种情绪很正常。写下来或者找朋友聊聊可能会好一些。",
+                "我知道你现在不太好受。做点喜欢的事情放松一下吧。",
+            ],
+        }
+        pool = replies.get(age_range, replies["14-18"])
+        return random.choice(pool)
 
     def _mock_reply(self, mode: str, chat_style: str, dialect: str) -> str:
         """模拟 AI 回复（开发/无 API 时使用）"""

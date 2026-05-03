@@ -13,6 +13,12 @@ class UserRegisterRequest(BaseModel):
     email: str | None = Field(default=None, description="邮箱")
     password: str = Field(..., min_length=6, max_length=50, description="密码")
     device_uuid: str | None = Field(default=None, description="设备 UUID")
+    consent_version: str | None = Field(
+        default=None, description="用户同意的协议版本号"
+    )
+    age_range: str | None = Field(
+        default=None, description="年龄段: <14 / 14-18 / >18"
+    )
 
 
 class UserLoginRequest(BaseModel):
@@ -43,6 +49,9 @@ class UserResponse(BaseModel):
     avatar_url: str | None = None
     is_visitor: bool = False
     daily_session_count: int = 0
+    age_range: str | None = None
+    is_banned: bool = False
+    is_admin: bool = False
     created_at: datetime | None = None
 
     class Config:

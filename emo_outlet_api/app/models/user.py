@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, String, Text, func
+from sqlalchemy import Boolean, DateTime, Integer, String, Text, func
 from sqlalchemy.dialects.mysql import VARCHAR
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -28,6 +28,18 @@ class UserModel(Base):
     last_active_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # 合规字段
+    age_range: Mapped[str | None] = mapped_column(
+        String(5), nullable=True, comment="年龄段: <14 / 14-18 / >18"
+    )
+    is_banned: Mapped[bool] = mapped_column(Boolean, default=False)
+    ban_reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    consent_version: Mapped[str | None] = mapped_column(
+        String(20), nullable=True, comment="同意的协议版本"
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

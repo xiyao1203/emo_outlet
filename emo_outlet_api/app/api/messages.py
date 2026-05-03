@@ -15,8 +15,10 @@ from app.schemas.message import (
     MessageResponse,
     MessageSendRequest,
 )
+from app.models.compliance import ContentAuditLog
 from app.services.ai_service import ai_service
 from app.utils.sensitive_filter import sensitive_filter
+from app.config import settings
 import datetime
 
 router = APIRouter(prefix="/api/sessions", tags=["消息"])
@@ -159,13 +161,51 @@ async def send_message(
         {"sender": m.sender, "content": m.content} for m in history_messages
     ]
 
-    # 调用 AI 回复
+    # 获取历史消息数量，检查对话轮数上限
+    max_turns = settings.MAX_CONVERSATION_TURNS
+    if current_user.age_range == "<14":
+        max_turns = settings.MAX_CONVERSATION_TURNS_UNDER_14
+    elif current_user.age_range == "14-18":
+        max_turns = settings.MAX_CONVERSATION_TURNS_14_TO_18
+
+    if len(history) // 2 >= max_turns:
+        session.status = "completed"
+        session.is_completed = True
+        db.add(session)
+        await db.flush()
+        timeout_msg = MessageModel(
+            session_id=session_id,
+            content="对话已到达上限，请休息一下。如果需要，可以开始一次新的会话。",
+            sender="ai",
+            dialect=session.dialect,
+            sequence=await _get_next_sequence(db, session_id),
+        )
+        db.add(timeout_msg)
+        await db.flush()
+        return MessageResponse.model_validate(timeout_msg)
+
+    # 记录审计日志
+    if sensitive_result["has_sensitive"] and settings.ENABLE_AUDIT_LOG:
+        audit_log = ContentAuditLog(
+            user_id=current_user.id,
+            session_id=session_id,
+            audit_type="user_input",
+            risk_level="high" if sensitive_result["has_high_risk"] else "medium",
+            matched_keywords=",".join(sensitive_result["matched_words"]),
+            original_content=req.content[:500],
+            action_taken="interrupted" if sensitive_result["has_high_risk"] else "filtered",
+        )
+        db.add(audit_log)
+        await db.flush()
+
+    # 调用 AI 回复（传入年龄信息）
     ai_content = await ai_service.chat(
         user_message=req.content,
         mode=session.mode,
         chat_style=session.chat_style or "apologetic",
         dialect=session.dialect,
         history=history,
+        age_range=current_user.age_range,
     )
 
     # 保存 AI 消息

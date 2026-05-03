@@ -57,11 +57,16 @@ class AuthService {
     }
   }
 
-  /// 注册
+  /// 注册（合规增强：携带 consent_version 和 age_range）
   Future<UserModel> register(
-      String phone, String password, String? nickname) async {
+      String phone, String password, String? nickname,
+      {String? consentVersion, String? ageRange}) async {
     try {
-      final data = await _api.register(phone, password, nickname);
+      final data = await _api.registerWithCompliance(
+        phone, password, nickname,
+        consentVersion: consentVersion,
+        ageRange: ageRange,
+      );
       final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
       await saveUser(user);
       await saveToken(data['access_token'] as String);

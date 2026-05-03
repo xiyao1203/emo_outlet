@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import check_daily_session_limit, get_current_user
 from app.database import get_db
 from app.models.message import MessageModel
 from app.models.session import SessionModel
@@ -68,22 +68,24 @@ async def create_session(
     if not target:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="目标不存在")
 
-    # 检查每日限制
-    today = datetime.now(timezone.utc).date()
-    if current_user.last_active_date != str(today):
-        # 新的一天，重置计数
-        current_user.daily_session_count = 0
-        current_user.last_active_date = str(today)
-
-    if current_user.daily_session_count >= settings.MAX_DAILY_FREE_SESSIONS:
+    # 检查每日限制（年龄感知）
+    if not await check_daily_session_limit(current_user):
+        limit = settings.MAX_DAILY_SESSIONS_ADULT
+        if current_user.age_range == "<14":
+            limit = settings.MAX_DAILY_SESSIONS_UNDER_14
+        elif current_user.age_range == "14-18":
+            limit = settings.MAX_DAILY_SESSIONS_14_TO_18
+        elif current_user.is_visitor:
+            limit = settings.MAX_DAILY_SESSIONS_VISITOR
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"每日会话上限（{settings.MAX_DAILY_FREE_SESSIONS}次）已到，明天再来吧",
+            detail=f"每日会话上限（{limit}次）已到，请明天再来",
         )
 
     # 更新用户计数
+    today = datetime.now(timezone.utc).date().isoformat()
     current_user.daily_session_count += 1
-    current_user.last_active_date = str(today)
+    current_user.last_active_date = today
     db.add(current_user)
 
     # 创建会话

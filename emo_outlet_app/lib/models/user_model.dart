@@ -7,6 +7,10 @@ class UserModel {
   final bool isVisitor;
   final int dailySessionCount;
   final DateTime? createdAt;
+  // 合规字段
+  final String? ageRange;
+  final bool isBanned;
+  final bool isAdmin;
 
   UserModel({
     this.id,
@@ -17,6 +21,9 @@ class UserModel {
     this.isVisitor = false,
     this.dailySessionCount = 0,
     this.createdAt,
+    this.ageRange,
+    this.isBanned = false,
+    this.isAdmin = false,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -31,6 +38,9 @@ class UserModel {
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : null,
+      ageRange: json['age_range'] as String?,
+      isBanned: json['is_banned'] as bool? ?? false,
+      isAdmin: json['is_admin'] as bool? ?? false,
     );
   }
 
@@ -44,6 +54,9 @@ class UserModel {
       'is_visitor': isVisitor,
       'daily_session_count': dailySessionCount,
       if (createdAt != null) 'created_at': createdAt!.toIso8601String(),
+      if (ageRange != null) 'age_range': ageRange,
+      'is_banned': isBanned,
+      'is_admin': isAdmin,
     };
   }
 
@@ -56,6 +69,9 @@ class UserModel {
     bool? isVisitor,
     int? dailySessionCount,
     DateTime? createdAt,
+    String? ageRange,
+    bool? isBanned,
+    bool? isAdmin,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -66,6 +82,9 @@ class UserModel {
       isVisitor: isVisitor ?? this.isVisitor,
       dailySessionCount: dailySessionCount ?? this.dailySessionCount,
       createdAt: createdAt ?? this.createdAt,
+      ageRange: ageRange ?? this.ageRange,
+      isBanned: isBanned ?? this.isBanned,
+      isAdmin: isAdmin ?? this.isAdmin,
     );
   }
 }

@@ -1,14 +1,18 @@
 """依赖注入"""
 from __future__ import annotations
 
+from datetime import date, datetime, timezone
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import decode_access_token
 from app.database import get_db
 from app.models.user import UserModel
+from app.models.session import SessionModel
+from app.config import settings
 
 security_scheme = HTTPBearer(auto_error=False)
 
@@ -51,6 +55,53 @@ async def get_current_user(
             detail="用户不存在",
         )
 
+    if user.is_banned:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"账号已被封禁: {user.ban_reason or '违反服务条款'}",
+        )
+
+    # 防沉迷检查：重置每日计数（如果日期变了）
+    today = date.today().isoformat()
+    if user.last_active_date != today:
+        user.daily_session_count = 0
+        user.last_active_date = today
+
+    return user
+
+
+async def check_daily_session_limit(user: UserModel) -> bool:
+    """检查用户是否达到每日会话上限
+    返回 True 表示可以继续，False 表示已达上限
+    """
+    today = date.today().isoformat()
+    if user.last_active_date != today:
+        # 新的一天，重置计数
+        user.daily_session_count = 0
+        user.last_active_date = today
+        return True
+
+    if user.is_visitor:
+        return user.daily_session_count < settings.MAX_DAILY_SESSIONS_VISITOR
+    elif user.age_range == "<14":
+        return user.daily_session_count < settings.MAX_DAILY_SESSIONS_UNDER_14
+    elif user.age_range == "14-18":
+        return user.daily_session_count < settings.MAX_DAILY_SESSIONS_14_TO_18
+    else:
+        return user.daily_session_count < settings.MAX_DAILY_SESSIONS_ADULT
+
+
+async def get_admin_user(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> UserModel:
+    """管理员权限依赖注入"""
+    user = await get_current_user(credentials, db)
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="需要管理员权限",
+        )
     return user
 
 

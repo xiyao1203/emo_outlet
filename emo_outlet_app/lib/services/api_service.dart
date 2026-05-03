@@ -251,6 +251,26 @@ class ApiService {
   }
 
   // ═══════════════════════════════════════════════
+  // 举报 API
+  // ═══════════════════════════════════════════════
+
+  /// 提交举报 — POST /api/reports
+  Future<Map<String, dynamic>> createReport({
+    required String reportType,
+    String? sessionId,
+    String? messageId,
+    String description = '',
+  }) async {
+    final response = await _dio.post('/reports', data: {
+      'session_id': sessionId,
+      'message_id': messageId,
+      'report_type': reportType,
+      'description': description,
+    });
+    return response.data as Map<String, dynamic>;
+  }
+
+  // ═══════════════════════════════════════════════
   // 模拟数据（后端不可用时的 fallback）
   // ═══════════════════════════════════════════════
 
@@ -269,6 +289,21 @@ class ApiService {
         'created_at': DateTime.now().toIso8601String(),
       },
     };
+  }
+
+  /// 注册时携带合规数据 — POST /api/auth/register
+  Future<Map<String, dynamic>> registerWithCompliance(
+      String account, String password, String? nickname,
+      {String? consentVersion, String? ageRange}) async {
+    final isEmail = account.contains('@');
+    final response = await _dio.post('/auth/register', data: {
+      if (isEmail) 'email': account else 'phone': account,
+      'password': password,
+      if (nickname != null && nickname.isNotEmpty) 'nickname': nickname,
+      if (consentVersion != null) 'consent_version': consentVersion,
+      if (ageRange != null) 'age_range': ageRange,
+    });
+    return response.data as Map<String, dynamic>;
   }
 
   Future<String?> _getDeviceUuid() async {

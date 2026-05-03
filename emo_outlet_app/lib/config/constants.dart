@@ -79,6 +79,12 @@ class AppConstants {
   static const int maxMessageLength = 5000;
   static const int maxTargetsPerUser = 20;
 
+  // 合规配置
+  static const String complianceAgreedKey = 'compliance_agreed';
+  static const String complianceVersion = '1.0.0';
+  static const String ageRangeKey = 'user_age_range';
+  static const List<String> ageRangeOptions = ['<14', '14-18', '>18'];
+
   // 底部导航栏
   static const int navIndexHome = 0;
   static const int navIndexEmotion = 1;

@@ -83,12 +83,16 @@ from app.api.targets import router as targets_router
 from app.api.sessions import router as sessions_router
 from app.api.messages import router as messages_router
 from app.api.posters import router as posters_router
+from app.api.reports import router as reports_router
+from app.api.admin import router as admin_router
 
 app.include_router(auth_router)
 app.include_router(targets_router)
 app.include_router(sessions_router)
 app.include_router(messages_router)
 app.include_router(posters_router)
+app.include_router(reports_router)
+app.include_router(admin_router)
 
 
 # ============================================================

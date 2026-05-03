@@ -91,6 +91,24 @@ class Settings(BaseSettings):
     MAX_DAILY_FREE_SESSIONS: int = 3
     SENSITIVE_WORD_FILE: str = ""
 
+    # === 合规配置 ===
+    COMPLIANCE_VERSION: str = "1.0.0"
+
+    # 防沉迷 - 每日最大会话数（不同年龄段）
+    MAX_DAILY_SESSIONS_UNDER_14: int = 1
+    MAX_DAILY_SESSIONS_14_TO_18: int = 2
+    MAX_DAILY_SESSIONS_ADULT: int = 3
+    MAX_DAILY_SESSIONS_VISITOR: int = 1
+
+    # 对话轮数上限
+    MAX_CONVERSATION_TURNS: int = 50
+    MAX_CONVERSATION_TURNS_UNDER_14: int = 10
+    MAX_CONVERSATION_TURNS_14_TO_18: int = 25
+
+    # 审计日志
+    ENABLE_AUDIT_LOG: bool = True
+    AUDIT_LOG_SAMPLE_RATE: float = 1.0  # 1.0 = 全部采样
+
     # 方言词库路径
     DIALECT_DATA_DIR: str = ""
 

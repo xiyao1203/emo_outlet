@@ -41,7 +41,7 @@ async def get_db() -> AsyncSession:  # type: ignore
 async def init_db():
     """创建所有表"""
     async with engine.begin() as conn:
-        from app.models import user, target, session, message, poster  # noqa: F401
+        from app.models import user, target, session, message, poster, compliance  # noqa: F401
         await conn.run_sync(Base.metadata.create_all)
 
 

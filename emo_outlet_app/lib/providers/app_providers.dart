@@ -391,4 +391,13 @@ class EmotionProvider extends ChangeNotifier {
     _posterData = null;
     notifyListeners();
   }
+
+  /// 清除敏感缓存数据（注销时调用）
+  void clearSensitiveCache() {
+    _currentReport = null;
+    _reports = [];
+    _posterUrl = null;
+    _posterData = null;
+    notifyListeners();
+  }
 }
