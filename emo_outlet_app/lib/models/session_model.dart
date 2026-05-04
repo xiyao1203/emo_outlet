@@ -13,7 +13,7 @@ class SessionModel {
   final int durationMinutes;
   final DateTime? startTime;
   final DateTime? endTime;
-  final String status; // active / completed / interrupted
+  final String status;
   final bool isCompleted;
   final String? emotionSummary;
   final String? summaryText;
@@ -26,7 +26,7 @@ class SessionModel {
     this.mode = SessionMode.single,
     this.chatStyle,
     this.dialect = '普通话',
-    this.durationMinutes = 3,
+    this.durationMinutes = 5,
     this.startTime,
     this.endTime,
     this.status = 'active',
@@ -46,7 +46,7 @@ class SessionModel {
       mode: json['mode'] == 'dual' ? SessionMode.dual : SessionMode.single,
       chatStyle: _parseChatStyle(json['chat_style'] as String?),
       dialect: _parseDialect(json['dialect'] as String?),
-      durationMinutes: json['duration_minutes'] as int? ?? 3,
+      durationMinutes: json['duration_minutes'] as int? ?? 5,
       startTime: json['start_time'] != null
           ? DateTime.parse(json['start_time'] as String)
           : null,
@@ -60,7 +60,6 @@ class SessionModel {
     );
   }
 
-  /// 将后端英文方言代码转换为前端中文显示
   static String _parseDialect(String? value) {
     const map = {
       'mandarin': '普通话',

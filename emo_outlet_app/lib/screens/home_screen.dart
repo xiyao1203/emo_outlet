@@ -1,35 +1,38 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../config/constants.dart';
 import '../providers/app_providers.dart';
 import '../services/auth_service.dart';
+import '../widgets/auth/auth_visuals.dart';
 import '../widgets/common/app_bottom_nav.dart';
-import 'target_list_screen.dart';
-import 'history_screen.dart';
+import '../widgets/common/emo_ui.dart';
 import 'emotion_report_screen.dart';
+import 'history_screen.dart';
+import 'profile_home_screen.dart';
+import 'session_mode_screen.dart';
 import 'settings_screen.dart';
+import 'target_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({super.key, this.initialIndex = 0});
+
+  final int initialIndex;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentNavIndex = 0;
+  late int _currentIndex;
   final _authService = AuthService();
-
-  final List<Widget> _pages = [
-    const _HomePage(),
-    const TargetListScreen(),
-    const HistoryScreen(),
-    const _MessagesTab(),
-    const _ProfileTab(),
-  ];
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _authService.init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TargetProvider>().loadTargets();
@@ -40,273 +43,281 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentNavIndex],
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentNavIndex,
-        onTap: (index) => setState(() => _currentNavIndex = index),
+    final pages = <Widget>[
+      const _HomeTab(),
+      const TargetListScreen(),
+      const HistoryScreen(),
+      ProfileHomeScreen(
+        onSwitchTab: (index) => setState(() => _currentIndex = index),
       ),
+    ];
+
+    return EmoPageScaffold(
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+      ),
+      child: pages[_currentIndex],
     );
   }
 }
 
-class _HomePage extends StatelessWidget {
-  const _HomePage();
+class _HomeTab extends StatelessWidget {
+  const _HomeTab();
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthService>().currentUser;
-    final isMinor = user?.ageRange == '<14' || user?.ageRange == '14-18';
+    final user = AuthService().currentUser;
+    final targets = context.watch<TargetProvider>().targets;
+    final topTarget = targets.isNotEmpty ? targets.first : null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          '首页',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF333333),
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
-      ),
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // 未成年人保护横幅
-            if (isMinor)
-              Container(
-                width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontal = math.min(width * 0.05, 20.0);
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(horizontal, 18, horizontal, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const EmoTopBrandBar(trailing: EmoProfileBubble()),
+              const SizedBox(height: 26),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    color: AuthPalette.textPrimary,
+                    fontSize: 38,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
                   children: [
-                    Icon(Icons.shield_outlined, color: Colors.white, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '青少年模式已开启 · 每日1次会话',
-                        style: TextStyle(color: Colors.white, fontSize: 13),
-                      ),
+                    const TextSpan(text: 'Hi, '),
+                    TextSpan(text: user?.nickname ?? '小太阳'),
+                    const TextSpan(text: ' 👋'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '今天想把哪些情绪说出来呢？',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFF746962),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 22),
+              EmoSectionCard(
+                radius: 34,
+                padding: const EdgeInsets.fromLTRB(22, 22, 22, 24),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '把不舒服的情绪',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w800,
+                                  color: AuthPalette.textPrimary,
+                                  height: 1.12,
+                                ),
+                              ),
+                              Text(
+                                '轻轻放出来',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFFFF6D4C),
+                                  height: 1.12,
+                                ),
+                              ),
+                              SizedBox(height: 18),
+                              Text(
+                                '安全表达 · 即时疏解 · 专属陪伴',
+                                style: TextStyle(
+                                  fontSize: 17,
+                                  color: Color(0xFF776B66),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const EmoDecorationCloud(size: 190),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    GradientPrimaryButton(
+                      text: '开始释放情绪',
+                      height: 72,
+                      fontSize: 28,
+                      onTap: () {
+                        if (topTarget != null) {
+                          context
+                              .read<TargetProvider>()
+                              .setCurrentTarget(topTarget);
+                        }
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (_) => const SessionModeScreen()),
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
-            const SizedBox(height: 20),
-            // 功能卡片网格
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
+              const SizedBox(height: 22),
+              GridView.count(
+                crossAxisCount: 2,
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 1.08,
                 children: [
-                  Expanded(child: _buildFeatureCard(Icons.person_off_outlined, '我的对象', () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const TargetListScreen()),
-                    );
-                  })),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildFeatureCard(Icons.history_outlined, '历史记录', () {
-                    Navigator.of(context).push(
+                  _FeatureCard(
+                    emoji: '💗',
+                    emojiBg: const Color(0xFFFFB1BF),
+                    title: '我的对象',
+                    subtitle: '管理你关心的人',
+                    onTap: () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (_) => const HomeScreen(
+                            initialIndex: AppConstants.navIndexTarget),
+                      ),
+                    ),
+                  ),
+                  _FeatureCard(
+                    emoji: '🕘',
+                    emojiBg: const Color(0xFF9D93FF),
+                    title: '历史记录',
+                    subtitle: '查看过去的倾诉',
+                    onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const HistoryScreen()),
-                    );
-                  })),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(child: _buildFeatureCard(Icons.bar_chart_outlined, '情绪报告', () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const EmotionReportScreen()),
-                    );
-                  })),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildFeatureCard(Icons.settings_outlined, '设置中心', () {
-                    Navigator.of(context).push(
+                    ),
+                  ),
+                  _FeatureCard(
+                    emoji: '📊',
+                    emojiBg: const Color(0xFFFFB057),
+                    title: '情绪报告',
+                    subtitle: '探索你的情绪趋势',
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (_) => const EmotionReportScreen()),
+                    ),
+                  ),
+                  _FeatureCard(
+                    emoji: '⚙️',
+                    emojiBg: const Color(0xFFD8D8D8),
+                    title: '设置中心',
+                    subtitle: '个性化你的体验',
+                    onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    );
-                  })),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
+}
 
-  Widget _buildFeatureCard(IconData icon, String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+class _FeatureCard extends StatelessWidget {
+  const _FeatureCard({
+    required this.emoji,
+    required this.emojiBg,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final Color emojiBg;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return EmoSectionCard(
+      radius: 28,
+      padding: const EdgeInsets.fromLTRB(18, 18, 16, 18),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: onTap,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, size: 32, color: const Color(0xFFFF7A56)),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF333333),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MessagesTab extends StatelessWidget {
-  const _MessagesTab();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('消息', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
-      ),
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: const Center(
-        child: Text('暂无消息', style: TextStyle(color: Color(0xFF999999))),
-      ),
-    );
-  }
-}
-
-class _ProfileTab extends StatelessWidget {
-  const _ProfileTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final user = context.watch<AuthService>().currentUser;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('我的', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
-      ),
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 用户信息卡片
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
+            Row(
               children: [
                 Container(
-                  width: 60,
-                  height: 60,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFFF7A56),
+                  width: 84,
+                  height: 84,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(28),
+                    gradient: LinearGradient(
+                      colors: [
+                        emojiBg.withValues(alpha: 0.95),
+                        emojiBg.withValues(alpha: 0.65),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: emojiBg.withValues(alpha: 0.24),
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(emoji, style: const TextStyle(fontSize: 42)),
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
+                    color: Colors.white.withValues(alpha: 0.86),
                   ),
-                  child: const Center(
-                    child: Text('😤', style: TextStyle(fontSize: 30)),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.nickname ?? '小木阳',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'ID: ${user?.id ?? "123456789"}',
-                        style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
-                      ),
-                    ],
+                  child: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: Color(0xFF999999),
+                    size: 28,
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          // 开通会员卡片
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
+            const Spacer(),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: AuthPalette.textPrimary,
               ),
-              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Row(
-              children: [
-                Icon(Icons.star, color: Colors.white, size: 28),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('开通会员', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
-                      SizedBox(height: 4),
-                      Text('2.8元/月 解锁更多功能', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-              ],
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Color(0xFF7C716C),
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          // 功能列表
-          _buildProfileMenuItem(Icons.star_border, '权限收藏'),
-          _buildProfileMenuItem(Icons.description_outlined, '草稿箱'),
-          _buildProfileMenuItem(Icons.chat_bubble_outline, '意见反馈'),
-          _buildProfileMenuItem(Icons.lightbulb_outline, '温馨提示'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileMenuItem(IconData icon, String label) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 1),
-      decoration: const BoxDecoration(color: Colors.white),
-      child: ListTile(
-        leading: Icon(icon, color: const Color(0xFF666666), size: 24),
-        title: Text(label, style: const TextStyle(fontSize: 15, color: Color(0xFF333333))),
-        trailing: const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC), size: 20),
+          ],
+        ),
       ),
     );
   }

@@ -1,9 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/theme.dart';
+
 import '../providers/app_providers.dart';
-import 'avatar_result_screen.dart';
+import '../widgets/auth/auth_visuals.dart';
+import '../widgets/common/app_bottom_nav.dart';
+import '../widgets/common/emo_ui.dart';
+import 'home_screen.dart';
+import 'target_detail_screen.dart';
 
 class GenerateAvatarScreen extends StatefulWidget {
   const GenerateAvatarScreen({super.key});
@@ -13,42 +18,20 @@ class GenerateAvatarScreen extends StatefulWidget {
 }
 
 class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
-  double _progress = 0;
   late Timer _timer;
-  bool _isComplete = false;
+  double _progress = 0.12;
 
   @override
   void initState() {
     super.initState();
-    _startGeneration();
-  }
-
-  void _startGeneration() {
-    final target = context.read<TargetProvider>().currentTarget;
-    final targetId = target?.id;
-
-    const totalSteps = 50;
-    int currentStep = 0;
-    _timer = Timer.periodic(const Duration(milliseconds: 80), (timer) {
-      currentStep++;
-      setState(() => _progress = currentStep / totalSteps);
-
-      if (currentStep >= totalSteps) {
-        timer.cancel();
-        setState(() => _isComplete = true);
-
-        if (targetId != null) {
-          context.read<TargetProvider>().generateAvatar(targetId);
+    _timer = Timer.periodic(const Duration(milliseconds: 350), (timer) {
+      setState(() {
+        _progress += 0.08;
+        if (_progress >= 0.78) {
+          _progress = 0.78;
+          timer.cancel();
         }
-
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (_) => const AvatarResultScreen()),
-            );
-          }
-        });
-      }
+      });
     });
   }
 
@@ -61,101 +44,230 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
   @override
   Widget build(BuildContext context) {
     final target = context.watch<TargetProvider>().currentTarget;
-    final name = target?.name ?? '未知对象';
-
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('生成形象', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Color(0xFF666666)),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+    final current = target;
+    return EmoPageScaffold(
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 1,
+        onTap: (index) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => HomeScreen(initialIndex: index)),
+          );
+        },
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // 动画头像
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                width: _isComplete ? 180 : 140,
-                height: _isComplete ? 180 : 140,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 24, offset: const Offset(0, 8)),
-                  ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                EmoRoundIconButton(
+                  icon: Icons.chevron_left_rounded,
+                  onTap: () => Navigator.of(context).pop(),
                 ),
-                child: Center(
-                  child: Text(
-                    name.length >= 2 ? name.substring(0, 2) : name[0],
-                    style: TextStyle(fontSize: _isComplete ? 64 : 48, color: Colors.white, fontWeight: FontWeight.w600),
-                  ),
+                const Spacer(),
+                const Text(
+                  '生成形象中',
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
                 ),
-              ),
-              const SizedBox(height: 40),
-
-              // 标题
-              Text(
-                _isComplete ? '生成完成！' : '正在创造形象...',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _isComplete ? '看起来就很欠骂！' : 'AI 正在根据你的描述为你创作 $name 的形象',
-                style: const TextStyle(fontSize: 14, color: Color(0xFF999999)),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 40),
-
-              // 进度条
-              if (!_isComplete)
-                Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: _progress,
-                          backgroundColor: const Color(0xFFE0E0E0),
-                          valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-                          minHeight: 6,
+                const Spacer(),
+                const EmoDecorationCloud(size: 148),
+              ],
+            ),
+            const SizedBox(height: 14),
+            EmoSectionCard(
+              radius: 36,
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+              child: Column(
+                children: [
+                  Container(
+                    width: 260,
+                    height: 260,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFB28A), Color(0xFFFF7A7F)],
+                      ),
+                    ),
+                    child: Container(
+                      margin: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: EmoAvatar(
+                          label: avatarEmojiByType(current?.type ?? 'boss'),
+                          background: avatarBgByType(current?.type ?? 'boss'),
+                          size: 210,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '${(_progress * 100).toStringAsFixed(0)}%',
-                      style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '正在为你生成专属形象',
+                    style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '请稍候，马上就好...',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Color(0xFFC8A79A),
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
-              const SizedBox(height: 40),
-
-              // 取消按钮
-              if (!_isComplete)
-                TextButton(
-                  onPressed: () {
-                    _timer.cancel();
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('取消生成', style: TextStyle(fontSize: 15, color: Color(0xFF999999))),
-                ),
-            ],
-          ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.68),
+                      borderRadius: BorderRadius.circular(28),
+                      border: Border.all(color: Colors.white),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              value: _progress,
+                              minHeight: 28,
+                              backgroundColor: const Color(0xFFF7E8E0),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Color(0xFFFF7B7A)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Text(
+                          '${(_progress * 100).round()}%',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFFFF7E73),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Row(
+                    children: const [
+                      Expanded(
+                        child: _StepChip(
+                          title: '分析描述',
+                          active: false,
+                          done: true,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: _StepChip(
+                          title: '生成形象',
+                          active: true,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: _StepChip(
+                          title: '优化细节',
+                          active: false,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  EmoSectionCard(
+                    radius: 24,
+                    child: const Row(
+                      children: [
+                        Icon(Icons.lightbulb_outline_rounded,
+                            color: Color(0xFFFFB356), size: 28),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '小提示：形象会根据外貌、性格和关系描述进行生成',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: Color(0xFF8A6255),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            GradientPrimaryButton(
+              text: '生成完成后查看详情',
+              height: 62,
+              fontSize: 20,
+              onTap: () {
+                if (current != null) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => TargetDetailScreen(target: current),
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+class _StepChip extends StatelessWidget {
+  const _StepChip({
+    required this.title,
+    required this.active,
+    this.done = false,
+  });
+
+  final String title;
+  final bool active;
+  final bool done;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active
+        ? const Color(0xFFFF7B7A)
+        : done
+            ? const Color(0xFF8E5A4E)
+            : const Color(0xFF9A9A9A);
+    return Container(
+      height: 58,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: active ? const Color(0xFFFFD3C7) : const Color(0xFFF2E8E3),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            done ? Icons.check_circle_rounded : Icons.trip_origin_rounded,
+            size: 20,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/theme.dart';
+
 import '../providers/app_providers.dart';
-import '../models/target_model.dart';
+import '../widgets/auth/auth_visuals.dart';
+import '../widgets/common/app_bottom_nav.dart';
+import '../widgets/common/emo_ui.dart';
 import 'generate_avatar_screen.dart';
+import 'home_screen.dart';
 
 class CreateTargetScreen extends StatefulWidget {
   const CreateTargetScreen({super.key});
@@ -13,14 +16,14 @@ class CreateTargetScreen extends StatefulWidget {
 }
 
 class _CreateTargetScreenState extends State<CreateTargetScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _appearanceController = TextEditingController();
   final _personalityController = TextEditingController();
   final _relationshipController = TextEditingController();
+  final _triggersController = TextEditingController();
 
   String _selectedType = 'boss';
-  String _selectedStyle = '漫画';
+  String _selectedStyle = 'Q版';
 
   @override
   void dispose() {
@@ -28,223 +31,287 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
     _appearanceController.dispose();
     _personalityController.dispose();
     _relationshipController.dispose();
+    _triggersController.dispose();
     super.dispose();
   }
 
-  void _handleCreate() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    final targetData = {
-      'name': _nameController.text,
+  Future<void> _handleCreate() async {
+    final provider = context.read<TargetProvider>();
+    await provider.createTarget({
+      'name': _nameController.text.isEmpty ? '王总' : _nameController.text,
       'type': _selectedType,
       'appearance': _appearanceController.text,
       'personality': _personalityController.text,
       'relationship': _relationshipController.text,
+      'triggers': _triggersController.text,
       'style': _selectedStyle,
-    };
-
-    final provider = context.read<TargetProvider>();
-    await provider.createTarget(targetData);
-
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const GenerateAvatarScreen()),
-      );
-    }
+    });
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const GenerateAvatarScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('创建泄愤对象', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
+    return EmoPageScaffold(
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 1,
+        onTap: (index) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => HomeScreen(initialIndex: index)),
+          );
+        },
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionHeader('基本信息'),
-              const SizedBox(height: 12),
-              // 对象名称
-              _buildLabel('对象名称 *'),
-              const SizedBox(height: 8),
-              _buildTextField(
-                controller: _nameController,
-                hint: '例如：讨厌的老板',
-                validator: (v) => v == null || v.isEmpty ? '请输入对象名称' : null,
-              ),
-              const SizedBox(height: 20),
-              // 对象类型
-              _buildLabel('对象类型'),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8, runSpacing: 8,
-                children: ['boss','colleague','partner','family','friend','other'].map((type) {
-                  final isSelected = _selectedType == type;
-                  final label = TargetModel(name: '', type: type).typeLabel;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedType = type),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
-                      ),
-                      child: Text(label, style: TextStyle(fontSize: 14, color: isSelected ? Colors.white : AppColors.textPrimary, fontWeight: FontWeight.w500)),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                EmoRoundIconButton(
+                  icon: Icons.chevron_left_rounded,
+                  onTap: () => Navigator.of(context).pop(),
+                ),
+                const Spacer(),
+                const Column(
+                  children: [
+                    Text(
+                      '创建对象',
+                      style:
+                          TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
                     ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 28),
-              _buildSectionHeader('详细描述'),
-              const SizedBox(height: 12),
-              // 外貌描述
-              _buildLabel('外貌描述'),
-              const SizedBox(height: 8),
-              _buildTextField(controller: _appearanceController, hint: '例如：中年男性，西装革履', maxLines: 2),
-              const SizedBox(height: 16),
-              // 性格特征
-              _buildLabel('性格特征'),
-              const SizedBox(height: 8),
-              _buildTextField(controller: _personalityController, hint: '例如：爱甩锅、小气、爱拍马屁', maxLines: 2),
-              const SizedBox(height: 16),
-              // 与你的关系
-              _buildLabel('与你的关系'),
-              const SizedBox(height: 8),
-              _buildTextField(controller: _relationshipController, hint: '例如：直属领导'),
-              const SizedBox(height: 12),
-              // AI 补全
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _handleAiComplete,
-                  icon: const Icon(Icons.auto_fix_high, size: 18),
-                  label: const Text('AI 自动补全', style: TextStyle(fontSize: 14)),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: BorderSide(color: AppColors.primary.withOpacity(0.3)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
+                    SizedBox(height: 10),
+                    Text(
+                      '创建一个对象，把情绪说给Ta听',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Color(0xFF79706C),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                const EmoDecorationCloud(size: 140),
+              ],
+            ),
+            Transform.translate(
+              offset: const Offset(0, -10),
+              child: EmoSectionCard(
+                child: Row(
+                  children: [
+                    Stack(
+                      children: [
+                        EmoAvatar(
+                          label: avatarEmojiByType(_selectedType),
+                          background: avatarBgByType(_selectedType),
+                          size: 118,
+                        ),
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0x806A5D58),
+                            ),
+                            child: const Icon(Icons.photo_camera_outlined,
+                                color: Colors.white, size: 22),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '上传头像或AI生成形象',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w800,
+                              color: AuthPalette.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            '让Ta更真实，陪伴你更久',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Color(0xFF7A706B),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          EmoGradientOutlineButton(
+                            text: 'AI生成形象',
+                            icon: Icons.auto_awesome_outlined,
+                            onTap: _handleCreate,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 28),
-              _buildSectionHeader('形象风格'),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8, runSpacing: 8,
-                children: ['漫画','写实','Q版','简约'].map((style) {
-                  final isSelected = _selectedStyle == style;
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedStyle = style),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primary : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: isSelected ? AppColors.primary : AppColors.border),
-                      ),
-                      child: Text(style, style: TextStyle(fontSize: 14, color: isSelected ? Colors.white : AppColors.textPrimary, fontWeight: FontWeight.w500)),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 40),
-              // 生成按钮
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
-                  onPressed: _handleCreate,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 4,
-                    shadowColor: AppColors.primary.withOpacity(0.3),
-                  ),
-                  child: const Text('生成形象', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white)),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
+            ),
+            _fieldRow('对象名称', '请输入对象名称', _nameController),
+            _choiceRow(
+              title: '对象类型',
+              values: const [
+                ['boss', '老板'],
+                ['colleague', '同事'],
+                ['partner', '前任'],
+                ['client', '客户'],
+                ['family', '家人'],
+                ['other', '其他'],
+              ],
+              selected: _selectedType,
+              onSelected: (value) => setState(() => _selectedType = value),
+            ),
+            _fieldRow('外貌描述', '描述Ta的外貌特征，比如发型、气质等', _appearanceController,
+                trailingArrow: true),
+            _fieldRow('性格描述', '描述Ta的性格特点，比如严厉、温和等', _personalityController,
+                trailingArrow: true),
+            _fieldRow('关系描述', '你们之间的关系状况', _relationshipController,
+                trailingArrow: true),
+            _fieldRow('触发事件', '是什么事件让你产生了情绪', _triggersController,
+                trailingArrow: true),
+            _choiceRow(
+              title: '形象风格',
+              values: const [
+                ['Q版', 'Q版'],
+                ['手绘', '手绘'],
+                ['温和', '温和'],
+                ['夸张', '夸张'],
+              ],
+              selected: _selectedStyle,
+              onSelected: (value) => setState(() => _selectedStyle = value),
+            ),
+            const SizedBox(height: 16),
+            GradientPrimaryButton(
+              text: '生成并保存对象',
+              height: 68,
+              fontSize: 22,
+              onTap: _handleCreate,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _handleAiComplete() async {
-    if (_nameController.text.isEmpty || _relationshipController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先填写对象名称和关系'), behavior: SnackBarBehavior.floating),
-      );
-      return;
-    }
-    final provider = context.read<TargetProvider>();
-    final result = await provider.aiComplete(_nameController.text, _relationshipController.text);
-    if (result != null && mounted) {
-      if (result['appearance'] != null) _appearanceController.text = result['appearance'] as String;
-      if (result['personality'] != null) _personalityController.text = result['personality'] as String;
-      if (result['type'] != null) setState(() => _selectedType = result['type'] as String);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AI 已自动补全！'), behavior: SnackBarBehavior.floating),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('AI 补全暂不可用，请手动填写'), behavior: SnackBarBehavior.floating),
-      );
-    }
-  }
-
-  Widget _buildSectionHeader(String text) {
-    return Row(
-      children: [
-        Container(width: 4, height: 18, decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2))),
-        const SizedBox(width: 8),
-        Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-      ],
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Color(0xFF666666)));
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    int maxLines = 1,
-    String? Function(String?)? validator,
+  Widget _fieldRow(
+    String title,
+    String hint,
+    TextEditingController controller, {
+    bool trailingArrow = false,
   }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFFCCCCCC)),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: EmoSectionCard(
+        child: Row(
+          children: [
+            SizedBox(
+              width: 110,
+              child: Text(
+                title,
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                textAlign: TextAlign.right,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: hint,
+                  hintStyle: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFFBEB8B4),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFF4A4340),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            if (trailingArrow)
+              const Icon(Icons.chevron_right_rounded,
+                  color: Color(0xFF9E9E9E), size: 28),
+          ],
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+      ),
+    );
+  }
+
+  Widget _choiceRow({
+    required String title,
+    required List<List<String>> values,
+    required String selected,
+    required ValueChanged<String> onSelected,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: EmoSectionCard(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 110,
+              child: Text(
+                title,
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+              ),
+            ),
+            Expanded(
+              child: Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 10,
+                runSpacing: 10,
+                children: values.map((item) {
+                  final active = selected == item.first;
+                  return InkWell(
+                    onTap: () => onSelected(item.first),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: active
+                            ? const Color(0x14FF7D5D)
+                            : Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: active
+                              ? const Color(0xFFFF7D5D)
+                              : const Color(0xFFF1E6DF),
+                        ),
+                      ),
+                      child: Text(
+                        item.last,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: active
+                              ? const Color(0xFFFF7D5D)
+                              : const Color(0xFF53504D),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,9 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../config/constants.dart';
 import '../services/auth_service.dart';
+import '../widgets/auth/auth_visuals.dart';
 import 'home_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'splash_screen.dart';
 import 'terms_of_service_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,16 +19,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _accountController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _nicknameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _codeController = TextEditingController();
   final _authService = AuthService();
-  bool _isLogin = true;
-  bool _obscurePassword = true;
+
   bool _isLoading = false;
-  bool _hasAgreed = false;
+  bool _hasAgreed = true;
   String? _ageRange;
-  bool _showForm = false;
+  int _countdown = 0;
 
   @override
   void initState() {
@@ -33,6 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loadConsentState() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _hasAgreed = prefs.getBool(AppConstants.complianceAgreedKey) ?? false;
       _ageRange = prefs.getString(AppConstants.ageRangeKey);
@@ -51,46 +55,53 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _accountController.dispose();
-    _passwordController.dispose();
-    _nicknameController.dispose();
+    _phoneController.dispose();
+    _codeController.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    if (_accountController.text.isEmpty) {
-      _showTip('请输入手机号或邮箱');
+    if (_phoneController.text.trim().isEmpty) {
+      _showTip('请输入手机号');
       return;
     }
-    if (_passwordController.text.isEmpty) {
-      _showTip('请输入密码');
+    if (_codeController.text.trim().isEmpty) {
+      _showTip('请输入验证码');
       return;
+    }
+
+    if (!_hasAgreed) {
+      final agreed = await _showComplianceDialog();
+      if (!agreed) return;
+      await _saveConsentState();
+      if (mounted) setState(() => _hasAgreed = true);
+    }
+
+    if (_ageRange == null) {
+      final range = await _showAgeVerificationDialog();
+      if (range == null) return;
+      _ageRange = range;
+      await _saveAgeRange(range);
+    }
+
+    if (rangeUnder14()) {
+      final parentalConfirm = await _showParentalConsentDialog();
+      if (!parentalConfirm) return;
     }
 
     setState(() => _isLoading = true);
     try {
-      if (_isLogin) {
-        await _authService.login(
-          _accountController.text,
-          _passwordController.text,
-        );
-      } else {
-        await _authService.register(
-          _accountController.text,
-          _passwordController.text,
-          _nicknameController.text.isNotEmpty ? _nicknameController.text : null,
-          consentVersion: AppConstants.complianceVersion,
-          ageRange: _ageRange,
-        );
-      }
+      await _authService.login(
+        _phoneController.text.trim(),
+        _codeController.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } catch (_) {
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        _showTip('登录失败，请检查账号密码');
+        _showTip('登录失败，请检查手机号和验证码');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final agreed = await _showComplianceDialog();
       if (!agreed) return;
       await _saveConsentState();
-      setState(() => _hasAgreed = true);
+      if (mounted) setState(() => _hasAgreed = true);
     }
 
     if (_ageRange == null) {
@@ -119,37 +130,35 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await _authService.visitorLogin('访客用户');
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      }
+      await _authService.visitorLogin('游客用户');
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _handleRegisterWithConsent() async {
-    if (!_hasAgreed) {
-      _showTip('请先阅读并同意用户协议和隐私政策');
+  void _startCountdown() {
+    if (_countdown > 0) return;
+    if (_phoneController.text.trim().isEmpty) {
+      _showTip('请先输入手机号');
       return;
     }
 
-    if (_ageRange == null) {
-      final range = await _showAgeVerificationDialog();
-      if (range == null) return;
-      _ageRange = range;
-      await _saveAgeRange(range);
-    }
-
-    if (rangeUnder14()) {
-      final parentalConfirm = await _showParentalConsentDialog();
-      if (!parentalConfirm) return;
-    }
-
-    await _handleLogin();
+    setState(() => _countdown = 60);
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      setState(() {
+        if (_countdown > 0) _countdown--;
+      });
+      return _countdown > 0;
+    });
   }
+
+  bool rangeUnder14() => _ageRange == '<14';
 
   Future<bool> _showComplianceDialog() async {
     final result = await showDialog<bool>(
@@ -157,9 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('服务协议确认'),
-        content: const Text(
-          '继续使用前，请阅读并同意我们的《用户协议》和《隐私政策》。',
-        ),
+        content: const Text('继续使用前，请阅读并同意《用户协议》和《隐私政策》。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -181,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: const Text('年龄确认'),
-        content: const Text('请确认您的年龄段：'),
+        content: const Text('请确认您的年龄段。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop('<14'),
@@ -200,8 +207,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  bool rangeUnder14() => _ageRange == '<14';
-
   Future<bool> _showParentalConsentDialog() async {
     final result = await showDialog<bool>(
       context: context,
@@ -209,14 +214,13 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('监护人同意'),
         content: const Text(
-          '根据《未成年人保护法》和《个人信息保护法》，'
-          '14岁以下用户需获得监护人同意后方可使用本服务。\n\n'
-          '请确认你的监护人已同意你使用本应用。',
+          '根据未成年人保护相关要求，14岁以下用户需在监护人同意后方可继续使用。'
+          '\n\n请确认你的监护人已同意你使用本应用。',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('尚未获得同意'),
+            child: const Text('暂未获得同意'),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
@@ -229,436 +233,386 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showTip(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  void _goBack() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const SplashScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFFF8F5),
-      body: SafeArea(
-        child: _showForm ? _buildFormView() : _buildWelcomeView(),
-      ),
-    );
-  }
+      body: AuthBackground(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final height = constraints.maxHeight;
+              final horizontal = math.min(width * 0.07, 34.0);
+              final compact = height < 820;
 
-  Widget _buildWelcomeView() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          // 顶部区域：头像 + 欢迎语（左右布局）
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                // 左侧欢迎文字
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 20),
-                      Text(
-                        'Hi, 小木阳 🌟',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF333333),
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  horizontal,
+                  10,
+                  horizontal,
+                  math.max(22, height * 0.02),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          onPressed: _goBack,
+                          iconSize: 38,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          style: IconButton.styleFrom(
+                            foregroundColor: AuthPalette.textPrimary,
+                          ),
+                          icon: const Icon(Icons.chevron_left_rounded),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                // 右侧小人头像
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      const Positioned(
-                        bottom: 4,
-                        child: Text('🧣', style: TextStyle(fontSize: 20)),
-                      ),
-                      const Positioned(
-                        top: 6,
-                        child: Text('😠', style: TextStyle(fontSize: 36)),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          // 情绪提示语
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "今天你的…\n没好好？！",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF333333),
-                  height: 1.6,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          // 主按钮
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: () => setState(() => _showForm = true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7A56),
-                  foregroundColor: Colors.white,
-                  textStyle: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text('开始释放情绪'),
-              ),
-            ),
-          ),
-          const SizedBox(height: 32),
-          // 第三方登录（4个，2行×2列）
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 48),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _socialIcon(Icons.wechat, '微信'),
-                    _socialIcon(Icons.apple, 'Apple'),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _socialIcon(Icons.music_note, '抖音'),
-                    _socialIcon(Icons.more_horiz, '其他'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          // 已有账号链接
-          TextButton(
-            onPressed: () => setState(() => _showForm = true),
-            child: const Text(
-              '已有账号？登录 / 注册',
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF6B5CE7),
-              ),
-            ),
-          ),
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _socialIcon(IconData icon, String label) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFFEEEEEE)),
-          ),
-          child: IconButton(
-            onPressed: _handleVisitorLogin,
-            icon: Icon(icon, color: const Color(0xFF666666), size: 24),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Color(0xFF999999),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFormView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          const SizedBox(height: 20),
-          // 返回按钮
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => setState(() => _showForm = false),
-                icon: const Icon(Icons.arrow_back_ios, size: 20),
-              ),
-              const Spacer(),
-              const Text('9:41', style: TextStyle(fontSize: 14)),
-              const SizedBox(width: 8),
-            ],
-          ),
-          const SizedBox(height: 32),
-          // Logo 区域
-          Container(
-            width: 80,
-            height: 80,
-            decoration: const BoxDecoration(
-              color: Color(0xFFFF7A56),
-              shape: BoxShape.circle,
-            ),
-            child: const Center(
-              child: Text('😤', style: TextStyle(fontSize: 40)),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            '情绪出口',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF333333),
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '安全释放你的情绪',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF999999),
-            ),
-          ),
-          const SizedBox(height: 40),
-
-          // 手机号/邮箱输入
-          TextField(
-            controller: _accountController,
-            keyboardType: TextInputType.text,
-            decoration: const InputDecoration(
-              hintText: '手机号 / 邮箱',
-              prefixIcon: Icon(Icons.person_outline),
-              filled: true,
-              fillColor: Color(0xFFF8F8F8),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFFEEEEEE)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFFEEEEEE)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // 昵称（注册模式）
-          if (!_isLogin) ...[
-            TextField(
-              controller: _nicknameController,
-              decoration: const InputDecoration(
-                hintText: '昵称（可选）',
-                prefixIcon: Icon(Icons.face_outlined),
-                filled: true,
-                fillColor: Color(0xFFF8F8F8),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  borderSide: BorderSide(color: Color(0xFFEEEEEE)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                  borderSide: BorderSide(color: Color(0xFFEEEEEE)),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-
-          // 密码输入
-          TextField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            decoration: InputDecoration(
-              hintText: '密码',
-              prefixIcon: const Icon(Icons.lock_outlined),
-              suffixIcon: IconButton(
-                onPressed: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  color: const Color(0xFF999999),
-                ),
-              ),
-              filled: true,
-              fillColor: const Color(0xFFF8F8F8),
-              border: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFFEEEEEE)),
-              ),
-              enabledBorder: const OutlineInputBorder(
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                borderSide: BorderSide(color: Color(0xFFEEEEEE)),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // 同意协议 + 年龄验证（注册模式）
-          if (!_isLogin) ...[
-            Row(
-              children: [
-                Checkbox(
-                  value: _hasAgreed,
-                  activeColor: const Color(0xFFFF7A56),
-                  onChanged: (v) => setState(() => _hasAgreed = v ?? false),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => setState(() => _hasAgreed = !_hasAgreed),
-                    child: RichText(
-                      text: TextSpan(
-                        style: const TextStyle(fontSize: 13, color: Color(0xFF666666)),
+                        const SizedBox(width: 12),
+                        AppBrand(
+                          fontSize: width < 380 ? 24 : 28,
+                          logoSize: width < 380 ? 42 : 48,
+                          spacing: 12,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: compact ? 22 : 34),
+                    SizedBox(
+                      height: width < 380 ? 190 : 220,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const TextSpan(text: '我已阅读并同意 '),
-                          WidgetSpan(
-                            child: GestureDetector(
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const TermsOfServiceScreen(),
-                                ),
-                              ),
-                              child: const Text(
-                                '《用户协议》',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFFFF7A56),
-                                  decoration: TextDecoration.underline,
-                                ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 30),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '欢迎回来',
+                                    style: TextStyle(
+                                      fontSize: width < 380 ? 34 : 40,
+                                      fontWeight: FontWeight.w800,
+                                      height: 1.12,
+                                      color: AuthPalette.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    '用更轻松的方式，把情绪说出来',
+                                    style: TextStyle(
+                                      fontSize: width < 380 ? 18 : 20,
+                                      color: AuthPalette.textSecondary,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
-                          const TextSpan(text: ' 和 '),
-                          WidgetSpan(
-                            child: GestureDetector(
-                              onTap: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const PrivacyPolicyScreen(),
-                                ),
-                              ),
-                              child: const Text(
-                                '《隐私政策》',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFFFF7A56),
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
+                          LoginCloudIllustration(
+                            size:
+                                width < 380 ? 170 : math.min(width * 0.43, 230),
                           ),
                         ],
+                      ),
+                    ),
+                    SizedBox(height: compact ? 12 : 20),
+                    _LoginCard(
+                      phoneController: _phoneController,
+                      codeController: _codeController,
+                      isLoading: _isLoading,
+                      countdown: _countdown,
+                      onLogin: _handleLogin,
+                      onRequestCode: _startCountdown,
+                      hasAgreed: _hasAgreed,
+                      onToggleAgreement: () {
+                        setState(() => _hasAgreed = !_hasAgreed);
+                      },
+                      onVisitorLogin: _handleVisitorLogin,
+                    ),
+                    SizedBox(height: compact ? 22 : 28),
+                    SupportExpressionRow(fontSize: width < 380 ? 14 : 16),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginCard extends StatelessWidget {
+  const _LoginCard({
+    required this.phoneController,
+    required this.codeController,
+    required this.isLoading,
+    required this.countdown,
+    required this.onLogin,
+    required this.onRequestCode,
+    required this.hasAgreed,
+    required this.onToggleAgreement,
+    required this.onVisitorLogin,
+  });
+
+  final TextEditingController phoneController;
+  final TextEditingController codeController;
+  final bool isLoading;
+  final int countdown;
+  final VoidCallback onLogin;
+  final VoidCallback onRequestCode;
+  final bool hasAgreed;
+  final VoidCallback onToggleAgreement;
+  final VoidCallback onVisitorLogin;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 24),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.26),
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(color: AuthPalette.cardBorder, width: 1.4),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0x1CF0B8A5),
+            blurRadius: 30,
+            offset: const Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _InputShell(
+            child: TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              style: const TextStyle(
+                fontSize: 16,
+                color: AuthPalette.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
+              decoration: _fieldDecoration(
+                icon: Icons.smartphone_rounded,
+                hint: '手机号',
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          _InputShell(
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: codeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: AuthPalette.textPrimary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: _fieldDecoration(
+                      icon: Icons.verified_user_outlined,
+                      hint: '验证码',
+                      counterText: '',
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 30,
+                  margin: const EdgeInsets.only(right: 14),
+                  color: const Color(0xFFE8D6CF),
+                ),
+                InkWell(
+                  onTap: countdown > 0 ? null : onRequestCode,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      countdown > 0 ? '${countdown}s' : '获取验证码',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: countdown > 0
+                            ? const Color(0xFFBBABA4)
+                            : const Color(0xFFFF6C5B),
                       ),
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-          ],
-
-          // 登录/注册按钮
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      if (_isLogin) {
-                        _handleLogin();
-                      } else {
-                        _handleRegisterWithConsent();
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7A56),
-                foregroundColor: Colors.white,
-                textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+          ),
+          const SizedBox(height: 24),
+          GradientPrimaryButton(
+            text: '手机号登录 / 注册',
+            height: 68,
+            fontSize: 20,
+            loading: isLoading,
+            onTap: isLoading ? null : onLogin,
+          ),
+          const SizedBox(height: 30),
+          Row(
+            children: [
+              Expanded(
+                  child: Container(height: 1, color: const Color(0xFFE5D5CE))),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 18),
+                child: Text(
+                  '快捷登录',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF807470),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                elevation: 0,
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(_isLogin ? '登录' : '注册'),
-            ),
+              Expanded(
+                  child: Container(height: 1, color: const Color(0xFFE5D5CE))),
+            ],
           ),
-          const SizedBox(height: 12),
-
-          // 切换登录/注册
-          TextButton(
-            onPressed: () => setState(() => _isLogin = !_isLogin),
-            child: Text(
-              _isLogin ? '没有账号？点击注册' : '已有账号？去登录',
-              style: const TextStyle(
-                color: Color(0xFFFF7A56),
-                fontSize: 14,
+          const SizedBox(height: 26),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SocialLoginBadge(
+                label: '微信',
+                icon: const SocialIconWeChat(),
+                onTap: onVisitorLogin,
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // 游客登录
-          TextButton(
-            onPressed: _isLoading ? null : _handleVisitorLogin,
-            child: const Text(
-              '游客模式',
-              style: TextStyle(
-                color: Color(0xFF666666),
-                fontSize: 15,
+              SocialLoginBadge(
+                label: 'QQ',
+                icon: const SocialIconQQ(),
+                onTap: onVisitorLogin,
               ),
-            ),
+              SocialLoginBadge(
+                label: '游客体验',
+                icon: const SocialIconGuest(),
+                onTap: onVisitorLogin,
+              ),
+            ],
           ),
-
-          const SizedBox(height: 40),
+          const SizedBox(height: 28),
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 4,
+            runSpacing: 4,
+            children: [
+              GestureDetector(
+                onTap: onToggleAgreement,
+                child: Icon(
+                  hasAgreed
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 22,
+                  color: hasAgreed
+                      ? const Color(0xFFFF8C70)
+                      : const Color(0xFFD7C4BC),
+                ),
+              ),
+              const Text(
+                '登录即表示同意',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF7A6E69),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const TermsOfServiceScreen()),
+                ),
+                child: const Text(
+                  '《用户协议》',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFFFF6C5B),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const Text(
+                '与',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFF7A6E69),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const PrivacyPolicyScreen()),
+                ),
+                child: const Text(
+                  '《隐私政策》',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFFFF6C5B),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
+    );
+  }
+
+  InputDecoration _fieldDecoration({
+    required IconData icon,
+    required String hint,
+    String? counterText,
+  }) {
+    return InputDecoration(
+      border: InputBorder.none,
+      isDense: true,
+      counterText: counterText,
+      hintText: hint,
+      hintStyle: const TextStyle(
+        fontSize: 16,
+        color: Color(0xFFB5AAA4),
+        fontWeight: FontWeight.w500,
+      ),
+      prefixIcon: Icon(icon, color: const Color(0xFFFF7565), size: 25),
+      contentPadding: const EdgeInsets.symmetric(vertical: 22),
+    );
+  }
+}
+
+class _InputShell extends StatelessWidget {
+  const _InputShell({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: Colors.white, width: 1.4),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12EAB7A7),
+            blurRadius: 18,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
     );
   }
 }

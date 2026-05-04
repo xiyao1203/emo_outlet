@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'config/theme.dart';
 import 'providers/app_providers.dart';
 import 'screens/splash_screen.dart';
@@ -21,7 +22,7 @@ class EmoOutletApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => EmotionProvider()),
       ],
       child: MaterialApp(
-        title: '情绪出口',
+        title: '情绪释放',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

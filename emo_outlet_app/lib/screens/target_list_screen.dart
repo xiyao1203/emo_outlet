@@ -1,213 +1,372 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/theme.dart';
-import '../providers/app_providers.dart';
-import '../models/target_model.dart';
-import '../widgets/common/avatar_circle.dart';
-import 'create_target_screen.dart';
-import 'session_mode_screen.dart';
 
-class TargetListScreen extends StatelessWidget {
+import '../models/target_model.dart';
+import '../providers/app_providers.dart';
+import '../widgets/auth/auth_visuals.dart';
+import '../widgets/common/emo_ui.dart';
+import 'create_target_screen.dart';
+import 'target_detail_screen.dart';
+
+class TargetListScreen extends StatefulWidget {
+  const TargetListScreen({super.key, this.isSelectMode = false});
+
   final bool isSelectMode;
 
-  const TargetListScreen({super.key, this.isSelectMode = false});
+  @override
+  State<TargetListScreen> createState() => _TargetListScreenState();
+}
+
+class _TargetListScreenState extends State<TargetListScreen> {
+  String query = '';
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TargetProvider>();
     final targets = provider.targets;
+    final filtered = targets
+        .where(
+          (target) =>
+              target.name.contains(query) ||
+              (target.relationship ?? '').contains(query) ||
+              target.typeLabel.contains(query),
+        )
+        .toList();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          isSelectMode ? '选择泄愤对象' : '我的对象',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
-        ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
-      ),
-      body: targets.isEmpty
-          ? _buildEmptyState(context)
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-              itemCount: targets.length,
-              itemBuilder: (context, index) {
-                final target = targets[index];
-                return _TargetCardItem(
-                  target: target,
-                  onTap: () {
-                    if (isSelectMode) {
-                      provider.setCurrentTarget(target);
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SessionModeScreen()),
-                      );
-                    }
-                  },
-                  onMenu: () => _showTargetActions(context, target, provider),
-                );
-              },
-            ),
-      floatingActionButton: Container(
-        height: 52,
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        width: double.infinity,
-        child: FloatingActionButton.extended(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const CreateTargetScreen()),
-          ),
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          icon: const Icon(Icons.add, size: 22),
-          label: const Text('创建新对象', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.person_off_outlined, size: 48, color: AppColors.primary),
-          ),
-          const SizedBox(height: 24),
-          const Text(
-            '还没有创建对象',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            '点击下方按钮创建你的第一个泄愤对象',
-            style: TextStyle(fontSize: 14, color: Color(0xFF999999)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showTargetActions(
-      BuildContext context, TargetModel target, TargetProvider provider) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 110),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+              SizedBox(
+                height: 58,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: EmoRoundIconButton(
+                        icon: Icons.arrow_back_ios_new_rounded,
+                        size: 52,
+                        onTap: () {
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
+                      ),
+                    ),
+                    const Text(
+                      '我的对象',
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
+                        color: AuthPalette.textPrimary,
+                      ),
+                    ),
+                    const Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 110,
+                        height: 86,
+                        child: EmoDecorationCloud(size: 98),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.66),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.white),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.search_rounded,
+                        size: 30, color: Color(0xFFABABAB)),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        onChanged: (value) => setState(() => query = value),
+                        decoration: const InputDecoration(
+                          hintText: '搜索对象名称或关键词',
+                          hintStyle: TextStyle(
+                            color: Color(0xFFB3B3B3),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+              EmoSectionCard(
+                radius: 30,
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 84,
+                      height: 84,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: const Center(
+                        child: Text('👥', style: TextStyle(fontSize: 38)),
+                      ),
+                    ),
+                    const SizedBox(width: 18),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '共 ',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    color: AuthPalette.textPrimary,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '12',
+                                  style: TextStyle(
+                                    fontSize: 38,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFFFF754C),
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: ' 个对象',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
+                                    color: AuthPalette.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            '选择对象，向 TA 倾诉你的情绪吧',
+                            style: TextStyle(
+                              fontSize: 17,
+                              color: Color(0xFF8A7D77),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      width: 118,
+                      height: 90,
+                      child: EmoDecorationCloud(size: 102),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
-              _buildSheetItem(Icons.send_outlined, '释放到情绪', AppColors.primary, () {
-                provider.setCurrentTarget(target);
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SessionModeScreen()),
-                );
-              }),
-              _buildSheetItem(Icons.share_outlined, '分享给情绪好友', AppColors.textSecondary, () => Navigator.of(context).pop()),
-              _buildSheetItem(Icons.more_horiz, '更多分享', AppColors.textSecondary, () => Navigator.of(context).pop()),
-              _buildSheetItem(Icons.visibility_off_outlined, '隐藏', AppColors.textSecondary, () {
-                if (target.id != null) provider.updateTarget(target.id!, {'is_hidden': true});
-                Navigator.of(context).pop();
-              }),
+              for (final target in filtered) ...[
+                _TargetCard(target: target),
+                const SizedBox(height: 14),
+              ],
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSheetItem(IconData icon, String label, Color color, VoidCallback onTap) {
-    return ListTile(
-      leading: Icon(icon, color: color, size: 24),
-      title: Text(label, style: TextStyle(fontSize: 15, color: color)),
-      onTap: onTap,
+        Positioned(
+          left: 18,
+          right: 18,
+          bottom: 18,
+          child: GradientPrimaryButton(
+            text: '＋ 新建对象',
+            height: 74,
+            fontSize: 22,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CreateTargetScreen()),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _TargetCardItem extends StatelessWidget {
-  final TargetModel target;
-  final VoidCallback? onTap;
-  final VoidCallback? onMenu;
+class _TargetCard extends StatelessWidget {
+  const _TargetCard({required this.target});
 
-  const _TargetCardItem({required this.target, this.onTap, this.onMenu});
+  final TargetModel target;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                AvatarCircle(imageUrl: target.avatarUrl, name: target.name, size: 56, isGenerating: false),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    final color = _typeColor(target.type);
+    return EmoSectionCard(
+      radius: 30,
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: () {
+          context.read<TargetProvider>().setCurrentTarget(target);
+          Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (_) => TargetDetailScreen(target: target)),
+          );
+        },
+        child: Row(
+          children: [
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(26),
+                gradient: LinearGradient(
+                  colors: [
+                    _typeBg(target.type),
+                    _typeBg(target.type).withValues(alpha: 0.72),
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Text(_avatarByType(target.type),
+                    style: const TextStyle(fontSize: 42)),
+              ),
+            ),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Text(target.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          _buildTag(target.typeLabel),
-                          if (target.relationship != null) ...[const SizedBox(width: 6), _buildTag(target.relationship!)],
-                        ],
+                      Flexible(
+                        child: Text(
+                          target.name,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: AuthPalette.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          target.typeLabel,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: color,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                ),
-                if (onMenu != null)
-                  IconButton(
-                    onPressed: onMenu,
-                    icon: const Icon(Icons.more_horiz, color: Color(0xFF999999), size: 22),
+                  const SizedBox(height: 10),
+                  Text(
+                    target.relationship ?? _sampleDesc(target.type),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      color: Color(0xFF837772),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-              ],
+                ],
+              ),
             ),
-          ),
+            const Icon(Icons.chevron_right_rounded,
+                size: 32, color: Color(0xFF8C8580)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTag(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(text, style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500)),
-    );
+  String _avatarByType(String type) {
+    switch (type) {
+      case 'boss':
+        return '👨‍💼';
+      case 'colleague':
+        return '👩';
+      case 'friend':
+        return '🧑';
+      case 'family':
+        return '👒';
+      case 'other':
+        return '🐱';
+      default:
+        return '🙂';
+    }
+  }
+
+  String _sampleDesc(String type) {
+    switch (type) {
+      case 'boss':
+        return '工作要求严格，但很有能力';
+      case 'colleague':
+        return '团队中的开心果，乐于助人';
+      case 'friend':
+        return '无话不谈的好朋友，超懂我';
+      case 'family':
+        return '一起奋斗过的兄弟';
+      case 'other':
+        return '我最可爱的猫咪';
+      default:
+        return '总能接住我情绪的人';
+    }
+  }
+}
+
+Color _typeColor(String type) {
+  switch (type) {
+    case 'boss':
+      return const Color(0xFFFF8A57);
+    case 'colleague':
+      return const Color(0xFF9A85F0);
+    case 'friend':
+      return const Color(0xFFFF8F99);
+    case 'family':
+      return const Color(0xFFFF8F99);
+    case 'other':
+      return const Color(0xFFFF9B9B);
+    default:
+      return const Color(0xFF8D8D8D);
+  }
+}
+
+Color _typeBg(String type) {
+  switch (type) {
+    case 'boss':
+      return const Color(0xFFE7E3DF);
+    case 'colleague':
+      return const Color(0xFFE4DDFD);
+    case 'friend':
+      return const Color(0xFFFFE0E2);
+    case 'family':
+      return const Color(0xFFF7E2D6);
+    case 'other':
+      return const Color(0xFFFFE6D8);
+    default:
+      return const Color(0xFFF1E7E2);
   }
 }

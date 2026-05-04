@@ -5,6 +5,7 @@ class TargetModel {
   final String? appearance;
   final String? personality;
   final String? relationship;
+  final String? triggers;
   final String style;
   final String? avatarUrl;
   final bool isHidden;
@@ -17,7 +18,8 @@ class TargetModel {
     this.appearance,
     this.personality,
     this.relationship,
-    this.style = '漫画',
+    this.triggers,
+    this.style = 'Q版',
     this.avatarUrl,
     this.isHidden = false,
     this.createdAt,
@@ -31,7 +33,9 @@ class TargetModel {
       appearance: json['appearance'] as String?,
       personality: json['personality'] as String?,
       relationship: json['relationship'] as String?,
-      style: json['style'] as String? ?? '漫画',
+      triggers:
+          json['triggers'] as String? ?? json['trigger_events'] as String?,
+      style: json['style'] as String? ?? 'Q版',
       avatarUrl: json['avatar_url'] as String?,
       isHidden: json['is_hidden'] as bool? ?? false,
       createdAt: json['created_at'] != null
@@ -48,6 +52,7 @@ class TargetModel {
       if (appearance != null) 'appearance': appearance,
       if (personality != null) 'personality': personality,
       if (relationship != null) 'relationship': relationship,
+      if (triggers != null) 'triggers': triggers,
       'style': style,
       if (avatarUrl != null) 'avatar_url': avatarUrl,
       'is_hidden': isHidden,
@@ -62,6 +67,7 @@ class TargetModel {
     String? appearance,
     String? personality,
     String? relationship,
+    String? triggers,
     String? style,
     String? avatarUrl,
     bool? isHidden,
@@ -74,6 +80,7 @@ class TargetModel {
       appearance: appearance ?? this.appearance,
       personality: personality ?? this.personality,
       relationship: relationship ?? this.relationship,
+      triggers: triggers ?? this.triggers,
       style: style ?? this.style,
       avatarUrl: avatarUrl ?? this.avatarUrl,
       isHidden: isHidden ?? this.isHidden,
@@ -85,9 +92,10 @@ class TargetModel {
     const labels = {
       'boss': '老板',
       'colleague': '同事',
-      'partner': '伴侣',
+      'partner': '前任',
       'family': '家人',
       'friend': '朋友',
+      'client': '客户',
       'other': '其他',
     };
     return labels[type] ?? type;

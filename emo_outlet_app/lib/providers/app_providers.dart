@@ -24,10 +24,13 @@ class TargetProvider extends ChangeNotifier {
 
     try {
       final data = await _api.getTargets();
-      _targets = data.map((e) => TargetModel.fromJson(e as Map<String, dynamic>)).toList();
+      _targets = data
+          .map((e) => TargetModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (e) {
       // 后端不可用，走 mock 数据
-      _targets = _api.mockTargets().map((e) => TargetModel.fromJson(e)).toList();
+      _targets =
+          _api.mockTargets().map((e) => TargetModel.fromJson(e)).toList();
     }
 
     _isLoading = false;
@@ -71,7 +74,8 @@ class TargetProvider extends ChangeNotifier {
       // 本地更新
       final idx = _targets.indexWhere((t) => t.id == id);
       if (idx != -1) {
-        _targets[idx] = TargetModel.fromJson({..._targets[idx].toJson(), ...data});
+        _targets[idx] =
+            TargetModel.fromJson({..._targets[idx].toJson(), ...data});
       }
       notifyListeners();
     }
@@ -117,7 +121,8 @@ class TargetProvider extends ChangeNotifier {
   }
 
   /// AI 补全对象
-  Future<Map<String, dynamic>?> aiComplete(String name, String relationship) async {
+  Future<Map<String, dynamic>?> aiComplete(
+      String name, String relationship) async {
     try {
       return await _api.aiCompleteTarget(name, relationship);
     } catch (_) {
@@ -156,9 +161,12 @@ class SessionProvider extends ChangeNotifier {
 
     try {
       final data = await _api.getSessions();
-      _sessions = data.map((e) => SessionModel.fromJson(e as Map<String, dynamic>)).toList();
+      _sessions = data
+          .map((e) => SessionModel.fromJson(e as Map<String, dynamic>))
+          .toList();
     } catch (_) {
-      _sessions = _api.mockSessions().map((e) => SessionModel.fromJson(e)).toList();
+      _sessions =
+          _api.mockSessions().map((e) => SessionModel.fromJson(e)).toList();
     }
 
     _isLoading = false;
@@ -177,8 +185,9 @@ class SessionProvider extends ChangeNotifier {
   }) async {
     // 构建请求体，中文字段名映射为后端英文代码
     final String modeStr = mode == SessionMode.single ? 'single' : 'dual';
-    final String? chatStyleStr =
-        chatStyle != null ? AppConstants.chatStyleMap.values.elementAt(chatStyle.index) : null;
+    final String? chatStyleStr = chatStyle != null
+        ? AppConstants.chatStyleMap.values.elementAt(chatStyle.index)
+        : null;
     final String dialectStr = AppConstants.dialectMap[dialect] ?? 'mandarin';
 
     try {
@@ -259,6 +268,11 @@ class SessionProvider extends ChangeNotifier {
       ));
       notifyListeners();
     }
+  }
+
+  void seedMessages(List<MessageModel> messages) {
+    _messages = messages;
+    notifyListeners();
   }
 
   void tick() {

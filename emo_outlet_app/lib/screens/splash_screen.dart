@@ -1,42 +1,14 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
+import '../widgets/auth/auth_visuals.dart';
 import 'login_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
-    );
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.elasticOut),
-    );
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onEnter() {
+  void _openLogin(BuildContext context) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
@@ -45,137 +17,119 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFFFE5D9),
-              Color(0xFFFFC6A5),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      body: AuthBackground(
         child: SafeArea(
-          child: FadeTransition(
-            opacity: _fadeAnimation,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Column(
-                children: [
-                  const Spacer(flex: 3),
-                  // 愤怒表情卡通人物
-                  Container(
-                    width: 160,
-                    height: 160,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final height = constraints.maxHeight;
+              final compact = height < 760;
+              final horizontal = math.min(width * 0.07, 32.0);
+
+              return SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  horizontal,
+                  12,
+                  horizontal,
+                  math.max(20, height * 0.02),
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: height - 12),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 橙色外套
-                        Positioned(
-                          bottom: 8,
-                          child: Container(
-                            width: 100,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF7A56),
-                              borderRadius: BorderRadius.circular(30),
+                        SizedBox(height: compact ? 12 : 28),
+                        AppBrand(
+                          fontSize: width < 380 ? 24 : 28,
+                          logoSize: width < 380 ? 42 : 48,
+                          spacing: 12,
+                        ),
+                        SizedBox(height: compact ? 34 : 56),
+                        Text(
+                          '把不舒服的情绪，',
+                          style: TextStyle(
+                            fontSize: width < 380 ? 34 : 42,
+                            height: 1.12,
+                            fontWeight: FontWeight.w800,
+                            color: AuthPalette.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '轻轻放出来',
+                                style: TextStyle(
+                                  fontSize: width < 380 ? 34 : 42,
+                                  height: 1.1,
+                                  fontWeight: FontWeight.w800,
+                                  color: const Color(0xFFFF6D4C),
+                                ),
+                              ),
                             ),
+                            Padding(
+                              padding: EdgeInsets.only(
+                                top: width < 380 ? 2 : 4,
+                                left: 6,
+                              ),
+                              child: Transform.rotate(
+                                angle: -0.35,
+                                child: const Text(
+                                  '⌞',
+                                  style: TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFFFF9E8A),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: compact ? 18 : 22),
+                        Text(
+                          '安全表达、即时疏解、专属你的情绪出口',
+                          style: TextStyle(
+                            fontSize: width < 380 ? 16 : 18,
+                            height: 1.5,
+                            color: AuthPalette.textSecondary,
                           ),
                         ),
-                        // 愤怒表情
-                        const Positioned(
-                          top: 20,
-                          child: Text(
-                            '😤',
-                            style: TextStyle(fontSize: 64),
+                        SizedBox(height: compact ? 18 : 30),
+                        const Expanded(
+                          child: Center(
+                            child: HeroCloudIllustration(),
                           ),
                         ),
-                        // 紧握的拳头（左侧）
-                        Positioned(
-                          left: 8,
-                          top: 60,
-                          child: Transform.rotate(
-                            angle: -0.3,
-                            child: const Text('✊', style: TextStyle(fontSize: 28)),
-                          ),
+                        SizedBox(height: compact ? 14 : 24),
+                        GradientPrimaryButton(
+                          text: '开始释放',
+                          height: width < 380 ? 60 : 66,
+                          fontSize: width < 380 ? 24 : 28,
+                          onTap: () => _openLogin(context),
                         ),
-                        // 紧握的拳头（右侧）
-                        Positioned(
-                          right: 8,
-                          top: 60,
-                          child: Transform.rotate(
-                            angle: 0.3,
-                            child: const Text('✊', style: TextStyle(fontSize: 28)),
+                        const SizedBox(height: 16),
+                        OutlineSoftButton(
+                          text: '已有账号，去登录',
+                          height: width < 380 ? 56 : 60,
+                          trailing: const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFFDD655B),
+                            size: 22,
                           ),
+                          onTap: () => _openLogin(context),
                         ),
+                        SizedBox(height: compact ? 18 : 26),
+                        SupportExpressionRow(fontSize: width < 380 ? 14 : 16),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 36),
-                  // App 名称
-                  const Text(
-                    '情绪出口',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF333333),
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // 副标题
-                  const Text(
-                    '把不舒畅的情绪说出来就好多了',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF999999),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  // 立即进入按钮
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 48),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _onEnter,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF7A56),
-                          foregroundColor: Colors.white,
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text('立即进入'),
-                      ),
-                    ),
-                  ),
-                  const Spacer(flex: 3),
-                  // 底部版权
-                  const Text(
-                    '© 2024 情绪释放 App',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Color(0xFF999999),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
