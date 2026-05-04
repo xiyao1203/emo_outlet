@@ -19,6 +19,7 @@ from app.schemas.poster import (
     EmotionReportDetailResponse,
     EmotionReportResponse,
     PosterDetailResponse,
+    PosterFavoriteUpdateRequest,
     PosterGenerateRequest,
     PosterResponse,
 )
@@ -183,6 +184,7 @@ async def get_poster_detail(
         created_at_label=poster.created_at.strftime("%Y年%m月%d日 %H:%M") if poster.created_at else "",
         source_session_title=session.summary_text if session and session.summary_text else title,
         poster_data=poster.poster_data,
+        is_favorite=poster.is_favorite,
     )
 
 
@@ -201,6 +203,29 @@ async def get_poster_by_session(
     poster = result.scalar_one_or_none()
     if poster is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Poster not found")
+    return PosterResponse.model_validate(poster)
+
+
+@router.put("/{poster_id}/favorite", response_model=PosterResponse)
+async def update_poster_favorite(
+    poster_id: str,
+    req: PosterFavoriteUpdateRequest,
+    current_user: UserModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(PosterModel).where(
+            PosterModel.id == poster_id,
+            PosterModel.user_id == current_user.id,
+        )
+    )
+    poster = result.scalar_one_or_none()
+    if poster is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Poster not found")
+    poster.is_favorite = req.is_favorite
+    db.add(poster)
+    await db.flush()
+    await db.refresh(poster)
     return PosterResponse.model_validate(poster)
 
 

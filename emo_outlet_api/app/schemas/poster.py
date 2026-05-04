@@ -18,6 +18,10 @@ class PosterGenerateRequest(BaseModel):
     session_id: str
 
 
+class PosterFavoriteUpdateRequest(BaseModel):
+    is_favorite: bool
+
+
 class PosterResponse(BaseModel):
     id: str
     session_id: str
@@ -28,6 +32,7 @@ class PosterResponse(BaseModel):
     suggestion: str | None = None
     poster_url: str | None = None
     poster_data: str | None = None
+    is_favorite: bool = False
     created_at: datetime | None = None
 
     class Config:
@@ -44,6 +49,7 @@ class PosterDetailResponse(BaseModel):
     created_at_label: str
     source_session_title: str
     poster_data: str | None = None
+    is_favorite: bool = False
 
 
 class EmotionReportResponse(BaseModel):

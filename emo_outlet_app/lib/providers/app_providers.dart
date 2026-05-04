@@ -1,12 +1,12 @@
 import 'package:flutter/foundation.dart';
-import '../models/target_model.dart';
-import '../models/session_model.dart';
-import '../models/message_model.dart';
-import '../models/emotion_report_model.dart';
-import '../services/api_service.dart';
-import '../config/constants.dart';
 
-/// 泄愤对象 Provider
+import '../config/constants.dart';
+import '../models/emotion_report_model.dart';
+import '../models/message_model.dart';
+import '../models/session_model.dart';
+import '../models/target_model.dart';
+import '../services/api_service.dart';
+
 class TargetProvider extends ChangeNotifier {
   final ApiService _api = ApiService();
   List<TargetModel> _targets = [];
@@ -17,24 +17,18 @@ class TargetProvider extends ChangeNotifier {
   TargetModel? get currentTarget => _currentTarget;
   bool get isLoading => _isLoading;
 
-  /// 加载对象列表（真实 API → Mock fallback）
   Future<void> loadTargets() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final data = await _api.getTargets();
       _targets = data
-          .map((e) => TargetModel.fromJson(e as Map<String, dynamic>))
+          .map((e) => TargetModel.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
-    } catch (e) {
-      // 后端不可用，走 mock 数据
-      _targets =
-          _api.mockTargets().map((e) => TargetModel.fromJson(e)).toList();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   void setCurrentTarget(TargetModel target) {
@@ -42,96 +36,58 @@ class TargetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 创建对象
   Future<TargetModel?> createTarget(Map<String, dynamic> data) async {
-    try {
-      final result = await _api.createTarget(data);
-      final target = TargetModel.fromJson(result);
-      _targets.add(target);
-      _currentTarget = target;
-      notifyListeners();
-      return target;
-    } catch (e) {
-      // fallback: 本地创建
-      final target = TargetModel.fromJson(data);
-      _targets.add(target);
-      _currentTarget = target;
-      notifyListeners();
-      return target;
-    }
+    final result = await _api.createTarget(data);
+    final target = TargetModel.fromJson(result);
+    _targets.add(target);
+    _currentTarget = target;
+    notifyListeners();
+    return target;
   }
 
-  /// 更新对象
   Future<void> updateTarget(String id, Map<String, dynamic> data) async {
-    try {
-      final result = await _api.updateTarget(id, data);
-      final updated = TargetModel.fromJson(result);
-      final idx = _targets.indexWhere((t) => t.id == id);
-      if (idx != -1) _targets[idx] = updated;
-      if (_currentTarget?.id == id) _currentTarget = updated;
-      notifyListeners();
-    } catch (_) {
-      // 本地更新
-      final idx = _targets.indexWhere((t) => t.id == id);
-      if (idx != -1) {
-        _targets[idx] =
-            TargetModel.fromJson({..._targets[idx].toJson(), ...data});
-      }
-      notifyListeners();
+    final result = await _api.updateTarget(id, data);
+    final updated = TargetModel.fromJson(result);
+    final idx = _targets.indexWhere((t) => t.id == id);
+    if (idx != -1) {
+      _targets[idx] = updated;
     }
-  }
-
-  /// 删除对象
-  Future<void> removeTarget(String id) async {
-    try {
-      await _api.deleteTarget(id);
-    } catch (_) {
-      // 本地删除
+    if (_currentTarget?.id == id) {
+      _currentTarget = updated;
     }
-    _targets.removeWhere((t) => t.id == id);
-    if (_currentTarget?.id == id) _currentTarget = null;
     notifyListeners();
   }
 
-  /// AI 生成形象
-  Future<void> generateAvatar(String targetId) async {
-    try {
-      final result = await _api.generateAvatar(targetId);
-      final idx = _targets.indexWhere((t) => t.id == targetId);
-      if (idx != -1 && result['avatar_url'] != null) {
-        _targets[idx] = _targets[idx].copyWith(avatarUrl: result['avatar_url']);
-        if (_currentTarget?.id == targetId) {
-          _currentTarget = _targets[idx];
-        }
-        notifyListeners();
-      }
-    } catch (_) {
-      // mock: 设置虚拟头像URL
-      final idx = _targets.indexWhere((t) => t.id == targetId);
-      if (idx != -1) {
-        _targets[idx] = _targets[idx].copyWith(
-          avatarUrl: 'mock_avatar_$targetId',
-        );
-        if (_currentTarget?.id == targetId) {
-          _currentTarget = _targets[idx];
-        }
-        notifyListeners();
-      }
+  Future<void> removeTarget(String id) async {
+    await _api.deleteTarget(id);
+    _targets.removeWhere((t) => t.id == id);
+    if (_currentTarget?.id == id) {
+      _currentTarget = null;
     }
+    notifyListeners();
   }
 
-  /// AI 补全对象
-  Future<Map<String, dynamic>?> aiComplete(
-      String name, String relationship) async {
-    try {
-      return await _api.aiCompleteTarget(name, relationship);
-    } catch (_) {
-      return null;
+  Future<void> generateAvatar(String targetId) async {
+    final result = await _api.generateAvatar(targetId);
+    final updated = TargetModel.fromJson(result);
+    final idx = _targets.indexWhere((t) => t.id == targetId);
+    if (idx != -1) {
+      _targets[idx] = updated;
     }
+    if (_currentTarget?.id == targetId) {
+      _currentTarget = updated;
+    }
+    notifyListeners();
+  }
+
+  Future<Map<String, dynamic>?> aiComplete(
+    String name,
+    String relationship,
+  ) async {
+    return _api.aiCompleteTarget(name, relationship);
   }
 }
 
-/// 会话 Provider
 class SessionProvider extends ChangeNotifier {
   final ApiService _api = ApiService();
   SessionModel? _currentSession;
@@ -154,26 +110,20 @@ class SessionProvider extends ChangeNotifier {
     return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}';
   }
 
-  /// 加载历史会话
   Future<void> loadSessions() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final data = await _api.getSessions();
       _sessions = data
-          .map((e) => SessionModel.fromJson(e as Map<String, dynamic>))
+          .map((e) => SessionModel.fromJson(Map<String, dynamic>.from(e as Map)))
           .toList();
-    } catch (_) {
-      _sessions =
-          _api.mockSessions().map((e) => SessionModel.fromJson(e)).toList();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
-  /// 创建会话（优先调后端）
   Future<SessionModel?> createSession({
     required String targetId,
     required String targetName,
@@ -183,91 +133,56 @@ class SessionProvider extends ChangeNotifier {
     String dialect = '普通话',
     int durationMinutes = 3,
   }) async {
-    // 构建请求体，中文字段名映射为后端英文代码
     final String modeStr = mode == SessionMode.single ? 'single' : 'dual';
     final String? chatStyleStr = chatStyle != null
         ? AppConstants.chatStyleMap.values.elementAt(chatStyle.index)
         : null;
     final String dialectStr = AppConstants.dialectMap[dialect] ?? 'mandarin';
 
-    try {
-      final result = await _api.createSession({
-        'target_id': targetId,
-        'mode': modeStr,
-        if (chatStyleStr != null) 'chat_style': chatStyleStr,
-        'dialect': dialectStr,
-        'duration_minutes': durationMinutes,
-      });
-      _currentSession = SessionModel.fromJson(result);
-    } catch (_) {
-      // fallback: 本地创建会话
-      _currentSession = SessionModel(
-        id: 'session_${DateTime.now().millisecondsSinceEpoch}',
-        targetId: targetId,
-        targetName: targetName,
-        targetAvatarUrl: targetAvatarUrl,
-        mode: mode,
-        chatStyle: chatStyle,
-        dialect: dialect,
-        durationMinutes: durationMinutes,
-        startTime: DateTime.now(),
-        status: 'active',
-      );
-    }
-
-    _messages = [
-      MessageModel(
-        sessionId: _currentSession!.id!,
-        content: '开始释放你的情绪吧，有什么想说的尽管说出来！',
-        sender: MessageSender.ai,
-        createdAt: DateTime.now(),
-        isSystem: true,
-      ),
-    ];
+    final result = await _api.createSession({
+      'target_id': targetId,
+      'mode': modeStr,
+      if (chatStyleStr != null) 'chat_style': chatStyleStr,
+      'dialect': dialectStr,
+      'duration_minutes': durationMinutes,
+    });
+    _currentSession = SessionModel.fromJson(result);
+    _messages = [];
     _remainingSeconds = durationMinutes * 60;
     _isRunning = true;
     notifyListeners();
     return _currentSession;
   }
 
-  /// 发送消息 → 接收 AI 回复
   Future<void> sendMessage(String content) async {
-    if (_currentSession?.id == null) return;
+    final sessionId = _currentSession?.id;
+    if (sessionId == null) {
+      return;
+    }
 
-    // 添加用户消息
-    _messages.add(MessageModel(
-      id: 'msg_${DateTime.now().millisecondsSinceEpoch}',
-      sessionId: _currentSession!.id!,
+    final optimistic = MessageModel(
+      sessionId: sessionId,
       content: content,
       sender: MessageSender.user,
       createdAt: DateTime.now(),
-    ));
+    );
+    _messages = [..._messages, optimistic];
     notifyListeners();
 
-    // 调后端
-    try {
-      final result = await _api.sendMessage(_currentSession!.id!, content);
-      if (result['ai_reply'] != null) {
-        _messages.add(MessageModel(
-          id: result['ai_reply']['id'],
-          sessionId: _currentSession!.id!,
-          content: result['ai_reply']['content'],
-          sender: MessageSender.ai,
-          createdAt: DateTime.now(),
-          isSensitive: result['ai_reply']['is_sensitive'] == true,
-        ));
-        notifyListeners();
-      }
-    } catch (_) {
-      // fallback: 模拟 AI 回复
-      _messages.add(MessageModel(
-        sessionId: _currentSession!.id!,
-        content: _mockAiReply(content),
-        sender: MessageSender.ai,
-        createdAt: DateTime.now(),
-      ));
-      notifyListeners();
-    }
+    final result = await _api.sendMessage(sessionId, content);
+    final aiMessage = MessageModel.fromJson(result);
+    _messages = [..._messages, aiMessage];
+    notifyListeners();
+  }
+
+  Future<void> loadMessages(String sessionId) async {
+    final result = await _api.getMessages(sessionId);
+    final messageItems = (result['messages'] as List<dynamic>? ?? <dynamic>[])
+        .map((item) => MessageModel.fromJson(Map<String, dynamic>.from(item as Map)))
+        .toList();
+    _messages = messageItems;
+    _remainingSeconds = result['remaining_seconds'] as int? ?? 0;
+    notifyListeners();
   }
 
   void seedMessages(List<MessageModel> messages) {
@@ -290,24 +205,18 @@ class SessionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 结束会话
   Future<void> endSession() async {
     _isRunning = false;
-
-    if (_currentSession?.id != null) {
-      try {
-        await _api.endSession(_currentSession!.id!);
-      } catch (_) {
-        // mock: 本地结束
-      }
-
-      _currentSession = _currentSession!.copyWith(
-        endTime: DateTime.now(),
-        status: 'completed',
-        isCompleted: true,
+    final sessionId = _currentSession?.id;
+    if (sessionId != null) {
+      final result = await _api.endSession(sessionId);
+      _currentSession = SessionModel.fromJson(
+        Map<String, dynamic>.from(result['session'] as Map),
       );
+      _messages = (result['messages'] as List<dynamic>? ?? <dynamic>[])
+          .map((item) => MessageModel.fromJson(Map<String, dynamic>.from(item as Map)))
+          .toList();
     }
-
     notifyListeners();
   }
 
@@ -318,16 +227,8 @@ class SessionProvider extends ChangeNotifier {
     _isRunning = false;
     notifyListeners();
   }
-
-  String _mockAiReply(String userContent) {
-    if (userContent.contains('?')) return '咋了嘛，有什么好疑问的？';
-    if (userContent.contains('!')) return '你说得对… 行吧你说了算。';
-    if (userContent.length > 20) return '说这么多，我也听不懂你想表达啥。';
-    return '嗯，然后呢？';
-  }
 }
 
-/// 情绪报告 & 海报 Provider
 class EmotionProvider extends ChangeNotifier {
   final ApiService _api = ApiService();
   EmotionReportModel? _currentReport;
@@ -342,59 +243,33 @@ class EmotionProvider extends ChangeNotifier {
   String? get posterData => _posterData;
   bool get isLoading => _isLoading;
 
-  /// 生成会话情绪报告
   Future<void> generateReport(String sessionId) async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      // 生成海报以触发情绪分析
-      final poster = await _api.generatePoster(sessionId);
-      _posterUrl = poster['poster_url'];
-      _posterData = poster['poster_data'];
-    } catch (_) {
-      final data = _api.mockPoster(sessionId);
-      _posterUrl = data['poster_url'];
-      _posterData = data['poster_data'];
-    }
-    _isLoading = false;
-    notifyListeners();
+    await generatePoster(sessionId);
   }
 
-  /// 获取周期情绪报告
   Future<void> loadOverviewReport({String period = 'weekly'}) async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final data = await _api.getEmotionReport(period: period);
       _currentReport = EmotionReportModel.fromOverviewJson(data);
-    } catch (_) {
-      final data = _api.mockEmotionReport();
-      _currentReport = EmotionReportModel.fromOverviewJson(data);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
-  /// 生成海报
   Future<void> generatePoster(String sessionId) async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final result = await _api.generatePoster(sessionId);
-      _posterUrl = result['poster_url'];
-      _posterData = result['poster_data'];
-    } catch (_) {
-      final data = _api.mockPoster(sessionId);
-      _posterUrl = data['poster_url'];
-      _posterData = data['poster_data'];
+      _posterUrl = result['poster_url'] as String?;
+      _posterData = result['poster_data'] as String?;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   void clearReport() {
@@ -404,7 +279,6 @@ class EmotionProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 清除敏感缓存数据（注销时调用）
   void clearSensitiveCache() {
     _currentReport = null;
     _reports = [];
