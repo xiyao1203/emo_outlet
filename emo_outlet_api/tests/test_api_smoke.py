@@ -142,9 +142,6 @@ class ApiSmokeTest(unittest.TestCase):
         self.assertEqual(detail_report_response.status_code, 200, detail_report_response.text)
         self.assertEqual(len(detail_report_response.json()["trend_points"]), 1)
 
-        support_response = self.client.get("/api/support/overview", headers=headers)
-        self.assertEqual(support_response.status_code, 200, support_response.text)
-
         feedback_response = self.client.post(
             "/api/support/feedback",
             headers=headers,

@@ -254,11 +254,6 @@ class ApiService {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
-  Future<Map<String, dynamic>> getSupportOverview() async {
-    final response = await _dio.get('/support/overview');
-    return Map<String, dynamic>.from(response.data as Map);
-  }
-
   Future<Map<String, dynamic>> submitFeedback({
     required String content,
     List<String>? imageUrls,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -59,6 +61,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     }
   }
 
+  ImageProvider<Object>? _avatarProvider(String? value) {
+    if (value == null || value.isEmpty) return null;
+    if (value.startsWith('data:image')) {
+      return MemoryImage(base64Decode(value.split(',').last));
+    }
+    return NetworkImage(value);
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = AuthService().currentUser;
@@ -105,9 +115,9 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                         gradient: const LinearGradient(
                           colors: [Color(0xFFF8D8C8), Color(0xFFFFF1E8)],
                         ),
-                        image: user?.avatarUrl?.isNotEmpty == true
+                        image: _avatarProvider(user?.avatarUrl) != null
                             ? DecorationImage(
-                                image: NetworkImage(user!.avatarUrl!),
+                                image: _avatarProvider(user?.avatarUrl)!,
                                 fit: BoxFit.cover,
                               )
                             : null,

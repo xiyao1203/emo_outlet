@@ -154,6 +154,7 @@ async def get_profile_detail(
         nickname=current_user.nickname,
         avatar_url=current_user.avatar_url,
         phone=current_user.phone,
+        email=current_user.email,
         signature=detail.signature if detail else "拥抱情绪，遇见更好的自己",
         gender=detail.gender if detail else "女",
         birthday=detail.birthday if detail else "1998-05-20",
@@ -178,6 +179,32 @@ async def update_profile_detail(
         current_user.nickname = req.nickname
     if req.avatar_url is not None:
         current_user.avatar_url = req.avatar_url
+    if req.phone is not None:
+        result = await db.execute(
+            select(UserModel).where(
+                UserModel.phone == req.phone,
+                UserModel.id != current_user.id,
+            )
+        )
+        if result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Phone already registered",
+            )
+        current_user.phone = req.phone
+    if req.email is not None:
+        result = await db.execute(
+            select(UserModel).where(
+                UserModel.email == req.email,
+                UserModel.id != current_user.id,
+            )
+        )
+        if result.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already registered",
+            )
+        current_user.email = req.email
     if req.signature is not None:
         detail.signature = req.signature
     if req.gender is not None:
@@ -196,6 +223,7 @@ async def update_profile_detail(
         nickname=current_user.nickname,
         avatar_url=current_user.avatar_url,
         phone=current_user.phone,
+        email=current_user.email,
         signature=detail.signature,
         gender=detail.gender,
         birthday=detail.birthday,

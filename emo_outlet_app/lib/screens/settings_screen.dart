@@ -54,15 +54,8 @@ class SettingsScreen extends StatelessWidget {
                   _SettingsEntry(
                     icon: Icons.help_center_rounded,
                     colors: const [Color(0xFFFFE1D9), Color(0xFFFF8767)],
-                    title: '帮助反馈',
+                    title: '帮助与反馈',
                     onTap: () => _push(context, const HelpFeedbackScreen()),
-                  ),
-                  _SettingsEntry(
-                    icon: Icons.headset_mic_rounded,
-                    colors: const [Color(0xFFDDF8EA), Color(0xFF61CC8D)],
-                    title: '联系客服',
-                    onTap: () =>
-                        _push(context, const ContactCustomerServiceScreen()),
                   ),
                   _SettingsEntry(
                     icon: Icons.info_rounded,
@@ -122,7 +115,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  '退出后会回到登录页，但你的历史记录和已保存内容仍会保留在账号中。',
+                  '退出后会回到登录页，已保存的数据会保留在账号中。',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 15,
@@ -142,13 +135,12 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: SoftGradientButton(
-                        text: '确认退出',
+                        text: '退出登录',
                         onTap: () async {
                           await AuthService().logout();
                           if (!context.mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(
-                                builder: (_) => const LoginScreen()),
+                            MaterialPageRoute(builder: (_) => const LoginScreen()),
                             (route) => false,
                           );
                         },
@@ -174,6 +166,7 @@ class AccountSecurityScreen extends StatefulWidget {
 
 class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
   final ApiService _api = ApiService();
+
   bool _confirmed = false;
   bool _loading = true;
   Map<String, dynamic>? _profile;
@@ -202,178 +195,6 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SoftPage(
-      child: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
-              child: Column(
-                children: [
-                  SoftHeader(
-                    title: '账号与安全',
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(height: 24),
-                  SoftCard(
-                    child: Row(
-                      children: [
-                        const SoftIconBadge(
-                          icon: Icons.shield_rounded,
-                          colors: [Color(0xFFFFE2D2), Color(0xFFFF8E60)],
-                          size: 72,
-                        ),
-                        const SizedBox(width: 18),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '账号安全等级：${_securityLevel}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: SoftColors.text,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _securityHint,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: SoftColors.subtext,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SoftCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _LineEntry(
-                          icon: Icons.phone_android_rounded,
-                          colors: const [Color(0xFFFFE4D5), Color(0xFFFF9A62)],
-                          title: '手机号',
-                          value: _value('phone'),
-                        ),
-                        _LineEntry(
-                          icon: Icons.email_rounded,
-                          colors: const [Color(0xFFE6DFFF), Color(0xFF947CFF)],
-                          title: '邮箱',
-                          value: _value('email'),
-                        ),
-                        _LineEntry(
-                          icon: Icons.forum_rounded,
-                          colors: const [Color(0xFFDDF8E4), Color(0xFF59CE7A)],
-                          title: '微信绑定',
-                          value:
-                              (_preferences?['wechat_bound'] as bool? ?? false)
-                                  ? '已绑定'
-                                  : '未绑定',
-                        ),
-                        _LineEntry(
-                          icon: Icons.notifications_rounded,
-                          colors: const [Color(0xFFDDEBFF), Color(0xFF66A3FF)],
-                          title: '系统通知',
-                          value:
-                              (_preferences?['system_notification'] as bool? ??
-                                      false)
-                                  ? '已开启'
-                                  : '已关闭',
-                        ),
-                        _LineEntry(
-                          icon: Icons.lock_rounded,
-                          colors: const [Color(0xFFEADFFF), Color(0xFFA673FF)],
-                          title: '登录方式',
-                          value: AuthService().currentUser?.isVisitor == true
-                              ? '游客模式'
-                              : '账号登录',
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SoftCard(
-                    padding: EdgeInsets.zero,
-                    child: InkWell(
-                      onTap: _showDeleteDialog,
-                      borderRadius: BorderRadius.circular(28),
-                      child: const Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                        child: Row(
-                          children: [
-                            SoftIconBadge(
-                              icon: Icons.delete_forever_rounded,
-                              colors: [Color(0xFFFFDDD8), Color(0xFFFF735E)],
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    '注销账号',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFFFF6551),
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    '注销后将删除账号信息、历史记录和海报内容，且无法恢复。',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: SoftColors.subtext,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              color: Color(0xFFA3A8B0),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
-  }
-
-  String get _securityLevel {
-    var score = 0;
-    if (_hasValue('phone')) score++;
-    if (_hasValue('email')) score++;
-    if (_preferences?['wechat_bound'] == true) score++;
-    if (AuthService().currentUser?.isVisitor == false) score++;
-    if (score >= 3) return '高';
-    if (score >= 2) return '中';
-    return '低';
-  }
-
-  String get _securityHint {
-    if (_securityLevel == '高') {
-      return '当前账号资料、通知设置和登录状态都已和服务端同步。';
-    }
-    if (_securityLevel == '中') {
-      return '基础安全项已经齐全，再补充一个绑定方式会更稳妥。';
-    }
-    return '建议补充手机号、邮箱或绑定方式，方便后续找回和同步数据。';
-  }
-
   bool _hasValue(String key) {
     final text = _profile?[key]?.toString().trim();
     return text != null && text.isNotEmpty;
@@ -381,7 +202,81 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
 
   String _value(String key) {
     final text = _profile?[key]?.toString().trim();
-    return (text == null || text.isEmpty) ? '-' : text;
+    return (text == null || text.isEmpty) ? '未设置' : text;
+  }
+
+  String get _securityLevel {
+    var score = 0;
+    if (_hasValue('phone')) score++;
+    if (_hasValue('email')) score++;
+    if (_preferences?['wechat_bound'] == true) score++;
+    if (score >= 3) return '高';
+    if (score >= 2) return '中';
+    return '低';
+  }
+
+  String get _securityHint {
+    switch (_securityLevel) {
+      case '高':
+        return '手机号、邮箱和微信绑定都已完善。';
+      case '中':
+        return '再补充一个绑定方式会更稳妥。';
+      default:
+        return '建议至少绑定两种找回方式。';
+    }
+  }
+
+  Future<void> _openPhoneEditor() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _AccountFieldScreen(
+          title: '手机号',
+          hintText: '请输入 11 位手机号',
+          initialValue: _profile?['phone']?.toString() ?? '',
+          keyboardType: TextInputType.phone,
+          validator: (value) {
+            if (!RegExp(r'^1\d{10}$').hasMatch(value)) {
+              return '请输入正确的手机号';
+            }
+            return null;
+          },
+          onSave: (value) => _api.updateProfileDetail({'phone': value}),
+        ),
+      ),
+    );
+    await _load();
+  }
+
+  Future<void> _openEmailEditor() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _AccountFieldScreen(
+          title: '邮箱',
+          hintText: '请输入常用邮箱',
+          initialValue: _profile?['email']?.toString() ?? '',
+          keyboardType: TextInputType.emailAddress,
+          validator: (value) {
+            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value)) {
+              return '请输入正确的邮箱';
+            }
+            return null;
+          },
+          onSave: (value) => _api.updateProfileDetail({'email': value}),
+        ),
+      ),
+    );
+    await _load();
+  }
+
+  Future<void> _openWechatBinding() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _WechatBindingScreen(
+          isBound: (_preferences?['wechat_bound'] as bool?) ?? false,
+        ),
+      ),
+    );
+    await _load();
   }
 
   Future<void> _showDeleteDialog() async {
@@ -480,7 +375,8 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                                 if (!context.mounted) return;
                                 Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
-                                      builder: (_) => const LoginScreen()),
+                                    builder: (_) => const LoginScreen(),
+                                  ),
                                   (route) => false,
                                 );
                               }
@@ -494,6 +390,327 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
           ),
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftPage(
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 28),
+              child: Column(
+                children: [
+                  SoftHeader(
+                    title: '账号与安全',
+                    onBack: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(height: 24),
+                  SoftCard(
+                    child: Row(
+                      children: [
+                        const SoftIconBadge(
+                          icon: Icons.shield_rounded,
+                          colors: [Color(0xFFFFE2D2), Color(0xFFFF8E60)],
+                          size: 72,
+                        ),
+                        const SizedBox(width: 18),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '账号安全等级：$_securityLevel',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: SoftColors.text,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _securityHint,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: SoftColors.subtext,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SoftCard(
+                    padding: EdgeInsets.zero,
+                    child: Column(
+                      children: [
+                        _LineEntry(
+                          icon: Icons.phone_android_rounded,
+                          colors: const [Color(0xFFFFE4D5), Color(0xFFFF9A62)],
+                          title: '手机号',
+                          value: _value('phone'),
+                          onTap: _openPhoneEditor,
+                        ),
+                        _LineEntry(
+                          icon: Icons.email_rounded,
+                          colors: const [Color(0xFFE6DFFF), Color(0xFF947CFF)],
+                          title: '邮箱',
+                          value: _value('email'),
+                          onTap: _openEmailEditor,
+                        ),
+                        _LineEntry(
+                          icon: Icons.chat_rounded,
+                          colors: const [Color(0xFFDDF8E4), Color(0xFF59CE7A)],
+                          title: '微信绑定',
+                          value: (_preferences?['wechat_bound'] as bool? ?? false)
+                              ? '已绑定'
+                              : '未绑定',
+                          onTap: _openWechatBinding,
+                          showDivider: false,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  SoftCard(
+                    padding: EdgeInsets.zero,
+                    child: InkWell(
+                      onTap: _showDeleteDialog,
+                      borderRadius: BorderRadius.circular(28),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        child: Row(
+                          children: [
+                            SoftIconBadge(
+                              icon: Icons.delete_forever_rounded,
+                              colors: [Color(0xFFFFDDD8), Color(0xFFFF735E)],
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                '注销账号',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFFFF6551),
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right_rounded,
+                              color: Color(0xFFA3A8B0),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+class _AccountFieldScreen extends StatefulWidget {
+  const _AccountFieldScreen({
+    required this.title,
+    required this.hintText,
+    required this.initialValue,
+    required this.onSave,
+    required this.validator,
+    required this.keyboardType,
+  });
+
+  final String title;
+  final String hintText;
+  final String initialValue;
+  final Future<Map<String, dynamic>> Function(String value) onSave;
+  final String? Function(String value) validator;
+  final TextInputType keyboardType;
+
+  @override
+  State<_AccountFieldScreen> createState() => _AccountFieldScreenState();
+}
+
+class _AccountFieldScreenState extends State<_AccountFieldScreen> {
+  late final TextEditingController _controller;
+  bool _saving = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final value = _controller.text.trim();
+    final error = widget.validator(value);
+    if (error != null) {
+      setState(() => _error = error);
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.onSave(value);
+      await AuthService().refreshProfile();
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = '保存失败，请稍后再试');
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SimpleSubPage(
+      title: widget.title,
+      child: Column(
+        children: [
+          SoftCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _controller,
+                  keyboardType: widget.keyboardType,
+                  decoration: InputDecoration(
+                    hintText: widget.hintText,
+                    border: InputBorder.none,
+                    hintStyle: const TextStyle(
+                      fontSize: 15,
+                      color: SoftColors.subtext,
+                    ),
+                  ),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: SoftColors.text,
+                  ),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    _error!,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFFFF6A59),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: SoftGradientButton(
+              text: _saving ? '保存中...' : '保存',
+              onTap: _saving ? null : _submit,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WechatBindingScreen extends StatefulWidget {
+  const _WechatBindingScreen({required this.isBound});
+
+  final bool isBound;
+
+  @override
+  State<_WechatBindingScreen> createState() => _WechatBindingScreenState();
+}
+
+class _WechatBindingScreenState extends State<_WechatBindingScreen> {
+  final ApiService _api = ApiService();
+  late bool _isBound = widget.isBound;
+  bool _saving = false;
+
+  Future<void> _toggleBinding() async {
+    setState(() => _saving = true);
+    try {
+      await _api.updatePreferences({'wechat_bound': !_isBound});
+      if (!mounted) return;
+      setState(() => _isBound = !_isBound);
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SimpleSubPage(
+      title: '微信绑定',
+      child: Column(
+        children: [
+          SoftCard(
+            child: Row(
+              children: [
+                const SoftIconBadge(
+                  icon: Icons.chat_rounded,
+                  colors: [Color(0xFFDDF8E4), Color(0xFF59CE7A)],
+                  size: 72,
+                ),
+                const SizedBox(width: 18),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isBound ? '当前微信已绑定' : '当前微信未绑定',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: SoftColors.text,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '绑定后可以作为找回方式使用。',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: SoftColors.subtext,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: SoftGradientButton(
+              text: _saving ? '处理中...' : (_isBound ? '解除绑定' : '立即绑定'),
+              onTap: _saving ? null : _toggleBinding,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -514,11 +731,6 @@ class _PrivacySettingsScreenState
   Widget buildContent() {
     return Column(
       children: [
-        const _HintHero(
-          title: '你的隐私，我们认真对待',
-          subtitle: '这些偏好会直接写回账号，换设备登录后也会保持一致。',
-        ),
-        const SizedBox(height: 18),
         _PreferenceSwitchEntry(
           title: '保存历史记录',
           value: preference('save_history'),
@@ -562,7 +774,7 @@ class _PrivacySettingsScreenState
                     child: Text(
                       '查看隐私政策',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: SoftColors.text,
                       ),
@@ -596,11 +808,6 @@ class _NotificationSettingsScreenState
   Widget buildContent() {
     return Column(
       children: [
-        const _HintHero(
-          title: '按你的节奏提醒你',
-          subtitle: '通知开关全部走服务端配置，不再是本地展示状态。',
-        ),
-        const SizedBox(height: 18),
         _PreferenceSwitchEntry(
           title: '会话提醒',
           value: preference('session_reminder'),
@@ -619,8 +826,7 @@ class _NotificationSettingsScreenState
         _PreferenceSwitchEntry(
           title: '活动通知',
           value: preference('activity_notification'),
-          onChanged: (value) =>
-              updatePreference('activity_notification', value),
+          onChanged: (value) => updatePreference('activity_notification', value),
         ),
         _PreferenceSwitchEntry(
           title: '系统通知',
@@ -655,36 +861,27 @@ class _DialectSettingsScreenState
   @override
   Widget buildContent() {
     final current = (_preferences?['dialect'] as String?) ?? 'mandarin';
-    return Column(
-      children: [
-        const _HintHero(
-          title: '选个更像你的说话方式',
-          subtitle: '保存后会直接影响后端生成的对话语气。',
-        ),
-        const SizedBox(height: 18),
-        SoftCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            children: _labels.entries.map((entry) {
-              final selected = entry.key == current;
-              return SoftListTile(
-                leading: SoftIconBadge(
-                  icon: Icons.record_voice_over_rounded,
-                  colors: selected
-                      ? const [Color(0xFFFFE3D6), Color(0xFFFF9368)]
-                      : const [Color(0xFFE8ECF4), Color(0xFFB4BBC6)],
-                ),
-                title: entry.value,
-                trailing: selected
-                    ? const Icon(Icons.check_rounded, color: SoftColors.coral)
-                    : const SizedBox.shrink(),
-                onTap: () => updatePreference('dialect', entry.key),
-                showDivider: entry.key != _labels.keys.last,
-              );
-            }).toList(),
-          ),
-        ),
-      ],
+    return SoftCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: _labels.entries.map((entry) {
+          final selected = entry.key == current;
+          return SoftListTile(
+            leading: SoftIconBadge(
+              icon: Icons.record_voice_over_rounded,
+              colors: selected
+                  ? const [Color(0xFFFFE3D6), Color(0xFFFF9368)]
+                  : const [Color(0xFFE8ECF4), Color(0xFFB4BBC6)],
+            ),
+            title: entry.value,
+            trailing: selected
+                ? const Icon(Icons.check_rounded, color: SoftColors.coral)
+                : const SizedBox.shrink(),
+            onTap: () => updatePreference('dialect', entry.key),
+            showDivider: entry.key != _labels.keys.last,
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -699,15 +896,8 @@ class HelpFeedbackScreen extends StatefulWidget {
 class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
   final ApiService _api = ApiService();
   final TextEditingController _controller = TextEditingController();
-  bool _loading = true;
-  bool _submitting = false;
-  Map<String, dynamic>? _overview;
 
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -715,33 +905,64 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final overview = await _api.getSupportOverview();
-      if (!mounted) return;
-      setState(() => _overview = overview);
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
-
   Future<void> _submit() async {
     final content = _controller.text.trim();
-    if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('先写下你遇到的问题，我们再帮你提交。')),
-      );
-      return;
-    }
+    if (content.isEmpty) return;
     setState(() => _submitting = true);
     try {
       final result = await _api.submitFeedback(content: content);
       if (!mounted) return;
-      await _showSubmitSuccess(result['message'] as String?);
       _controller.clear();
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) {
+          return Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+            child: SoftCard(
+              radius: 30,
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    size: 70,
+                    color: SoftColors.green,
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    '反馈已提交',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: SoftColors.text,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    (result['message'] as String?) ?? '我们会尽快查看你的反馈。',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.6,
+                      color: SoftColors.subtext,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SoftGradientButton(
+                      text: '完成',
+                      onTap: () => Navigator.of(dialogContext).pop(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     } finally {
       if (mounted) {
         setState(() => _submitting = false);
@@ -751,349 +972,61 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entries =
-        _overview?['common_entries'] as List<dynamic>? ?? <dynamic>[];
-    return SoftPage(
-      child: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-              child: Column(
-                children: [
-                  SoftHeader(
-                    title: '帮助反馈',
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(height: 22),
-                  const _HintHero(
-                    title: '把问题告诉我们',
-                    subtitle: '你的反馈会直接提交到服务端，我们会尽快跟进处理。',
-                  ),
-                  const SizedBox(height: 18),
-                  SoftCard(
-                    child: TextField(
-                      controller: _controller,
-                      maxLines: 6,
-                      maxLength: 500,
-                      decoration: const InputDecoration(
-                        hintText: '尽量写清问题出现的位置、复现方式，以及你期待的结果。',
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SoftCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: entries
-                          .map((item) => Map<String, dynamic>.from(item as Map))
-                          .map(
-                            (entry) => _SettingsEntry(
-                              icon: _entryIcon(entry['title'] as String? ?? ''),
-                              colors:
-                                  _entryColors(entry['title'] as String? ?? ''),
-                              title: entry['title'] as String? ?? '',
-                              subtitle: entry['subtitle'] as String?,
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SizedBox(
-                    width: double.infinity,
-                    child: SoftGradientButton(
-                      text: _submitting ? '提交中...' : '提交反馈',
-                      height: 60,
-                      onTap: _submitting ? null : _submit,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-    );
-  }
-
-  IconData _entryIcon(String title) {
-    if (title.contains('常见')) return Icons.help_outline_rounded;
-    if (title.contains('教程')) return Icons.menu_book_rounded;
-    if (title.contains('反馈')) return Icons.edit_note_rounded;
-    if (title.contains('客服')) return Icons.support_agent_rounded;
-    return Icons.help_center_rounded;
-  }
-
-  List<Color> _entryColors(String title) {
-    if (title.contains('常见')) {
-      return const [Color(0xFFFFE2D7), Color(0xFFFF9666)];
-    }
-    if (title.contains('教程')) {
-      return const [Color(0xFFE6DFFF), Color(0xFF9D80FF)];
-    }
-    if (title.contains('反馈')) {
-      return const [Color(0xFFDDF7E5), Color(0xFF5ACA7A)];
-    }
-    return const [Color(0xFFDDEBFF), Color(0xFF67A9FF)];
-  }
-
-  Future<void> _showSubmitSuccess(String? message) async {
-    await showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.32),
-      builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 34),
-          child: SoftCard(
-            radius: 30,
-            padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+    return _SimpleSubPage(
+      title: '帮助与反馈',
+      child: Column(
+        children: [
+          SoftCard(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.favorite_rounded,
-                  color: Color(0xFFFF9AA1),
-                  size: 120,
-                ),
-                const SizedBox(height: 8),
                 const Text(
-                  '反馈已提交',
+                  '问题描述',
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  message ?? '我们已经收到你的问题，会尽快与你联系。',
-                  textAlign: TextAlign.center,
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _controller,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    hintText: '请简要描述你遇到的问题',
+                    border: InputBorder.none,
+                    hintStyle: TextStyle(
+                      fontSize: 15,
+                      color: SoftColors.subtext,
+                    ),
+                  ),
                   style: const TextStyle(
                     fontSize: 16,
                     height: 1.6,
-                    color: SoftColors.subtext,
+                    color: SoftColors.text,
                   ),
                 ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: SoftGradientButton(
-                    text: '完成',
-                    onTap: () => Navigator.of(dialogContext).pop(),
+                const SizedBox(height: 8),
+                const Text(
+                  '尽量写清出现的位置和你期望的结果。',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: SoftColors.subtext,
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-}
-
-class ContactCustomerServiceScreen extends StatefulWidget {
-  const ContactCustomerServiceScreen({super.key});
-
-  @override
-  State<ContactCustomerServiceScreen> createState() =>
-      _ContactCustomerServiceScreenState();
-}
-
-class _ContactCustomerServiceScreenState
-    extends State<ContactCustomerServiceScreen> {
-  final ApiService _api = ApiService();
-  bool _loading = true;
-  Map<String, dynamic>? _overview;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    setState(() => _loading = true);
-    try {
-      final overview = await _api.getSupportOverview();
-      if (!mounted) return;
-      setState(() => _overview = overview);
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final preview =
-        _overview?['preview_messages'] as List<dynamic>? ?? <dynamic>[];
-    final online = (_overview?['online_status'] as String?) == 'online';
-    return SoftPage(
-      child: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-              child: Column(
-                children: [
-                  SoftHeader(
-                    title: '联系客服',
-                    onBack: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(height: 20),
-                  SoftCard(
-                    child: Row(
-                      children: [
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '我们会尽快帮助你',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w700,
-                                  color: SoftColors.text,
-                                ),
-                              ),
-                              SizedBox(height: 10),
-                              Text(
-                                '你的每一次倾诉，我们都会认真对待。',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: SoftColors.subtext,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.headset_mic_rounded,
-                          size: 88,
-                          color: Color(0xFFFFA17C),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SoftCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        _LineEntry(
-                          icon: Icons.chat_bubble_rounded,
-                          colors: const [Color(0xFFFFE4D5), Color(0xFFFF9860)],
-                          title: '在线客服',
-                          subtitle: '实时对话，快速处理你的问题',
-                          value: online ? '在线' : '离线',
-                        ),
-                        _LineEntry(
-                          icon: Icons.mail_rounded,
-                          colors: const [Color(0xFFE7DFFF), Color(0xFF947BFF)],
-                          title: '邮件联系',
-                          subtitle: _overview?['email'] as String?,
-                        ),
-                        _LineEntry(
-                          icon: Icons.groups_rounded,
-                          colors: const [Color(0xFFDDF7E6), Color(0xFF54C978)],
-                          title: '用户社群',
-                          subtitle: _overview?['community_name'] as String?,
-                        ),
-                        _LineEntry(
-                          icon: Icons.schedule_rounded,
-                          colors: const [Color(0xFFDCEBFF), Color(0xFF5EA8FF)],
-                          title: '服务时间',
-                          subtitle: _overview?['service_hours'] as String?,
-                          showDivider: false,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  SoftCard(
-                    padding: EdgeInsets.zero,
-                    child: Column(
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(22, 18, 22, 0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 4,
-                                height: 18,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    color: SoftColors.coral,
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(999)),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                '对话预览',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w700,
-                                  color: SoftColors.text,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        ...preview.map((item) {
-                          final map = Map<String, dynamic>.from(item as Map);
-                          return _ChatBubbleRow(
-                            left: (map['role'] as String?) != 'user',
-                            text: map['content'] as String? ?? '',
-                          );
-                        }),
-                        Container(
-                          margin: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.84),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(color: const Color(0xFFF2E1D8)),
-                          ),
-                          child: Row(
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  '输入问题后，客服会尽快接入...',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Color(0xFFBCC1C9),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      SoftColors.coral,
-                                      SoftColors.orange
-                                    ],
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.send_rounded,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: SoftGradientButton(
+              text: _submitting ? '提交中...' : '提交反馈',
+              onTap: _submitting ? null : _submit,
             ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1105,52 +1038,35 @@ class AboutUsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SimpleSubPage(
       title: '关于我们',
-      child: Column(
-        children: [
-          const _HintHero(
-            title: 'Emo Outlet',
-            subtitle: '一个更温柔地安放情绪、整理关系和记录自己的地方。',
-          ),
-          const SizedBox(height: 18),
-          SoftCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _SettingsEntry(
-                  icon: Icons.description_rounded,
-                  colors: const [Color(0xFFFFE2D7), Color(0xFFFF9666)],
-                  title: '用户协议',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const TermsOfServiceScreen()),
-                  ),
-                ),
-                _SettingsEntry(
-                  icon: Icons.privacy_tip_rounded,
-                  colors: const [Color(0xFFE6DFFF), Color(0xFF9D80FF)],
-                  title: '隐私政策',
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const PrivacyPolicyScreen()),
-                  ),
-                ),
-                const _SettingsEntry(
-                  icon: Icons.favorite_rounded,
-                  colors: [Color(0xFFDDF7E5), Color(0xFF5ACA7A)],
-                  title: '产品理念',
-                  subtitle: '我们希望每一次表达，都能被温柔接住。',
-                ),
-                const _SettingsEntry(
-                  icon: Icons.system_update_rounded,
-                  colors: [Color(0xFFDDEBFF), Color(0xFF67A9FF)],
-                  title: '当前版本',
-                  subtitle: '1.0.0',
-                  showDivider: false,
-                ),
-              ],
+      child: SoftCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            _SettingsEntry(
+              icon: Icons.description_rounded,
+              colors: const [Color(0xFFFFE2D7), Color(0xFFFF9666)],
+              title: '用户协议',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+              ),
             ),
-          ),
-        ],
+            _SettingsEntry(
+              icon: Icons.privacy_tip_rounded,
+              colors: const [Color(0xFFE6DFFF), Color(0xFF9D80FF)],
+              title: '隐私政策',
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+              ),
+            ),
+            const _SettingsEntry(
+              icon: Icons.system_update_rounded,
+              colors: [Color(0xFFDDEBFF), Color(0xFF67A9FF)],
+              title: '当前版本',
+              subtitle: '1.0.0',
+              showDivider: false,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1197,9 +1113,7 @@ abstract class _PreferenceScreenState<T extends StatefulWidget>
   Widget build(BuildContext context) {
     return _SimpleSubPage(
       title: title,
-      child: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : buildContent(),
+      child: _loading ? const Center(child: CircularProgressIndicator()) : buildContent(),
     );
   }
 }
@@ -1228,56 +1142,6 @@ class _SimpleSubPage extends StatelessWidget {
             child,
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _HintHero extends StatelessWidget {
-  const _HintHero({
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return SoftCard(
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: SoftColors.text,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: SoftColors.subtext,
-                    height: 1.6,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          const Icon(
-            Icons.favorite_rounded,
-            size: 76,
-            color: Color(0xFFFFA1A3),
-          ),
-        ],
       ),
     );
   }
@@ -1323,6 +1187,7 @@ class _LineEntry extends StatelessWidget {
     required this.title,
     this.subtitle,
     this.value,
+    this.onTap,
     this.showDivider = true,
   });
 
@@ -1331,6 +1196,7 @@ class _LineEntry extends StatelessWidget {
   final String title;
   final String? subtitle;
   final String? value;
+  final VoidCallback? onTap;
   final bool showDivider;
 
   @override
@@ -1348,7 +1214,7 @@ class _LineEntry extends StatelessWidget {
               child: Text(
                 value!,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 16, color: SoftColors.subtext),
+                style: const TextStyle(fontSize: 14, color: SoftColors.subtext),
               ),
             ),
           const SizedBox(width: 8),
@@ -1358,6 +1224,7 @@ class _LineEntry extends StatelessWidget {
           ),
         ],
       ),
+      onTap: onTap,
     );
   }
 }
@@ -1384,7 +1251,7 @@ class _PreferenceSwitchEntry extends StatelessWidget {
               child: Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 17,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: SoftColors.text,
                 ),
@@ -1393,79 +1260,11 @@ class _PreferenceSwitchEntry extends StatelessWidget {
             Switch(
               value: value,
               onChanged: onChanged,
-              activeColor: Colors.white,
+              activeThumbColor: Colors.white,
               activeTrackColor: SoftColors.coral,
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ChatBubbleRow extends StatelessWidget {
-  const _ChatBubbleRow({
-    required this.left,
-    required this.text,
-  });
-
-  final bool left;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final bubble = Container(
-      constraints: const BoxConstraints(maxWidth: 260),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: left
-            ? Colors.white.withValues(alpha: 0.92)
-            : const Color(0x1AFFA17D),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 16,
-          height: 1.55,
-          color: SoftColors.text,
-        ),
-      ),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
-      child: Row(
-        mainAxisAlignment:
-            left ? MainAxisAlignment.start : MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: left
-            ? [
-                const CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Color(0xFFFFD2D4),
-                  child: Icon(
-                    Icons.favorite_rounded,
-                    color: Color(0xFFFF7E8E),
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                bubble,
-              ]
-            : [
-                bubble,
-                const SizedBox(width: 10),
-                const CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Color(0xFFF9DFD1),
-                  child: Icon(
-                    Icons.person_rounded,
-                    color: Color(0xFFB17A55),
-                    size: 18,
-                  ),
-                ),
-              ],
       ),
     );
   }

@@ -13,7 +13,6 @@ from app.models.user import UserModel
 from app.schemas.support import (
     SupportFeedbackCreateRequest,
     SupportFeedbackResponse,
-    SupportOverviewResponse,
     UserPreferenceResponse,
     UserPreferenceUpdateRequest,
 )
@@ -53,29 +52,6 @@ def _preference_response(preference: UserPreferenceModel) -> UserPreferenceRespo
     )
 
 
-@router.get("/overview", response_model=SupportOverviewResponse)
-async def get_support_overview(
-    current_user: UserModel = Depends(get_current_user),
-):
-    return SupportOverviewResponse(
-        online_status="online",
-        service_hours="周一至周日 09:00 - 21:00",
-        email="support@emo-outlet.local",
-        community_name="Emo Outlet 用户社群",
-        common_entries=[
-            {"title": "常见问题", "subtitle": "快速找到最常被问到的答案"},
-            {"title": "使用教程", "subtitle": "从第一次使用到进阶操作都能查到"},
-            {"title": "问题反馈", "subtitle": "把你遇到的问题直接告诉我们"},
-            {"title": "联系客服", "subtitle": "需要人工协助时可以从这里进入"},
-        ],
-        preview_messages=[
-            {"role": "assistant", "content": "你好呀，我是小心管家，很高兴为你服务。"},
-            {"role": "user", "content": "我想咨询一下情绪记录相关的问题。"},
-            {"role": "assistant", "content": "没问题，你告诉我具体情况，我来帮你一起梳理。"},
-        ],
-    )
-
-
 @router.post(
     "/feedback",
     response_model=SupportFeedbackResponse,
@@ -100,7 +76,7 @@ async def submit_feedback(
     return SupportFeedbackResponse(
         id=feedback.id,
         status=feedback.status,
-        message="反馈已提交，我们会尽快联系你。",
+        message="反馈已提交，我们会尽快查看。",
         created_at=feedback.created_at,
     )
 

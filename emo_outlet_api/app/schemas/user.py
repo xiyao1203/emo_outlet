@@ -58,6 +58,7 @@ class UserProfileDetailResponse(BaseModel):
     nickname: str
     avatar_url: str | None = None
     phone: str | None = None
+    email: str | None = None
     signature: str | None = None
     gender: str | None = None
     birthday: str | None = None
@@ -67,6 +68,8 @@ class UserProfileDetailResponse(BaseModel):
 class UserProfileDetailUpdateRequest(BaseModel):
     nickname: str | None = Field(default=None, max_length=50)
     avatar_url: str | None = None
+    phone: str | None = Field(default=None, pattern=r"^1\d{10}$")
+    email: str | None = None
     signature: str | None = Field(default=None, max_length=120)
     gender: str | None = Field(default=None, max_length=20)
     birthday: str | None = Field(default=None, max_length=20)
