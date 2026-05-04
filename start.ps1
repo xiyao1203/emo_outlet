@@ -1,64 +1,145 @@
-# ============================================================
-# 情绪出口 (Emo Outlet) — 一键启动脚本
-# 同时启动后端 (FastAPI) + 前端 (Flutter)
-# ============================================================
-
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "     情绪出口 Emo Outlet — 一键启动" -ForegroundColor Cyan
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host ""
-
-$ROOT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BACKEND_DIR = Join-Path $ROOT_DIR "emo_outlet_api"
-$FRONTEND_DIR = Join-Path $ROOT_DIR "emo_outlet_app"
-
-# ── 1. 启动后端 ──────────────────────────────────────────
-Write-Host "[1/2] 启动后端服务 (FastAPI)..." -ForegroundColor Yellow
-Write-Host "      端口: 8686" -ForegroundColor Gray
-Write-Host "      API文档: http://localhost:8686/docs" -ForegroundColor Gray
-
-$BACKEND_CMD = "uvicorn app.main:app --reload --host 0.0.0.0 --port 8686"
-
-Start-Process -WindowStyle Normal -FilePath "powershell" -ArgumentList @(
-    "-NoExit",
-    "-Command",
-    "cd '$BACKEND_DIR'; Write-Host '=== 情绪出口 后端服务 ===' -ForegroundColor Cyan; Write-Host "Port: 8686  Docs: http://localhost:8686/docs" -ForegroundColor Gray; $BACKEND_CMD"
+param(
+    [ValidateSet("chrome", "edge", "web-server", "windows", "none")]
+    [string]$FrontendMode = "chrome",
+    [int]$FrontendPort = 5177,
+    [int]$BackendPort = 8686,
+    [switch]$SkipPubGet,
+    [switch]$SkipBackend,
+    [switch]$SkipFrontend
 )
 
-# 等后端启动一下
-Start-Sleep -Seconds 3
+$ErrorActionPreference = "Stop"
 
-# ── 2. 启动前端 ──────────────────────────────────────────
-Write-Host "[2/2] 启动前端 (Flutter)..." -ForegroundColor Yellow
-
-# 检查 Flutter 是否已安装
-$FLUTTER_CMD = Get-Command "flutter" -ErrorAction SilentlyContinue
-
-if ($null -eq $FLUTTER_CMD) {
-    Write-Host "      ⚠ Flutter SDK 未安装，跳过前端启动" -ForegroundColor Red
-    Write-Host "      $ 安装 Flutter 后, 手动运行:" -ForegroundColor Gray
-    Write-Host "      cd $FRONTEND_DIR" -ForegroundColor Gray
-    Write-Host "      flutter run -d chrome --web-port=5177" -ForegroundColor Gray
-} else {
-    Write-Host "      端口: 5177 (Web调试)" -ForegroundColor Gray
-    Write-Host "      检测到Flutter SDK, 正在启动..." -ForegroundColor Green
-
-    Start-Process -WindowStyle Normal -FilePath "powershell" -ArgumentList @(
-        "-NoExit",
-        "-Command",
-        "cd '$FRONTEND_DIR'; Write-Host '=== 情绪出口 前端服务 ===' -ForegroundColor Cyan; flutter run -d chrome --web-port=5177"
+function Write-Section {
+    param(
+        [string]$Text,
+        [ConsoleColor]$Color = [ConsoleColor]::Cyan
     )
+
+    Write-Host ""
+    Write-Host ("=" * 56) -ForegroundColor $Color
+    Write-Host $Text -ForegroundColor $Color
+    Write-Host ("=" * 56) -ForegroundColor $Color
+}
+
+function Test-CommandExists {
+    param([string]$Name)
+    return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
+}
+
+function Start-DevWindow {
+    param(
+        [string]$Title,
+        [string]$WorkingDirectory,
+        [string[]]$Commands
+    )
+
+    $commandText = @(
+        "Set-Location -LiteralPath '$WorkingDirectory'"
+        "`$Host.UI.RawUI.WindowTitle = '$Title'"
+        $Commands
+    ) -join "; "
+
+    Start-Process -FilePath "powershell" -ArgumentList @(
+        "-NoExit",
+        "-ExecutionPolicy", "Bypass",
+        "-Command", $commandText
+    ) -WindowStyle Normal | Out-Null
+}
+
+function Get-FrontendCommand {
+    param(
+        [string]$Mode,
+        [int]$Port
+    )
+
+    switch ($Mode) {
+        "chrome"     { return "flutter run -d chrome --web-port=$Port" }
+        "edge"       { return "flutter run -d edge --web-port=$Port" }
+        "web-server" { return "flutter run -d web-server --web-port=$Port" }
+        "windows"    { return "flutter run -d windows" }
+        "none"       { return $null }
+        default      { throw "Unsupported frontend mode: $Mode" }
+    }
+}
+
+$rootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$backendDir = Join-Path $rootDir "emo_outlet_api"
+$frontendDir = Join-Path $rootDir "emo_outlet_app"
+
+Write-Section "Emo Outlet dev launcher"
+Write-Host "Root: $rootDir" -ForegroundColor Gray
+Write-Host "Frontend mode: $FrontendMode" -ForegroundColor Gray
+Write-Host "Backend port : $BackendPort" -ForegroundColor Gray
+if ($FrontendMode -eq "web-server" -or $FrontendMode -eq "chrome" -or $FrontendMode -eq "edge") {
+    Write-Host "Frontend port: $FrontendPort" -ForegroundColor Gray
+}
+
+if (-not $SkipBackend) {
+    if (-not (Test-CommandExists "uvicorn")) {
+        throw "uvicorn was not found. Activate your Python environment or install backend dependencies first."
+    }
+
+    Write-Section "Starting backend"
+    Write-Host "API docs: http://localhost:$BackendPort/docs" -ForegroundColor Yellow
+    Start-DevWindow `
+        -Title "Emo Outlet backend" `
+        -WorkingDirectory $backendDir `
+        -Commands @(
+            "Write-Host 'Starting FastAPI with reload on port $BackendPort' -ForegroundColor Cyan",
+            "uvicorn app.main:app --reload --host 0.0.0.0 --port $BackendPort"
+        )
+
+    Start-Sleep -Seconds 2
+}
+
+if (-not $SkipFrontend -and $FrontendMode -ne "none") {
+    if (-not (Test-CommandExists "flutter")) {
+        throw "flutter was not found. Install Flutter SDK or add it to PATH."
+    }
+
+    if (-not $SkipPubGet) {
+        Write-Section "Syncing Flutter dependencies"
+        Push-Location $frontendDir
+        try {
+            flutter pub get
+        } finally {
+            Pop-Location
+        }
+    }
+
+    $frontendCommand = Get-FrontendCommand -Mode $FrontendMode -Port $FrontendPort
+    Write-Section "Starting frontend"
+    if ($FrontendMode -eq "web-server") {
+        Write-Host "Preview URL: http://localhost:$FrontendPort" -ForegroundColor Yellow
+        Write-Host "Note: web-server is good for shared preview, but chrome/edge is better for hot reload." -ForegroundColor DarkYellow
+    } elseif ($FrontendMode -eq "chrome" -or $FrontendMode -eq "edge") {
+        Write-Host "Using browser dev mode for fast hot reload." -ForegroundColor Green
+    } elseif ($FrontendMode -eq "windows") {
+        Write-Host "Launching native Windows Flutter app." -ForegroundColor Green
+    }
+
+    Start-DevWindow `
+        -Title "Emo Outlet frontend" `
+        -WorkingDirectory $frontendDir `
+        -Commands @(
+            "Write-Host 'Starting Flutter in $FrontendMode mode' -ForegroundColor Cyan",
+            $frontendCommand
+        )
+}
+
+Write-Section "Done" ([ConsoleColor]::Green)
+Write-Host "Backend : http://localhost:$BackendPort" -ForegroundColor Green
+Write-Host "Swagger : http://localhost:$BackendPort/docs" -ForegroundColor Green
+switch ($FrontendMode) {
+    "web-server" { Write-Host "Frontend: http://localhost:$FrontendPort" -ForegroundColor Green }
+    "chrome"     { Write-Host "Frontend: Chrome dev session on port $FrontendPort" -ForegroundColor Green }
+    "edge"       { Write-Host "Frontend: Edge dev session on port $FrontendPort" -ForegroundColor Green }
+    "windows"    { Write-Host "Frontend: native Windows app window" -ForegroundColor Green }
 }
 
 Write-Host ""
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host " 启动完成！" -ForegroundColor Green
-Write-Host " 后端: http://localhost:8686" -ForegroundColor Green
-Write-Host " API文档: http://localhost:8686/docs" -ForegroundColor Green
-if ($null -ne $FLUTTER_CMD) {
-    Write-Host " 前端: http://localhost:5177" -ForegroundColor Green
-}
-Write-Host "============================================" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "按任意键关闭本窗口..." -ForegroundColor Gray
-$null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+Write-Host "Examples:" -ForegroundColor Cyan
+Write-Host "  ./start.ps1" -ForegroundColor Gray
+Write-Host "  ./start.ps1 -FrontendMode web-server" -ForegroundColor Gray
+Write-Host "  ./start.ps1 -FrontendMode windows -SkipPubGet" -ForegroundColor Gray
