@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../providers/app_providers.dart';
-import 'emotion_summary_screen.dart';
+import 'emotion_report_screen.dart';
 
 class SessionEndScreen extends StatelessWidget {
   const SessionEndScreen({super.key});
@@ -54,8 +54,11 @@ class SessionEndScreen extends StatelessWidget {
                     if (session?.id != null) {
                       context.read<EmotionProvider>().generateReport(session!.id!);
                     }
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const EmotionSummaryScreen()),
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (_) => const EmotionReportScreen(),
+                      ),
+                      (route) => route.isFirst,
                     );
                   },
                   style: ElevatedButton.styleFrom(

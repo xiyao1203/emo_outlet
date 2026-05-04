@@ -1,4 +1,3 @@
-"""用户相关 Pydantic Schema"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -7,41 +6,26 @@ from pydantic import BaseModel, Field
 
 
 class UserRegisterRequest(BaseModel):
-    """用户注册请求"""
-    nickname: str = Field(default="", max_length=50, description="昵称")
-    phone: str | None = Field(default=None, pattern=r"^1\d{10}$", description="手机号")
-    email: str | None = Field(default=None, description="邮箱")
-    password: str = Field(..., min_length=6, max_length=50, description="密码")
-    device_uuid: str | None = Field(default=None, description="设备 UUID")
-    consent_version: str | None = Field(
-        default=None, description="用户同意的协议版本号"
-    )
-    age_range: str | None = Field(
-        default=None, description="年龄段: <14 / 14-18 / >18"
-    )
+    nickname: str = Field(default="", max_length=50)
+    phone: str | None = Field(default=None, pattern=r"^1\d{10}$")
+    email: str | None = None
+    password: str = Field(..., min_length=6, max_length=50)
+    device_uuid: str | None = None
+    consent_version: str | None = None
+    age_range: str | None = None
 
 
 class UserLoginRequest(BaseModel):
-    """用户登录请求"""
-    account: str = Field(..., description="手机号或邮箱")
-    password: str = Field(..., description="密码")
+    account: str
+    password: str
 
 
 class VisitorLoginRequest(BaseModel):
-    """游客登录请求"""
-    device_uuid: str = Field(..., description="设备 UUID")
-    nickname: str = Field(default="匿名用户", max_length=50, description="昵称")
-
-
-class TokenResponse(BaseModel):
-    """令牌响应"""
-    access_token: str
-    token_type: str = "bearer"
-    user: "UserResponse"
+    device_uuid: str
+    nickname: str = Field(default="匿名用户", max_length=50)
 
 
 class UserResponse(BaseModel):
-    """用户信息响应"""
     id: str
     nickname: str
     phone: str | None = None
@@ -58,7 +42,32 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserResponse
+
+
 class UserUpdateRequest(BaseModel):
-    """用户信息更新请求"""
     nickname: str | None = Field(default=None, max_length=50)
     avatar_url: str | None = None
+
+
+class UserProfileDetailResponse(BaseModel):
+    user_id: str
+    nickname: str
+    avatar_url: str | None = None
+    phone: str | None = None
+    signature: str | None = None
+    gender: str | None = None
+    birthday: str | None = None
+    region: str | None = None
+
+
+class UserProfileDetailUpdateRequest(BaseModel):
+    nickname: str | None = Field(default=None, max_length=50)
+    avatar_url: str | None = None
+    signature: str | None = Field(default=None, max_length=120)
+    gender: str | None = Field(default=None, max_length=20)
+    birthday: str | None = Field(default=None, max_length=20)
+    region: str | None = Field(default=None, max_length=60)
