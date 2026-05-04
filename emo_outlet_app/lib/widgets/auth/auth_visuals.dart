@@ -99,7 +99,7 @@ class AppBrand extends StatelessWidget {
         BrandCloudLogo(size: logoSize),
         SizedBox(width: spacing),
         Text(
-          '情绪释放',
+          '\u60c5\u7eea\u91ca\u653e',
           style: TextStyle(
             fontSize: fontSize,
             fontWeight: FontWeight.w700,
@@ -160,7 +160,7 @@ class SupportExpressionRow extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Text(
-          '支持文字、语音、方言表达',
+          '\u652f\u6301\u6587\u5b57\u3001\u8bed\u97f3\u3001\u65b9\u8a00\u8868\u8fbe',
           style: TextStyle(
             fontSize: fontSize,
             color: const Color(0xFF705F56),
@@ -323,16 +323,22 @@ class GradientPrimaryButton extends StatelessWidget {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              AuthPalette.coral,
-              Color(0xFFFF6B54),
-              AuthPalette.orange,
+              Color(0xFFFF5964),
+              Color(0xFFFF6D56),
+              Color(0xFFFF8C45),
             ],
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0x40FF8D64),
-              blurRadius: 30,
-              offset: const Offset(0, 16),
+              color: const Color(0x36FF8965),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.5),
+              blurRadius: 2,
+              spreadRadius: -2,
+              offset: const Offset(0, -1),
             ),
           ],
         ),
@@ -347,8 +353,16 @@ class GradientPrimaryButton extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(height / 2),
                 border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.9),
-                  width: 2,
+                  color: Colors.white.withValues(alpha: 0.92),
+                  width: 2.2,
+                ),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.18),
+                    Colors.white.withValues(alpha: 0.03),
+                  ],
                 ),
               ),
               child: loading
@@ -365,8 +379,9 @@ class GradientPrimaryButton extends StatelessWidget {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: fontSize,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0,
+                        height: 1,
                       ),
                     ),
             ),
@@ -383,12 +398,14 @@ class OutlineSoftButton extends StatelessWidget {
     required this.text,
     required this.onTap,
     this.height = 56,
+    this.fontSize = 16,
     this.trailing,
   });
 
   final String text;
   final VoidCallback onTap;
   final double height;
+  final double fontSize;
   final Widget? trailing;
 
   @override
@@ -402,8 +419,28 @@ class OutlineSoftButton extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(height / 2),
-            border: Border.all(color: const Color(0xFFDDBEB2)),
-            color: Colors.white.withValues(alpha: 0.22),
+            border: Border.all(color: const Color(0xFFE1C2B7), width: 1.15),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withValues(alpha: 0.72),
+                Colors.white.withValues(alpha: 0.28),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0x14D9957C),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.4),
+                blurRadius: 0,
+                spreadRadius: -1,
+                offset: const Offset(0, -1),
+              ),
+            ],
           ),
           child: Center(
             child: Row(
@@ -411,14 +448,15 @@ class OutlineSoftButton extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  style: TextStyle(
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFFDD655B),
+                    height: 1,
                   ),
                 ),
                 if (trailing != null) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   trailing!,
                 ],
               ],
@@ -488,24 +526,27 @@ class SocialIconWeChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 42,
-      height: 42,
+      width: 40,
+      height: 40,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Positioned(
-            left: 0,
-            bottom: 6,
-            child: _BubbleCircle(
-              size: 24,
-              color: const Color(0xFF21C45A),
+            left: 2,
+            bottom: 5,
+            child: _WeChatBubble(
+              size: 23,
+              color: const Color(0xFF22C45E),
+              tailOnLeft: true,
             ),
           ),
           Positioned(
-            right: 0,
-            top: 4,
-            child: _BubbleCircle(
-              size: 22,
-              color: const Color(0xFF39D26A),
+            right: 1,
+            top: 2,
+            child: _WeChatBubble(
+              size: 21,
+              color: const Color(0xFF46D56F),
+              tailOnLeft: false,
             ),
           ),
         ],
@@ -519,13 +560,11 @@ class SocialIconQQ extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
-      'Q',
-      style: TextStyle(
-        fontSize: 40,
-        height: 1,
-        color: Color(0xFF3D95FF),
-        fontWeight: FontWeight.w700,
+    return const SizedBox(
+      width: 40,
+      height: 40,
+      child: CustomPaint(
+        painter: _QqPenguinPainter(),
       ),
     );
   }
@@ -536,42 +575,215 @@ class SocialIconGuest extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Icon(
-      Icons.person_rounded,
-      size: 38,
-      color: Color(0xFFF2A43D),
+    return const SizedBox(
+      width: 38,
+      height: 38,
+      child: CustomPaint(
+        painter: _GuestProfilePainter(),
+      ),
     );
   }
 }
 
-class _BubbleCircle extends StatelessWidget {
-  const _BubbleCircle({required this.size, required this.color});
+class _WeChatBubble extends StatelessWidget {
+  const _WeChatBubble({
+    required this.size,
+    required this.color,
+    required this.tailOnLeft,
+  });
 
   final double size;
   final Color color;
+  final bool tailOnLeft;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      child: Stack(
-        children: [
-          Positioned(
-            left: size * 0.24,
-            top: size * 0.3,
-            child: _Dot(size: size * 0.12),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.18),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          Positioned(
-            right: size * 0.24,
-            top: size * 0.3,
-            child: _Dot(size: size * 0.12),
+          child: Stack(
+            children: [
+              Positioned(
+                left: size * 0.24,
+                top: size * 0.3,
+                child: _Dot(size: size * 0.11),
+              ),
+              Positioned(
+                right: size * 0.24,
+                top: size * 0.3,
+                child: _Dot(size: size * 0.11),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          left: tailOnLeft ? size * 0.16 : null,
+          right: tailOnLeft ? null : size * 0.16,
+          bottom: -2,
+          child: Transform.rotate(
+            angle: tailOnLeft ? 0.18 : -0.18,
+            child: CustomPaint(
+              size: Size(size * 0.24, size * 0.18),
+              painter: _BubbleTailPainter(color),
+            ),
+          ),
+        ),
+      ],
     );
   }
+}
+
+class _BubbleTailPainter extends CustomPainter {
+  const _BubbleTailPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..quadraticBezierTo(size.width * 0.55, size.height * 0.15, size.width, 0)
+      ..quadraticBezierTo(
+        size.width * 0.72,
+        size.height * 0.78,
+        size.width * 0.26,
+        size.height,
+      )
+      ..close();
+
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BubbleTailPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _QqPenguinPainter extends CustomPainter {
+  const _QqPenguinPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bluePaint = Paint()..color = const Color(0xFF4292F4);
+    final whitePaint = Paint()..color = Colors.white;
+
+    final body = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.22,
+        size.height * 0.12,
+        size.width * 0.56,
+        size.height * 0.64,
+      ),
+      Radius.circular(size.width * 0.28),
+    );
+    canvas.drawRRect(body, bluePaint);
+
+    final belly = RRect.fromRectAndRadius(
+      Rect.fromLTWH(
+        size.width * 0.31,
+        size.height * 0.28,
+        size.width * 0.38,
+        size.height * 0.34,
+      ),
+      Radius.circular(size.width * 0.2),
+    );
+    canvas.drawRRect(belly, whitePaint);
+
+    canvas.drawCircle(
+      Offset(size.width * 0.41, size.height * 0.24),
+      size.width * 0.032,
+      whitePaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.59, size.height * 0.24),
+      size.width * 0.032,
+      whitePaint,
+    );
+
+    final feetPaint = Paint()..color = const Color(0xFF6EAFFF);
+    canvas.drawOval(
+      Rect.fromLTWH(
+        size.width * 0.24,
+        size.height * 0.66,
+        size.width * 0.18,
+        size.height * 0.12,
+      ),
+      feetPaint,
+    );
+    canvas.drawOval(
+      Rect.fromLTWH(
+        size.width * 0.58,
+        size.height * 0.66,
+        size.width * 0.18,
+        size.height * 0.12,
+      ),
+      feetPaint,
+    );
+
+    final tail = Path()
+      ..moveTo(size.width * 0.64, size.height * 0.64)
+      ..quadraticBezierTo(
+        size.width * 0.86,
+        size.height * 0.82,
+        size.width * 0.72,
+        size.height * 0.9,
+      );
+    canvas.drawPath(
+      tail,
+      Paint()
+        ..color = const Color(0xFF4292F4)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.width * 0.08
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _GuestProfilePainter extends CustomPainter {
+  const _GuestProfilePainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = const Color(0xFFF0A33A);
+
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.28),
+      size.width * 0.14,
+      paint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          size.width * 0.2,
+          size.height * 0.48,
+          size.width * 0.6,
+          size.height * 0.22,
+        ),
+        Radius.circular(size.width * 0.18),
+      ),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
 class _Dot extends StatelessWidget {

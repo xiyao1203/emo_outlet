@@ -45,7 +45,7 @@ class TargetDetailScreen extends StatelessWidget {
                 const Text(
                   '对象详情',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 22,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -73,7 +73,7 @@ class TargetDetailScreen extends StatelessWidget {
                       EmoAvatar(
                         label: avatarEmojiByType(current.type),
                         background: avatarBgByType(current.type),
-                        size: 132,
+                        size: 104,
                       ),
                       const SizedBox(width: 18),
                       Expanded(
@@ -85,7 +85,7 @@ class TargetDetailScreen extends StatelessWidget {
                                 Text(
                                   current.name,
                                   style: const TextStyle(
-                                    fontSize: 34,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -101,7 +101,7 @@ class TargetDetailScreen extends StatelessWidget {
                             Text(
                               current.relationship ?? '管理你的泄愤对象',
                               style: const TextStyle(
-                                fontSize: 17,
+                                fontSize: 14,
                                 height: 1.5,
                                 color: Color(0xFF6B625F),
                                 fontWeight: FontWeight.w500,
@@ -212,7 +212,7 @@ class TargetDetailScreen extends StatelessWidget {
           Text(
             text,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -249,7 +249,7 @@ class TargetDetailScreen extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 22,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF211B18),
                   ),
@@ -258,7 +258,7 @@ class TargetDetailScreen extends StatelessWidget {
                 Text(
                   body,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     height: 1.5,
                     color: Color(0xFF6D6560),
                     fontWeight: FontWeight.w500,

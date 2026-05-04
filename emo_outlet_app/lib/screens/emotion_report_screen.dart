@@ -89,7 +89,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                               const Text(
                                 '你的情绪正在慢慢变好',
                                 style: TextStyle(
-                                  fontSize: 26,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w700,
                                   color: SoftColors.text,
                                 ),
@@ -98,7 +98,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                               Text(
                                 _overview?['suggestion'] as String? ?? '',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 14,
                                   color: SoftColors.subtext,
                                 ),
                               ),
@@ -108,7 +108,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                         const Icon(
                           Icons.favorite_rounded,
                           color: Color(0xFFFFA1A5),
-                          size: 94,
+                          size: 72,
                         ),
                       ],
                     ),
@@ -119,11 +119,15 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                       Expanded(
                         child: _MetricBox(
                           icon: Icons.cloud_upload_rounded,
-                          iconColors: const [Color(0xFFFFD9D0), Color(0xFFFF7562)],
+                          iconColors: const [
+                            Color(0xFFFFD9D0),
+                            Color(0xFFFF7562)
+                          ],
                           title: '累计释放',
                           value: '${_overview?['total_sessions'] ?? 0}',
                           unit: '次',
-                          delta: _overview?['dominant_emotion'] as String? ?? '-',
+                          delta:
+                              _overview?['dominant_emotion'] as String? ?? '-',
                           deltaColor: const Color(0xFF16C37D),
                           deltaPrefix: '主导情绪 ',
                         ),
@@ -132,7 +136,10 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                       Expanded(
                         child: _MetricBox(
                           icon: Icons.timelapse_rounded,
-                          iconColors: const [Color(0xFFE7DFFF), Color(0xFF8B6EFF)],
+                          iconColors: const [
+                            Color(0xFFE7DFFF),
+                            Color(0xFF8B6EFF)
+                          ],
                           title: '累计时长',
                           value: '${_overview?['total_duration_minutes'] ?? 0}',
                           unit: '分钟',
@@ -145,9 +152,13 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                       Expanded(
                         child: _MetricBox(
                           icon: Icons.shield_rounded,
-                          iconColors: const [Color(0xFFFFEDC9), Color(0xFFFFBE48)],
+                          iconColors: const [
+                            Color(0xFFFFEDC9),
+                            Color(0xFFFFBE48)
+                          ],
                           title: '情绪种类',
-                          value: '${(_overview?['emotion_distribution'] as Map<String, dynamic>? ?? {}).length}',
+                          value:
+                              '${(_overview?['emotion_distribution'] as Map<String, dynamic>? ?? {}).length}',
                           unit: '类',
                           delta: '${_trendPoints.length}条',
                           deltaColor: const Color(0xFF16C37D),
@@ -166,7 +177,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                             Text(
                               '趋势变化',
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: SoftColors.text,
                               ),
@@ -175,7 +186,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                             Text(
                               '强度评分',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 14,
                                 color: SoftColors.subtext,
                               ),
                             ),
@@ -220,13 +231,16 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                                     interval: 1,
                                     getTitlesWidget: (value, _) {
                                       final index = value.toInt();
-                                      if (index < 0 || index >= _trendPoints.length) {
+                                      if (index < 0 ||
+                                          index >= _trendPoints.length) {
                                         return const SizedBox.shrink();
                                       }
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 8),
                                         child: Text(
-                                          (_trendPoints[index]['date'] as String?) ?? '',
+                                          (_trendPoints[index]['date']
+                                                  as String?) ??
+                                              '',
                                           style: const TextStyle(
                                             fontSize: 14,
                                             color: SoftColors.subtext,
@@ -257,7 +271,8 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        const Color(0xFFD799FF).withValues(alpha: 0.28),
+                                        const Color(0xFFD799FF)
+                                            .withValues(alpha: 0.28),
                                         Colors.transparent,
                                       ],
                                     ),
@@ -282,7 +297,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                               const Text(
                                 '情绪分布',
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: SoftColors.text,
                                 ),
@@ -304,10 +319,12 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: _distributionEntries
                                           .map((entry) => Padding(
-                                                padding: const EdgeInsets.only(bottom: 10),
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 10),
                                                 child: _LegendItem(
                                                   entry.key,
                                                   '${entry.value.toStringAsFixed(1)}%',
@@ -332,7 +349,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                               const Text(
                                 '高频关键词',
                                 style: TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: SoftColors.text,
                                 ),
@@ -361,13 +378,14 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                       onTap: () {
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => EmotionAnalysisDetailScreen(detail: _detail),
+                            builder: (_) =>
+                                EmotionAnalysisDetailScreen(detail: _detail),
                           ),
                         );
                       },
                       borderRadius: BorderRadius.circular(30),
                       child: Ink(
-                        height: 96,
+                        height: 82,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
                           gradient: const LinearGradient(
@@ -380,7 +398,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                             Text(
                               '查看详细分析',
                               style: TextStyle(
-                                fontSize: 22,
+                                fontSize: 18,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
@@ -397,7 +415,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                               child: Icon(
                                 Icons.manage_search_rounded,
                                 color: Colors.white,
-                                size: 60,
+                                size: 44,
                               ),
                             ),
                           ],
@@ -412,10 +430,11 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
   }
 
   List<MapEntry<String, double>> get _distributionEntries {
-    final distribution = (_overview?['emotion_distribution'] as Map<String, dynamic>? ?? {})
-        .map((key, value) => MapEntry(key, (value as num).toDouble()))
-        .entries
-        .toList();
+    final distribution =
+        (_overview?['emotion_distribution'] as Map<String, dynamic>? ?? {})
+            .map((key, value) => MapEntry(key, (value as num).toDouble()))
+            .entries
+            .toList();
     if (distribution.isEmpty) {
       return [const MapEntry('暂无', 100)];
     }
@@ -435,7 +454,8 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
         .toList();
   }
 
-  List<dynamic> get _trendPoints => _detail?['trend_points'] as List<dynamic>? ?? <dynamic>[];
+  List<dynamic> get _trendPoints =>
+      _detail?['trend_points'] as List<dynamic>? ?? <dynamic>[];
 
   List<FlSpot> get _trendSpots {
     if (_trendPoints.isEmpty) {
@@ -443,7 +463,8 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
     }
     return _trendPoints.asMap().entries.map((entry) {
       final item = entry.value as Map<String, dynamic>;
-      return FlSpot(entry.key.toDouble(), (item['score'] as num?)?.toDouble() ?? 0);
+      return FlSpot(
+          entry.key.toDouble(), (item['score'] as num?)?.toDouble() ?? 0);
     }).toList();
   }
 
@@ -452,7 +473,10 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
     if (items.isEmpty) {
       return ['暂无关键词'];
     }
-    return items.take(6).map((item) => (item as Map<String, dynamic>)['name'] as String? ?? '-').toList();
+    return items
+        .take(6)
+        .map((item) => (item as Map<String, dynamic>)['name'] as String? ?? '-')
+        .toList();
   }
 
   Color _emotionColor(String key) {
@@ -480,18 +504,24 @@ class EmotionAnalysisDetailScreen extends StatefulWidget {
   final Map<String, dynamic>? detail;
 
   @override
-  State<EmotionAnalysisDetailScreen> createState() => _EmotionAnalysisDetailScreenState();
+  State<EmotionAnalysisDetailScreen> createState() =>
+      _EmotionAnalysisDetailScreenState();
 }
 
-class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScreen> {
+class _EmotionAnalysisDetailScreenState
+    extends State<EmotionAnalysisDetailScreen> {
   int _mode = 2;
 
   @override
   Widget build(BuildContext context) {
     final detail = widget.detail ?? <String, dynamic>{};
-    final targetDistribution = detail['target_distribution'] as List<dynamic>? ?? <dynamic>[];
-    final timeDistribution = detail['time_distribution'] as List<dynamic>? ?? <dynamic>[];
-    final modeDistribution = detail['mode_distribution'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final targetDistribution =
+        detail['target_distribution'] as List<dynamic>? ?? <dynamic>[];
+    final timeDistribution =
+        detail['time_distribution'] as List<dynamic>? ?? <dynamic>[];
+    final modeDistribution =
+        detail['mode_distribution'] as Map<String, dynamic>? ??
+            <String, dynamic>{};
     final trendPoints = detail['trend_points'] as List<dynamic>? ?? <dynamic>[];
 
     return SoftPage(
@@ -517,7 +547,7 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                   const Text(
                     '趋势详情',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: SoftColors.text,
                     ),
@@ -544,8 +574,12 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                                   return const SizedBox.shrink();
                                 }
                                 return Text(
-                                  (trendPoints[index] as Map<String, dynamic>)['date'] as String? ?? '',
-                                  style: const TextStyle(fontSize: 12, color: SoftColors.subtext),
+                                  (trendPoints[index]
+                                              as Map<String, dynamic>)['date']
+                                          as String? ??
+                                      '',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: SoftColors.subtext),
                                 );
                               },
                             ),
@@ -556,7 +590,8 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                             isCurved: true,
                             spots: trendPoints.asMap().entries.map((entry) {
                               final point = entry.value as Map<String, dynamic>;
-                              return FlSpot(entry.key.toDouble(), (point['score'] as num?)?.toDouble() ?? 0);
+                              return FlSpot(entry.key.toDouble(),
+                                  (point['score'] as num?)?.toDouble() ?? 0);
                             }).toList(),
                             color: SoftColors.coral,
                             barWidth: 4,
@@ -580,15 +615,19 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                         const Text(
                           '模式占比',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: SoftColors.text,
                           ),
                         ),
                         const SizedBox(height: 18),
-                        _LegendItem('单向', '${(modeDistribution['single'] ?? 0)}%', const Color(0xFFFF7270)),
+                        _LegendItem(
+                            '单向',
+                            '${(modeDistribution['single'] ?? 0)}%',
+                            const Color(0xFFFF7270)),
                         const SizedBox(height: 10),
-                        _LegendItem('双向', '${(modeDistribution['dual'] ?? 0)}%', const Color(0xFFB48BFF)),
+                        _LegendItem('双向', '${(modeDistribution['dual'] ?? 0)}%',
+                            const Color(0xFFB48BFF)),
                       ],
                     ),
                   ),
@@ -602,7 +641,7 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                         const Text(
                           '对象类型',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: SoftColors.text,
                           ),
@@ -610,7 +649,8 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                         const SizedBox(height: 18),
                         ...targetDistribution.take(4).map((item) {
                           final map = item as Map<String, dynamic>;
-                          final percent = ((map['percent'] as num?)?.toDouble() ?? 0) / 100;
+                          final percent =
+                              ((map['percent'] as num?)?.toDouble() ?? 0) / 100;
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10),
                             child: _RankItem(
@@ -635,7 +675,7 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                   const Text(
                     '释放时段偏好',
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: SoftColors.text,
                     ),
@@ -656,18 +696,24 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                               showTitles: true,
                               getTitlesWidget: (value, _) {
                                 final index = value.toInt();
-                                if (index < 0 || index >= timeDistribution.length) {
+                                if (index < 0 ||
+                                    index >= timeDistribution.length) {
                                   return const SizedBox.shrink();
                                 }
                                 return Text(
-                                  (timeDistribution[index] as Map<String, dynamic>)['name'] as String? ?? '',
-                                  style: const TextStyle(fontSize: 14, color: SoftColors.text),
+                                  (timeDistribution[index]
+                                              as Map<String, dynamic>)['name']
+                                          as String? ??
+                                      '',
+                                  style: const TextStyle(
+                                      fontSize: 14, color: SoftColors.text),
                                 );
                               },
                             ),
                           ),
                         ),
-                        barGroups: timeDistribution.asMap().entries.map((entry) {
+                        barGroups:
+                            timeDistribution.asMap().entries.map((entry) {
                           final item = entry.value as Map<String, dynamic>;
                           return BarChartGroupData(
                             x: entry.key,
@@ -676,7 +722,8 @@ class _EmotionAnalysisDetailScreenState extends State<EmotionAnalysisDetailScree
                                 toY: (item['percent'] as num?)?.toDouble() ?? 0,
                                 width: 28,
                                 color: const Color(0xFFFF7A67),
-                                borderRadius: const BorderRadius.all(Radius.circular(10)),
+                                borderRadius:
+                                    const BorderRadius.all(Radius.circular(10)),
                               ),
                             ],
                           );
@@ -734,7 +781,7 @@ class _MetricBox extends StatelessWidget {
                 TextSpan(
                   text: value,
                   style: const TextStyle(
-                    fontSize: 32,
+                    fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),

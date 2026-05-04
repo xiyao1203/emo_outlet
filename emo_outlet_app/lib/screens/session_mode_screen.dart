@@ -30,7 +30,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
 
     return EmoPageScaffold(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
         child: Column(
           children: [
             Row(
@@ -42,10 +42,10 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                 const Spacer(),
                 const Text(
                   '开始释放情绪',
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                 ),
                 const Spacer(),
-                const EmoDecorationCloud(size: 155),
+                const EmoDecorationCloud(size: 104),
               ],
             ),
             Transform.translate(
@@ -158,7 +158,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   GradientPrimaryButton(
                     text: '开始释放',
                     height: 72,
-                    fontSize: 28,
+                    fontSize: 20,
                     onTap: target == null
                         ? null
                         : () async {
@@ -208,7 +208,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
               Text(
                 title,
                 style:
-                    const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -231,7 +231,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
           EmoAvatar(
             label: avatarEmojiByType(target.type),
             background: avatarBgByType(target.type),
-            size: 84,
+            size: 72,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -243,7 +243,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                     Text(
                       target.name,
                       style: const TextStyle(
-                          fontSize: 28, fontWeight: FontWeight.w800),
+                          fontSize: 20, fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(width: 10),
                     EmoTypePill(
@@ -260,7 +260,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     color: Color(0xFF706760),
                     fontWeight: FontWeight.w500,
                   ),
@@ -269,7 +269,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
             ),
           ),
           const Icon(Icons.chevron_right_rounded,
-              color: Color(0xFF9E9E9E), size: 28),
+              color: Color(0xFF9E9E9E), size: 22),
         ],
       ),
     );
@@ -306,20 +306,20 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                     : Icons.radio_button_unchecked_rounded,
                 color:
                     active ? const Color(0xFFFF6F54) : const Color(0xFFD8D0CB),
-                size: 28,
+                size: 22,
               ),
             ),
-            Icon(icon, color: iconColor, size: 54),
+            Icon(icon, color: iconColor, size: 42),
             const SizedBox(height: 12),
             Text(title,
                 style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 13,
                 color: Color(0xFF7B726C),
                 fontWeight: FontWeight.w500,
               ),
@@ -345,19 +345,19 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: iconColor, size: 28),
+          Icon(icon, color: iconColor, size: 22),
           const SizedBox(width: 14),
           Expanded(
             child: Text(title,
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
           Text(value,
               style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           const SizedBox(width: 8),
           const Icon(Icons.chevron_right_rounded,
-              color: Color(0xFF9A9A9A), size: 28),
+              color: Color(0xFF9A9A9A), size: 22),
         ],
       ),
     );
@@ -401,7 +401,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   Text(
                     text,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: active
                           ? const Color(0xFFFF6F54)
@@ -416,7 +416,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                 top: -1,
                 right: -1,
                 child: Icon(Icons.check_circle_rounded,
-                    color: Color(0xFFFF6F54), size: 28),
+                    color: Color(0xFFFF6F54), size: 22),
               ),
           ],
         ),

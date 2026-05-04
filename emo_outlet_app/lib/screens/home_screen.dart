@@ -74,149 +74,94 @@ class _HomeTab extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final horizontal = math.min(width * 0.05, 20.0);
+        final compact = constraints.maxHeight < 860;
+        final horizontal = math.min(width * 0.05, 22.0);
+
         return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(horizontal, 18, horizontal, 12),
+          padding: EdgeInsets.fromLTRB(horizontal, 10, horizontal, 14),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const EmoTopBrandBar(trailing: EmoProfileBubble()),
-              const SizedBox(height: 26),
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(
-                    color: AuthPalette.textPrimary,
-                    fontSize: 38,
-                    fontWeight: FontWeight.w800,
-                    height: 1.1,
-                  ),
-                  children: [
-                    const TextSpan(text: 'Hi, '),
-                    TextSpan(text: user?.nickname ?? '小太阳'),
-                    const TextSpan(text: ' 👋'),
-                  ],
+              const _HomeTopBar(),
+              SizedBox(height: compact ? 22 : 28),
+              Text(
+                'Hi, ${user?.nickname ?? '\u5c0f\u592a\u9633'} \uD83D\uDC4B',
+                style: const TextStyle(
+                  color: AuthPalette.textPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  height: 1.06,
+                  letterSpacing: -0.9,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               const Text(
-                '今天想把哪些情绪说出来呢？',
+                '\u4eca\u5929\u60f3\u628a\u54ea\u4e9b\u60c5\u7eea\u8bf4\u51fa\u6765\u5462\uff1f',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 14.5,
                   color: Color(0xFF746962),
                   fontWeight: FontWeight.w500,
+                  height: 1.35,
                 ),
               ),
-              const SizedBox(height: 22),
-              EmoSectionCard(
-                radius: 34,
-                padding: const EdgeInsets.fromLTRB(22, 22, 22, 24),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '把不舒服的情绪',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w800,
-                                  color: AuthPalette.textPrimary,
-                                  height: 1.12,
-                                ),
-                              ),
-                              Text(
-                                '轻轻放出来',
-                                style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFFFF6D4C),
-                                  height: 1.12,
-                                ),
-                              ),
-                              SizedBox(height: 18),
-                              Text(
-                                '安全表达 · 即时疏解 · 专属陪伴',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  color: Color(0xFF776B66),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        const EmoDecorationCloud(size: 190),
-                      ],
+              SizedBox(height: compact ? 18 : 22),
+              _HeroReleaseCard(
+                compact: compact,
+                onTap: () {
+                  if (topTarget != null) {
+                    context.read<TargetProvider>().setCurrentTarget(topTarget);
+                  }
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const SessionModeScreen(),
                     ),
-                    const SizedBox(height: 8),
-                    GradientPrimaryButton(
-                      text: '开始释放情绪',
-                      height: 72,
-                      fontSize: 28,
-                      onTap: () {
-                        if (topTarget != null) {
-                          context
-                              .read<TargetProvider>()
-                              .setCurrentTarget(topTarget);
-                        }
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const SessionModeScreen()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-              const SizedBox(height: 22),
+              SizedBox(height: compact ? 18 : 22),
               GridView.count(
                 crossAxisCount: 2,
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 1.08,
+                childAspectRatio: 1.38,
                 children: [
                   _FeatureCard(
-                    emoji: '💗',
-                    emojiBg: const Color(0xFFFFB1BF),
-                    title: '我的对象',
-                    subtitle: '管理你关心的人',
+                    imageAsset: 'assets/images/home_icon_target.png',
+                    title: '\u6211\u7684\u5bf9\u8c61',
+                    subtitle: '\u7ba1\u7406\u4f60\u5173\u5fc3\u7684\u4eba',
                     onTap: () => Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
                         builder: (_) => const HomeScreen(
-                            initialIndex: AppConstants.navIndexTarget),
+                          initialIndex: AppConstants.navIndexTarget,
+                        ),
                       ),
                     ),
                   ),
                   _FeatureCard(
-                    emoji: '🕘',
-                    emojiBg: const Color(0xFF9D93FF),
-                    title: '历史记录',
-                    subtitle: '查看过去的倾诉',
+                    imageAsset: 'assets/images/home_icon_history.png',
+                    title: '\u5386\u53f2\u8bb0\u5f55',
+                    subtitle: '\u67e5\u770b\u8fc7\u53bb\u7684\u503e\u8bc9',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const HistoryScreen()),
                     ),
                   ),
                   _FeatureCard(
-                    emoji: '📊',
-                    emojiBg: const Color(0xFFFFB057),
-                    title: '情绪报告',
-                    subtitle: '探索你的情绪趋势',
+                    imageAsset: 'assets/images/home_icon_report.png',
+                    title: '\u60c5\u7eea\u62a5\u544a',
+                    subtitle:
+                        '\u63a2\u7d22\u4f60\u7684\u60c5\u7eea\u8d8b\u52bf',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
-                          builder: (_) => const EmotionReportScreen()),
+                        builder: (_) => const EmotionReportScreen(),
+                      ),
                     ),
                   ),
                   _FeatureCard(
-                    emoji: '⚙️',
-                    emojiBg: const Color(0xFFD8D8D8),
-                    title: '设置中心',
-                    subtitle: '个性化你的体验',
+                    imageAsset: 'assets/images/home_icon_settings.png',
+                    title: '\u8bbe\u7f6e\u4e2d\u5fc3',
+                    subtitle: '\u4e2a\u6027\u5316\u4f60\u7684\u4f53\u9a8c',
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(builder: (_) => const SettingsScreen()),
                     ),
@@ -231,17 +176,203 @@ class _HomeTab extends StatelessWidget {
   }
 }
 
+class _HomeTopBar extends StatelessWidget {
+  const _HomeTopBar();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppBrand(fontSize: 22, logoSize: 40, spacing: 10),
+            SizedBox(height: 5),
+            Text(
+              '\u628a\u4e0d\u8212\u670d\u7684\u60c5\u7eea\uff0c\u8f7b\u8f7b\u653e\u51fa\u6765',
+              style: TextStyle(
+                fontSize: 13.5,
+                color: Color(0xFF7C6C63),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        const Spacer(),
+        Container(
+          width: 62,
+          height: 62,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 2.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x10DCA596),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFFFFD9C9), Color(0xFFFFF4EE)],
+            ),
+          ),
+          child: ClipOval(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Image.asset(
+                'assets/images/home_avatar_profile.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _HeroReleaseCard extends StatelessWidget {
+  const _HeroReleaseCard({
+    required this.compact,
+    required this.onTap,
+  });
+
+  final bool compact;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return EmoSectionCard(
+      radius: 34,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      child: Column(
+        children: [
+          SizedBox(
+            height: compact ? 236 : 254,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned(
+                  right: -22,
+                  top: -24,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 260,
+                      height: 260,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [Color(0x22FFC7BD), Color(0x00FFC7BD)],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  left: 4,
+                  top: 18,
+                  right: 160,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '\u628a\u4e0d\u8212\u670d\u7684\u60c5\u7eea',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AuthPalette.textPrimary,
+                          height: 1.12,
+                          letterSpacing: -0.9,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        '\u8f7b\u8f7b\u653e\u51fa\u6765',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFFF6D4C),
+                          height: 1.06,
+                          letterSpacing: -0.9,
+                        ),
+                      ),
+                      SizedBox(height: 14),
+                      Text(
+                        '\u5b89\u5168\u8868\u8fbe\u00b7\u5373\u65f6\u758f\u89e3\u00b7\u4e13\u5c5e\u966a\u4f34',
+                        style: TextStyle(
+                          fontSize: 14.2,
+                          color: Color(0xFF776B66),
+                          fontWeight: FontWeight.w500,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Positioned(
+                  top: -4,
+                  right: -8,
+                  bottom: 0,
+                  width: 260,
+                  child: _HomeHeroCloud(),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          GradientPrimaryButton(
+            text: '\u5f00\u59cb\u91ca\u653e\u60c5\u7eea',
+            height: 60,
+            fontSize: 18,
+            onTap: onTap,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeHeroCloud extends StatelessWidget {
+  const _HomeHeroCloud();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Positioned(
+          left: -8,
+          right: -6,
+          bottom: 8,
+          child: Image.asset(
+            'assets/images/splash_base_glow.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 0, 18),
+          child: Image.asset(
+            'assets/images/home_cloud_hero.png',
+            fit: BoxFit.contain,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
-    required this.emoji,
-    required this.emojiBg,
+    required this.imageAsset,
     required this.title,
     required this.subtitle,
     required this.onTap,
   });
 
-  final String emoji;
-  final Color emojiBg;
+  final String imageAsset;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
@@ -250,70 +381,81 @@ class _FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return EmoSectionCard(
       radius: 28,
-      padding: const EdgeInsets.fromLTRB(18, 18, 16, 18),
+      padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
         onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Stack(
           children: [
             Row(
               children: [
-                Container(
-                  width: 84,
-                  height: 84,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: LinearGradient(
-                      colors: [
-                        emojiBg.withValues(alpha: 0.95),
-                        emojiBg.withValues(alpha: 0.65),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: emojiBg.withValues(alpha: 0.24),
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(emoji, style: const TextStyle(fontSize: 42)),
+                SizedBox(
+                  width: 74,
+                  height: 74,
+                  child: Image.asset(
+                    imageAsset,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                const Spacer(),
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.86),
-                  ),
-                  child: const Icon(
-                    Icons.chevron_right_rounded,
-                    color: Color(0xFF999999),
-                    size: 28,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 30),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AuthPalette.textPrimary,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          subtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12.2,
+                            color: Color(0xFF7C716C),
+                            fontWeight: FontWeight.w500,
+                            height: 1.28,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
             ),
-            const Spacer(),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                color: AuthPalette.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color(0xFF7C716C),
-                fontWeight: FontWeight.w500,
+            Positioned(
+              right: 0,
+              bottom: 2,
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.92),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x10D7B3A3),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF9B938F),
+                  size: 22,
+                ),
               ),
             ),
           ],

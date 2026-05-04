@@ -16,48 +16,48 @@ class AppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      margin: const EdgeInsets.fromLTRB(18, 0, 18, 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: BorderRadius.circular(34),
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(40),
         border: Border.all(color: Colors.white, width: 1.5),
         boxShadow: const [
           BoxShadow(
             color: Color(0x1CE6B9AA),
-            blurRadius: 24,
-            offset: Offset(0, -4),
+            blurRadius: 28,
+            offset: Offset(0, -8),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+          padding: const EdgeInsets.fromLTRB(10, 14, 10, 12),
           child: Row(
             children: [
               _navItem(
                 index: AppConstants.navIndexHome,
                 activeIcon: Icons.home_rounded,
                 icon: Icons.home_outlined,
-                label: '首页',
+                label: '\u9996\u9875',
               ),
               _navItem(
                 index: AppConstants.navIndexTarget,
-                activeIcon: Icons.groups_rounded,
-                icon: Icons.groups_outlined,
-                label: '对象',
+                activeIcon: Icons.people_alt_rounded,
+                icon: Icons.people_alt_outlined,
+                label: '\u5bf9\u8c61',
               ),
               _navItem(
                 index: AppConstants.navIndexHistory,
-                activeIcon: Icons.assignment_rounded,
-                icon: Icons.assignment_outlined,
-                label: '记录',
+                activeIcon: Icons.menu_book_rounded,
+                icon: Icons.menu_book_outlined,
+                label: '\u8bb0\u5f55',
               ),
               _navItem(
                 index: AppConstants.navIndexProfile,
-                activeIcon: Icons.sentiment_satisfied_rounded,
-                icon: Icons.sentiment_satisfied_alt_outlined,
-                label: '我的',
+                activeIcon: Icons.person_rounded,
+                icon: Icons.person_outline_rounded,
+                label: '\u6211\u7684',
               ),
             ],
           ),
@@ -75,25 +75,26 @@ class AppBottomNav extends StatelessWidget {
     final active = currentIndex == index;
     return Expanded(
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(22),
         onTap: () => onTap(index),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 active ? activeIcon : icon,
-                size: 29,
-                color: active ? AuthPalette.coral : const Color(0xFF8D8D8D),
+                size: 25,
+                color: active ? AuthPalette.coral : const Color(0xFFA7A3A3),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 11.8,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                  color: active ? AuthPalette.coral : const Color(0xFF8D8D8D),
+                  color: active ? AuthPalette.coral : const Color(0xFF8F8B8B),
+                  height: 1,
                 ),
               ),
             ],

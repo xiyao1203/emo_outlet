@@ -42,7 +42,8 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.notifications_active_rounded,
                     colors: const [Color(0xFFDDF3FF), Color(0xFF6CB8FF)],
                     title: '通知设置',
-                    onTap: () => _push(context, const NotificationSettingsScreen()),
+                    onTap: () =>
+                        _push(context, const NotificationSettingsScreen()),
                   ),
                   _SettingsEntry(
                     icon: Icons.record_voice_over_rounded,
@@ -60,7 +61,8 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.headset_mic_rounded,
                     colors: const [Color(0xFFDDF8EA), Color(0xFF61CC8D)],
                     title: '联系客服',
-                    onTap: () => _push(context, const ContactCustomerServiceScreen()),
+                    onTap: () =>
+                        _push(context, const ContactCustomerServiceScreen()),
                   ),
                   _SettingsEntry(
                     icon: Icons.info_rounded,
@@ -113,7 +115,7 @@ class SettingsScreen extends StatelessWidget {
                 const Text(
                   '确认退出登录？',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),
@@ -145,7 +147,8 @@ class SettingsScreen extends StatelessWidget {
                           await AuthService().logout();
                           if (!context.mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const LoginScreen()),
                             (route) => false,
                           );
                         },
@@ -229,7 +232,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                               Text(
                                 '账号安全等级：${_securityLevel}',
                                 style: const TextStyle(
-                                  fontSize: 22,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   color: SoftColors.text,
                                 ),
@@ -269,17 +272,20 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                           icon: Icons.forum_rounded,
                           colors: const [Color(0xFFDDF8E4), Color(0xFF59CE7A)],
                           title: '微信绑定',
-                          value: (_preferences?['wechat_bound'] as bool? ?? false)
-                              ? '已绑定'
-                              : '未绑定',
+                          value:
+                              (_preferences?['wechat_bound'] as bool? ?? false)
+                                  ? '已绑定'
+                                  : '未绑定',
                         ),
                         _LineEntry(
                           icon: Icons.notifications_rounded,
                           colors: const [Color(0xFFDDEBFF), Color(0xFF66A3FF)],
                           title: '系统通知',
-                          value: (_preferences?['system_notification'] as bool? ?? false)
-                              ? '已开启'
-                              : '已关闭',
+                          value:
+                              (_preferences?['system_notification'] as bool? ??
+                                      false)
+                                  ? '已开启'
+                                  : '已关闭',
                         ),
                         _LineEntry(
                           icon: Icons.lock_rounded,
@@ -300,7 +306,8 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                       onTap: _showDeleteDialog,
                       borderRadius: BorderRadius.circular(28),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                         child: Row(
                           children: [
                             SoftIconBadge(
@@ -315,7 +322,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                                   Text(
                                     '注销账号',
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       color: Color(0xFFFF6551),
                                     ),
@@ -400,7 +407,7 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                 const Text(
                   '确认注销账号？',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),
@@ -427,7 +434,9 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: _confirmed ? SoftColors.coral : const Color(0xFFFFC8BC),
+                            color: _confirmed
+                                ? SoftColors.coral
+                                : const Color(0xFFFFC8BC),
                           ),
                           color: _confirmed
                               ? SoftColors.coral.withValues(alpha: 0.12)
@@ -470,7 +479,8 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                                 await AuthService().deleteAccount();
                                 if (!context.mounted) return;
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                  MaterialPageRoute(
+                                      builder: (_) => const LoginScreen()),
                                   (route) => false,
                                 );
                               }
@@ -495,7 +505,8 @@ class PrivacySettingsScreen extends StatefulWidget {
   State<PrivacySettingsScreen> createState() => _PrivacySettingsScreenState();
 }
 
-class _PrivacySettingsScreenState extends _PreferenceScreenState<PrivacySettingsScreen> {
+class _PrivacySettingsScreenState
+    extends _PreferenceScreenState<PrivacySettingsScreen> {
   @override
   String get title => '隐私设置';
 
@@ -572,10 +583,12 @@ class NotificationSettingsScreen extends StatefulWidget {
   const NotificationSettingsScreen({super.key});
 
   @override
-  State<NotificationSettingsScreen> createState() => _NotificationSettingsScreenState();
+  State<NotificationSettingsScreen> createState() =>
+      _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState extends _PreferenceScreenState<NotificationSettingsScreen> {
+class _NotificationSettingsScreenState
+    extends _PreferenceScreenState<NotificationSettingsScreen> {
   @override
   String get title => '通知设置';
 
@@ -606,7 +619,8 @@ class _NotificationSettingsScreenState extends _PreferenceScreenState<Notificati
         _PreferenceSwitchEntry(
           title: '活动通知',
           value: preference('activity_notification'),
-          onChanged: (value) => updatePreference('activity_notification', value),
+          onChanged: (value) =>
+              updatePreference('activity_notification', value),
         ),
         _PreferenceSwitchEntry(
           title: '系统通知',
@@ -625,7 +639,8 @@ class DialectSettingsScreen extends StatefulWidget {
   State<DialectSettingsScreen> createState() => _DialectSettingsScreenState();
 }
 
-class _DialectSettingsScreenState extends _PreferenceScreenState<DialectSettingsScreen> {
+class _DialectSettingsScreenState
+    extends _PreferenceScreenState<DialectSettingsScreen> {
   static const Map<String, String> _labels = {
     'mandarin': '普通话',
     'sichuan': '四川话',
@@ -736,7 +751,8 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final entries = _overview?['common_entries'] as List<dynamic>? ?? <dynamic>[];
+    final entries =
+        _overview?['common_entries'] as List<dynamic>? ?? <dynamic>[];
     return SoftPage(
       child: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -774,7 +790,8 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
                           .map(
                             (entry) => _SettingsEntry(
                               icon: _entryIcon(entry['title'] as String? ?? ''),
-                              colors: _entryColors(entry['title'] as String? ?? ''),
+                              colors:
+                                  _entryColors(entry['title'] as String? ?? ''),
                               title: entry['title'] as String? ?? '',
                               subtitle: entry['subtitle'] as String?,
                             ),
@@ -841,7 +858,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
                 const Text(
                   '反馈已提交',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),
@@ -877,10 +894,12 @@ class ContactCustomerServiceScreen extends StatefulWidget {
   const ContactCustomerServiceScreen({super.key});
 
   @override
-  State<ContactCustomerServiceScreen> createState() => _ContactCustomerServiceScreenState();
+  State<ContactCustomerServiceScreen> createState() =>
+      _ContactCustomerServiceScreenState();
 }
 
-class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScreen> {
+class _ContactCustomerServiceScreenState
+    extends State<ContactCustomerServiceScreen> {
   final ApiService _api = ApiService();
   bool _loading = true;
   Map<String, dynamic>? _overview;
@@ -906,7 +925,8 @@ class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScr
 
   @override
   Widget build(BuildContext context) {
-    final preview = _overview?['preview_messages'] as List<dynamic>? ?? <dynamic>[];
+    final preview =
+        _overview?['preview_messages'] as List<dynamic>? ?? <dynamic>[];
     final online = (_overview?['online_status'] as String?) == 'online';
     return SoftPage(
       child: _loading
@@ -930,7 +950,7 @@ class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScr
                               Text(
                                 '我们会尽快帮助你',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.w700,
                                   color: SoftColors.text,
                                 ),
@@ -1003,7 +1023,8 @@ class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScr
                                 child: DecoratedBox(
                                   decoration: BoxDecoration(
                                     color: SoftColors.coral,
-                                    borderRadius: BorderRadius.all(Radius.circular(999)),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(999)),
                                   ),
                                 ),
                               ),
@@ -1011,7 +1032,7 @@ class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScr
                               Text(
                                 '对话预览',
                                 style: TextStyle(
-                                  fontSize: 20,
+                                  fontSize: 17,
                                   fontWeight: FontWeight.w700,
                                   color: SoftColors.text,
                                 ),
@@ -1029,7 +1050,8 @@ class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScr
                         }),
                         Container(
                           margin: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.84),
                             borderRadius: BorderRadius.circular(24),
@@ -1052,7 +1074,10 @@ class _ContactCustomerServiceScreenState extends State<ContactCustomerServiceScr
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
-                                    colors: [SoftColors.coral, SoftColors.orange],
+                                    colors: [
+                                      SoftColors.coral,
+                                      SoftColors.orange
+                                    ],
                                   ),
                                 ),
                                 child: const Icon(
@@ -1096,7 +1121,8 @@ class AboutUsScreen extends StatelessWidget {
                   colors: const [Color(0xFFFFE2D7), Color(0xFFFF9666)],
                   title: '用户协议',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const TermsOfServiceScreen()),
                   ),
                 ),
                 _SettingsEntry(
@@ -1104,7 +1130,8 @@ class AboutUsScreen extends StatelessWidget {
                   colors: const [Color(0xFFE6DFFF), Color(0xFF9D80FF)],
                   title: '隐私政策',
                   onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const PrivacyPolicyScreen()),
                   ),
                 ),
                 const _SettingsEntry(
@@ -1129,7 +1156,8 @@ class AboutUsScreen extends StatelessWidget {
   }
 }
 
-abstract class _PreferenceScreenState<T extends StatefulWidget> extends State<T> {
+abstract class _PreferenceScreenState<T extends StatefulWidget>
+    extends State<T> {
   final ApiService _api = ApiService();
   bool _loading = true;
   Map<String, dynamic>? _preferences;
@@ -1169,7 +1197,9 @@ abstract class _PreferenceScreenState<T extends StatefulWidget> extends State<T>
   Widget build(BuildContext context) {
     return _SimpleSubPage(
       title: title,
-      child: _loading ? const Center(child: CircularProgressIndicator()) : buildContent(),
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : buildContent(),
     );
   }
 }
@@ -1224,7 +1254,7 @@ class _HintHero extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 22,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),
@@ -1388,7 +1418,9 @@ class _ChatBubbleRow extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 260),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: left ? Colors.white.withValues(alpha: 0.92) : const Color(0x1AFFA17D),
+        color: left
+            ? Colors.white.withValues(alpha: 0.92)
+            : const Color(0x1AFFA17D),
         borderRadius: BorderRadius.circular(22),
       ),
       child: Text(
@@ -1404,7 +1436,8 @@ class _ChatBubbleRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
       child: Row(
-        mainAxisAlignment: left ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment:
+            left ? MainAxisAlignment.start : MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: left
             ? [

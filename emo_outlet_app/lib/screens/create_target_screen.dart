@@ -64,7 +64,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
         },
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
         child: Column(
           children: [
             Row(
@@ -79,13 +79,13 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                     Text(
                       '创建对象',
                       style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: 6),
                     Text(
                       '创建一个对象，把情绪说给Ta听',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 13.5,
                         color: Color(0xFF79706C),
                         fontWeight: FontWeight.w500,
                       ),
@@ -93,7 +93,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                   ],
                 ),
                 const Spacer(),
-                const EmoDecorationCloud(size: 140),
+                const EmoDecorationCloud(size: 92),
               ],
             ),
             Transform.translate(
@@ -106,7 +106,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                         EmoAvatar(
                           label: avatarEmojiByType(_selectedType),
                           background: avatarBgByType(_selectedType),
-                          size: 118,
+                          size: 96,
                         ),
                         Positioned(
                           right: -2,
@@ -132,21 +132,21 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                           const Text(
                             '上传头像或AI生成形象',
                             style: TextStyle(
-                              fontSize: 24,
+                              fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: AuthPalette.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           const Text(
                             '让Ta更真实，陪伴你更久',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 13.5,
                               color: Color(0xFF7A706B),
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          const SizedBox(height: 18),
+                          const SizedBox(height: 14),
                           EmoGradientOutlineButton(
                             text: 'AI生成形象',
                             icon: Icons.auto_awesome_outlined,
@@ -195,8 +195,8 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
             const SizedBox(height: 16),
             GradientPrimaryButton(
               text: '生成并保存对象',
-              height: 68,
-              fontSize: 22,
+              height: 60,
+              fontSize: 18,
               onTap: _handleCreate,
             ),
           ],
@@ -212,16 +212,16 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
     bool trailingArrow = false,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: EmoSectionCard(
         child: Row(
           children: [
             SizedBox(
-              width: 110,
+              width: 92,
               child: Text(
                 title,
                 style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
             Expanded(
@@ -232,13 +232,13 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                   border: InputBorder.none,
                   hintText: hint,
                   hintStyle: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 15,
                     color: Color(0xFFBEB8B4),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   color: Color(0xFF4A4340),
                   fontWeight: FontWeight.w500,
                 ),
@@ -246,7 +246,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
             ),
             if (trailingArrow)
               const Icon(Icons.chevron_right_rounded,
-                  color: Color(0xFF9E9E9E), size: 28),
+                  color: Color(0xFF9E9E9E), size: 22),
           ],
         ),
       ),
@@ -260,31 +260,31 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
     required ValueChanged<String> onSelected,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: EmoSectionCard(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 110,
+              width: 92,
               child: Text(
                 title,
                 style:
-                    const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
             Expanded(
               child: Wrap(
                 alignment: WrapAlignment.end,
-                spacing: 10,
-                runSpacing: 10,
+                spacing: 8,
+                runSpacing: 8,
                 children: values.map((item) {
                   final active = selected == item.first;
                   return InkWell(
                     onTap: () => onSelected(item.first),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 11),
+                          horizontal: 14, vertical: 9),
                       decoration: BoxDecoration(
                         color: active
                             ? const Color(0x14FF7D5D)
@@ -299,7 +299,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                       child: Text(
                         item.last,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: active
                               ? const Color(0xFFFF7D5D)

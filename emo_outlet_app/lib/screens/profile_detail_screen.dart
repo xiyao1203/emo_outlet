@@ -77,7 +77,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_error!, style: const TextStyle(color: SoftColors.text)),
+                      Text(_error!,
+                          style: const TextStyle(color: SoftColors.text)),
                       const SizedBox(height: 12),
                       SoftOutlineButton(text: '重试', onTap: _load),
                     ],
@@ -95,34 +96,44 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                       SoftCard(
                         padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
                         child: SizedBox(
-                          height: 172,
+                          height: 152,
                           child: Row(
                             children: [
                               Stack(
                                 clipBehavior: Clip.none,
                                 children: [
                                   Container(
-                                    width: 116,
-                                    height: 116,
+                                    width: 96,
+                                    height: 96,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 3),
+                                      border: Border.all(
+                                          color: Colors.white, width: 3),
                                       gradient: const LinearGradient(
-                                        colors: [Color(0xFFF9D9CB), Color(0xFFFFF2E9)],
+                                        colors: [
+                                          Color(0xFFF9D9CB),
+                                          Color(0xFFFFF2E9)
+                                        ],
                                       ),
-                                      image: (_profile['avatar_url'] as String?)?.isNotEmpty == true
+                                      image: (_profile['avatar_url'] as String?)
+                                                  ?.isNotEmpty ==
+                                              true
                                           ? DecorationImage(
-                                              image: NetworkImage(_profile['avatar_url'] as String),
+                                              image: NetworkImage(
+                                                  _profile['avatar_url']
+                                                      as String),
                                               fit: BoxFit.cover,
                                             )
                                           : null,
                                     ),
-                                    child: (_profile['avatar_url'] as String?)?.isNotEmpty == true
+                                    child: (_profile['avatar_url'] as String?)
+                                                ?.isNotEmpty ==
+                                            true
                                         ? null
                                         : const Center(
                                             child: Icon(
                                               Icons.person_rounded,
-                                              size: 56,
+                                              size: 46,
                                               color: Color(0xFFB77A55),
                                             ),
                                           ),
@@ -153,7 +164,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(width: 18),
+                              const SizedBox(width: 14),
                               const Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,16 +173,16 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                     Text(
                                       '头像',
                                       style: TextStyle(
-                                        fontSize: 24,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.w700,
                                         color: SoftColors.text,
                                       ),
                                     ),
-                                    SizedBox(height: 10),
+                                    SizedBox(height: 6),
                                     Text(
                                       '当前头像来自你的账户资料',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 13.5,
                                         color: SoftColors.subtext,
                                       ),
                                     ),
@@ -179,13 +190,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 ),
                               ),
                               const SizedBox(
-                                width: 140,
-                                height: 120,
+                                width: 88,
+                                height: 92,
                                 child: Center(
                                   child: Icon(
                                     Icons.favorite_rounded,
                                     color: Color(0xFFFF8F86),
-                                    size: 86,
+                                    size: 62,
                                   ),
                                 ),
                               ),
@@ -204,7 +215,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFFFC7B3), Color(0xFFFF8E66)],
                               ),
                               title: '昵称',
-                              trailing: _trailingValue(_stringValue('nickname'), withArrow: true),
+                              trailing: _trailingValue(_stringValue('nickname'),
+                                  withArrow: true),
                               onTap: _showNicknameDialog,
                             ),
                             SoftListTile(
@@ -213,7 +225,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFD9EEFF), Color(0xFF69B6FF)],
                               ),
                               title: '用户ID',
-                              trailing: _trailingValue(_stringValue('user_id'), withArrow: false),
+                              trailing: _trailingValue(_stringValue('user_id'),
+                                  withArrow: false),
                             ),
                             SoftListTile(
                               leading: const SoftIconBadge(
@@ -221,8 +234,10 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFFFDCE7), Color(0xFFFF638E)],
                               ),
                               title: '个性签名',
-                              trailing: _trailingValue(_stringValue('signature')),
-                              onTap: () => _showFieldDialog('个性签名', 'signature', maxLength: 120),
+                              trailing:
+                                  _trailingValue(_stringValue('signature')),
+                              onTap: () => _showFieldDialog('个性签名', 'signature',
+                                  maxLength: 120),
                               showDivider: false,
                             ),
                           ],
@@ -240,7 +255,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                               ),
                               title: '性别',
                               trailing: _trailingValue(_stringValue('gender')),
-                              onTap: () => _showFieldDialog('性别', 'gender', maxLength: 20),
+                              onTap: () => _showFieldDialog('性别', 'gender',
+                                  maxLength: 20),
                             ),
                             SoftListTile(
                               leading: const SoftIconBadge(
@@ -248,8 +264,10 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFFFE5B8), Color(0xFFFFB548)],
                               ),
                               title: '生日',
-                              trailing: _trailingValue(_stringValue('birthday')),
-                              onTap: () => _showFieldDialog('生日', 'birthday', maxLength: 20),
+                              trailing:
+                                  _trailingValue(_stringValue('birthday')),
+                              onTap: () => _showFieldDialog('生日', 'birthday',
+                                  maxLength: 20),
                             ),
                             SoftListTile(
                               leading: const SoftIconBadge(
@@ -258,7 +276,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                               ),
                               title: '所在地区',
                               trailing: _trailingValue(_stringValue('region')),
-                              onTap: () => _showFieldDialog('所在地区', 'region', maxLength: 60),
+                              onTap: () => _showFieldDialog('所在地区', 'region',
+                                  maxLength: 60),
                             ),
                             SoftListTile(
                               leading: const SoftIconBadge(
@@ -266,7 +285,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFDFF0FF), Color(0xFF58AFFF)],
                               ),
                               title: '绑定手机',
-                              trailing: _trailingValue(_stringValue('phone'), withArrow: false),
+                              trailing: _trailingValue(_stringValue('phone'),
+                                  withArrow: false),
                               showDivider: false,
                             ),
                           ],
@@ -279,7 +299,9 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                           text: _isSaving ? '保存中...' : '保存',
                           height: 60,
                           fontSize: 18,
-                          onTap: _isSaving ? null : () => Navigator.of(context).pop(),
+                          onTap: _isSaving
+                              ? null
+                              : () => Navigator.of(context).pop(),
                         ),
                       ),
                     ],
@@ -302,11 +324,11 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 180),
+          constraints: const BoxConstraints(maxWidth: 148),
           child: Text(
             value,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 16, color: SoftColors.subtext),
+            style: const TextStyle(fontSize: 14, color: SoftColors.subtext),
           ),
         ),
         if (withArrow) ...[
@@ -382,7 +404,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                     Text(
                       title,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: SoftColors.text,
                       ),

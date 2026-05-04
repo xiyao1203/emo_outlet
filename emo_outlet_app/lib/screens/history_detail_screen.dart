@@ -50,8 +50,10 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
 
       if (!mounted) return;
       setState(() {
-        _messages = (messagesResult['messages'] as List<dynamic>? ?? <dynamic>[])
-            .map((item) => MessageModel.fromJson(Map<String, dynamic>.from(item as Map)))
+        _messages = (messagesResult['messages'] as List<dynamic>? ??
+                <dynamic>[])
+            .map((item) =>
+                MessageModel.fromJson(Map<String, dynamic>.from(item as Map)))
             .toList();
         _poster = poster;
         _posterDetail = detail;
@@ -90,7 +92,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       const Spacer(),
                       const Text(
                         '记录详情',
-                        style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+                        style: TextStyle(
+                            fontSize: 22, fontWeight: FontWeight.w800),
                       ),
                       const Spacer(),
                       EmoRoundIconButton(
@@ -107,7 +110,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       children: [
                         Row(
                           children: [
-                            _HistoryAvatar(name: record.name, size: 110),
+                            _HistoryAvatar(name: record.name, size: 84),
                             const SizedBox(width: 18),
                             Expanded(
                               child: Column(
@@ -116,7 +119,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                   Text(
                                     record.name,
                                     style: const TextStyle(
-                                      fontSize: 30,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.w800,
                                       color: Color(0xFF2D2522),
                                     ),
@@ -127,7 +130,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                     maxLines: 3,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 14,
                                       color: Color(0xFF7B716B),
                                       height: 1.6,
                                     ),
@@ -135,19 +138,21 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                 ],
                               ),
                             ),
-                            const EmoDecorationCloud(size: 120),
+                            const EmoDecorationCloud(size: 92),
                           ],
                         ),
                         const SizedBox(height: 14),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.55),
                             borderRadius: BorderRadius.circular(26),
                           ),
                           child: Row(
                             children: [
-                              _miniStat(Icons.swap_horiz_rounded, '模式', record.modeLabel),
+                              _miniStat(Icons.swap_horiz_rounded, '模式',
+                                  record.modeLabel),
                               _divider(),
                               _miniStat(
                                 Icons.access_time_rounded,
@@ -155,9 +160,11 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                 '${record.durationMinutes}分钟',
                               ),
                               _divider(),
-                              _miniStat(Icons.mic_none_rounded, '方言', record.language),
+                              _miniStat(Icons.mic_none_rounded, '方言',
+                                  record.language),
                               _divider(),
-                              _miniStat(Icons.calendar_month_outlined, '日期', _detailDate(record.timestamp)),
+                              _miniStat(Icons.calendar_month_outlined, '日期',
+                                  _detailDate(record.timestamp)),
                             ],
                           ),
                         ),
@@ -177,7 +184,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                               _sectionTitle(Icons.bar_chart_rounded, '情绪概览'),
                               const SizedBox(height: 16),
                               ...record.emotions.asMap().entries.map((entry) {
-                                final percent = _emotionPercent(entry.key, record.emotions.length);
+                                final percent = _emotionPercent(
+                                    entry.key, record.emotions.length);
                                 return _bar(
                                   entry.value,
                                   percent,
@@ -218,7 +226,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                     child: Text(
                                       item,
                                       style: const TextStyle(
-                                        fontSize: 16,
+                                        fontSize: 14,
                                         color: Color(0xFFFF6E57),
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -237,12 +245,14 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _sectionTitle(Icons.chat_bubble_outline_rounded, '会话片段'),
+                        _sectionTitle(
+                            Icons.chat_bubble_outline_rounded, '会话片段'),
                         const SizedBox(height: 14),
                         if (_messages.isEmpty)
                           const Text(
                             '这次会话还没有可展示的消息内容。',
-                            style: TextStyle(fontSize: 16, color: Color(0xFF6A625D)),
+                            style: TextStyle(
+                                fontSize: 14, color: Color(0xFF6A625D)),
                           )
                         else
                           ..._messages.take(6).map(
@@ -276,7 +286,8 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                         ] else
                           const Text(
                             '这次会话还没有生成海报。',
-                            style: TextStyle(fontSize: 16, color: Color(0xFF6A625D)),
+                            style: TextStyle(
+                                fontSize: 14, color: Color(0xFF6A625D)),
                           ),
                       ],
                     ),
@@ -340,7 +351,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 22,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: Color(0xFF2C2522),
           ),
@@ -359,7 +370,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             child: Text(
               label,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF4E4742),
               ),
@@ -408,7 +419,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             Text(
               '$rate%',
               style: const TextStyle(
-                fontSize: 26,
+                fontSize: 22,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFFFF6E57),
               ),
@@ -495,14 +506,16 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: left ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment:
+            left ? MainAxisAlignment.start : MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (left) ...[
             const CircleAvatar(
               radius: 16,
               backgroundColor: Color(0xFFFFD7D7),
-              child: Icon(Icons.favorite_rounded, size: 16, color: Color(0xFFFF7A89)),
+              child: Icon(Icons.favorite_rounded,
+                  size: 16, color: Color(0xFFFF7A89)),
             ),
             const SizedBox(width: 10),
           ],
@@ -528,7 +541,8 @@ class _MessageBubble extends StatelessWidget {
             const CircleAvatar(
               radius: 16,
               backgroundColor: Color(0xFFFFE6D8),
-              child: Icon(Icons.person_rounded, size: 16, color: Color(0xFFB17A55)),
+              child: Icon(Icons.person_rounded,
+                  size: 16, color: Color(0xFFB17A55)),
             ),
           ],
         ],
@@ -567,7 +581,7 @@ class _PosterPreview extends StatelessWidget {
         Text(
           detail['title'] as String? ?? '',
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: Color(0xFF2C2522),
           ),
@@ -576,7 +590,7 @@ class _PosterPreview extends StatelessWidget {
         Text(
           detail['summary'] as String? ?? '',
           style: const TextStyle(
-            fontSize: 15,
+            fontSize: 14,
             height: 1.6,
             color: Color(0xFF6E655F),
           ),

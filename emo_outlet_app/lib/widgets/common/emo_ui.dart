@@ -42,13 +42,13 @@ class EmoTopBrandBar extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AppBrand(fontSize: 24, logoSize: 42, spacing: 10),
+            const AppBrand(fontSize: 21, logoSize: 38, spacing: 9),
             if (showSubtitle) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               const Text(
                 '把不舒服的情绪，轻轻放出来',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12.5,
                   color: Color(0xFF7C6C63),
                   fontWeight: FontWeight.w500,
                 ),
@@ -146,7 +146,7 @@ class EmoGradientOutlineButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         onTap: onTap,
         child: Ink(
-          height: 60,
+          height: 56,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(28),
@@ -162,7 +162,7 @@ class EmoGradientOutlineButton extends StatelessWidget {
               Text(
                 text,
                 style: const TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFFFF7A5A),
                 ),
@@ -334,16 +334,16 @@ class EmoHeaderTitle extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 34,
+                  fontSize: 24,
                   fontWeight: FontWeight.w800,
                   color: AuthPalette.textPrimary,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
                 subtitle,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   color: Color(0xFF7A6D67),
                   fontWeight: FontWeight.w500,
                 ),

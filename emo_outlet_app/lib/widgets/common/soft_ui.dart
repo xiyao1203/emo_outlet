@@ -72,7 +72,7 @@ class SoftHeader extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 24,
+              fontSize: 21,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -203,7 +203,7 @@ class SoftOutlineButton extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: textColor,
               ),
@@ -264,7 +264,7 @@ class SoftListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
       child: Row(
         children: [
           leading,
@@ -276,7 +276,7 @@ class SoftListTile extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: SoftColors.text,
                   ),
@@ -286,7 +286,7 @@ class SoftListTile extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: SoftColors.subtext,
                     ),
                   ),

@@ -65,14 +65,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
     final nickname = user?.nickname ?? '用户';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       child: Column(
         children: [
           const SizedBox(height: 4),
           const Text(
             '我的',
             style: TextStyle(
-              fontSize: 26,
+              fontSize: 21,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -83,7 +83,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
             child: InkWell(
               onTap: () async {
                 await Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const ProfileDetailScreen()),
+                  MaterialPageRoute(
+                      builder: (_) => const ProfileDetailScreen()),
                 );
                 await AuthService().refreshProfile();
                 if (mounted) {
@@ -127,12 +128,12 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                           Text(
                             nickname,
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: SoftColors.text,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 6),
                           const Text(
                             '点击进入个人资料编辑',
                             style: TextStyle(
@@ -173,14 +174,15 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       Text(
                         _loading ? '--' : '$_targetCount',
                         style: const TextStyle(
-                          fontSize: 34,
+                          fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: SoftColors.text,
                         ),
                       ),
                       const SizedBox(height: 8),
                       TextButton(
-                        onPressed: () => widget.onSwitchTab?.call(AppConstants.navIndexTarget),
+                        onPressed: () => widget.onSwitchTab
+                            ?.call(AppConstants.navIndexTarget),
                         child: const Text('去查看'),
                       ),
                     ],
@@ -205,7 +207,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       Text(
                         _loading ? '--' : '$_sessionCount',
                         style: const TextStyle(
-                          fontSize: 34,
+                          fontSize: 22,
                           fontWeight: FontWeight.w700,
                           color: SoftColors.text,
                         ),
@@ -213,7 +215,8 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                       const SizedBox(height: 8),
                       const Text(
                         '这些次数都来自真实会话记录',
-                        style: TextStyle(fontSize: 13, color: SoftColors.subtext),
+                        style:
+                            TextStyle(fontSize: 13, color: SoftColors.subtext),
                       ),
                     ],
                   ),
@@ -230,11 +233,14 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                   icon: Icons.image_rounded,
                   colors: const [Color(0xFFFFE1D6), Color(0xFFFF9164)],
                   title: '我的海报',
-                  subtitle: _latestPosterId == null ? '暂无海报，完成一次会话后就会出现' : '查看与管理最近生成的海报',
+                  subtitle: _latestPosterId == null
+                      ? '暂无海报，完成一次会话后就会出现'
+                      : '查看与管理最近生成的海报',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => MyPostersScreen(posterId: _latestPosterId),
+                        builder: (_) =>
+                            MyPostersScreen(posterId: _latestPosterId),
                       ),
                     );
                   },

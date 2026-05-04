@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../models/history_record_model.dart';
@@ -17,6 +19,7 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   final ApiService _api = ApiService();
   final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
 
   bool _loading = true;
   String _range = 'all';
@@ -34,8 +37,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  String _normalize(String value) => value.trim().toLowerCase();
+
+  void _handleSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      setState(() => _query = _normalize(value));
+    });
   }
 
   Future<void> _load() async {
@@ -43,7 +57,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
     try {
       final sessions = await _api.getSessions(pageSize: 100);
       final records = sessions
-          .map((item) => SessionModel.fromJson(Map<String, dynamic>.from(item as Map)))
+          .map((item) =>
+              SessionModel.fromJson(Map<String, dynamic>.from(item as Map)))
           .map(HistoryRecordModel.fromSession)
           .toList();
       if (!mounted) return;
@@ -59,16 +74,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final now = DateTime.now();
     var items = _records.where((item) {
       final matchQuery = _query.isEmpty ||
-          item.name.contains(_query) ||
-          item.keywords.any((tag) => tag.contains(_query)) ||
-          item.emotions.any((emotion) => emotion.contains(_query));
+          _normalize(item.name).contains(_query) ||
+          item.keywords.any((tag) => _normalize(tag).contains(_query)) ||
+          item.emotions.any((emotion) => _normalize(emotion).contains(_query));
 
       var matchRange = true;
       if (_range == 'week') {
         matchRange = now.difference(item.timestamp).inDays < 7;
       } else if (_range == 'month') {
-        matchRange =
-            now.year == item.timestamp.year && now.month == item.timestamp.month;
+        matchRange = now.year == item.timestamp.year &&
+            now.month == item.timestamp.month;
       }
 
       final matchMode = _modeFilter == 'all' ||
@@ -104,13 +119,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
       onRefresh: _load,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
+        padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
         child: Column(
           children: [
             const SizedBox(height: 10),
             const Text(
               '历史记录',
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 18),
             _rangeTabs(),
@@ -148,7 +163,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const Text(
               '记录每一次情绪释放，见证内心慢慢松开。',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 14,
                 color: Color(0xFF79716B),
                 fontWeight: FontWeight.w500,
               ),
@@ -170,7 +185,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           Text(
             '还没有历史记录',
             style: TextStyle(
-              fontSize: 24,
+              fontSize: 18,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
@@ -180,7 +195,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             '完成一次会话后，这里会自动展示真实的记录和情绪总结。',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               height: 1.6,
               color: Color(0xFF857972),
             ),
@@ -211,7 +226,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         borderRadius: BorderRadius.circular(999),
         onTap: () => setState(() => _range = key),
         child: Container(
-          height: 54,
+          height: 46,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: active
@@ -224,7 +239,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: active ? Colors.white : const Color(0xFF2F2825),
               ),
@@ -238,25 +253,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _searchBar() {
     return EmoSectionCard(
       radius: 26,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, color: Color(0xFF8C8C8C), size: 30),
-          const SizedBox(width: 12),
+          const Icon(Icons.search_rounded, color: Color(0xFF8C8C8C), size: 22),
+          const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: _searchController,
-              onChanged: (value) => setState(() => _query = value.trim()),
+              onChanged: _handleSearchChanged,
               decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: '搜索对象、情绪或关键词',
                 hintStyle: TextStyle(
-                  fontSize: 18,
+                  fontSize: 15,
                   color: Color(0xFF9C9C9C),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -269,7 +284,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text('删除海报提醒'),
           content: const Text('历史会话本身仍会保留，当前版本只支持删除对应海报。'),
           actions: [
@@ -320,10 +336,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     const SizedBox(height: 18),
                     const Text(
                       '筛选记录',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 20),
-                    const Text('会话模式', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text('会话模式',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
@@ -341,7 +359,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    const Text('排序方式', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text('排序方式',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
@@ -356,7 +375,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    const Text('情绪标签', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text('情绪标签',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
@@ -493,7 +513,7 @@ class _HistoryCard extends StatelessWidget {
                       Text(
                         record.name,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: AuthPalette.textPrimary,
                         ),
@@ -545,7 +565,7 @@ class _HistoryCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   height: 1.6,
                   color: Color(0xFF5A504A),
                 ),
@@ -560,7 +580,8 @@ class _HistoryCard extends StatelessWidget {
                     .take(4)
                     .map(
                       (item) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
                           color: const Color(0x14FF7C68),
                           borderRadius: BorderRadius.circular(999),
@@ -611,7 +632,7 @@ class _AvatarBox extends StatelessWidget {
         child: Text(
           name.isEmpty ? '?' : name.characters.first,
           style: const TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.w700,
             color: Color(0xFF7E5745),
           ),

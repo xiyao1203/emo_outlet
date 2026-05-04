@@ -97,7 +97,8 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_error!, style: const TextStyle(color: SoftColors.text)),
+                      Text(_error!,
+                          style: const TextStyle(color: SoftColors.text)),
                       const SizedBox(height: 12),
                       SoftOutlineButton(text: '重试', onTap: _load),
                     ],
@@ -108,9 +109,11 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.image_not_supported_outlined, size: 52, color: SoftColors.subtext),
+                          Icon(Icons.image_not_supported_outlined,
+                              size: 52, color: SoftColors.subtext),
                           SizedBox(height: 12),
-                          Text('还没有生成海报', style: TextStyle(color: SoftColors.text)),
+                          Text('还没有生成海报',
+                              style: TextStyle(color: SoftColors.text)),
                         ],
                       ),
                     )
@@ -137,14 +140,20 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                             child: Column(
                               children: [
                                 ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(30)),
                                   child: Container(
                                     width: double.infinity,
                                     color: const Color(0xFFFFF3ED),
-                                    child: (_poster!['poster_data'] as String?)?.startsWith('data:image') == true
+                                    child: (_poster!['poster_data'] as String?)
+                                                ?.startsWith('data:image') ==
+                                            true
                                         ? Image.memory(
                                             base64Decode(
-                                              (_poster!['poster_data'] as String).split(',').last,
+                                              (_poster!['poster_data']
+                                                      as String)
+                                                  .split(',')
+                                                  .last,
                                             ),
                                             fit: BoxFit.cover,
                                           )
@@ -154,7 +163,7 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                               child: Text(
                                                 _stringValue('title'),
                                                 style: const TextStyle(
-                                                  fontSize: 24,
+                                                  fontSize: 18,
                                                   color: SoftColors.text,
                                                 ),
                                               ),
@@ -163,7 +172,8 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 18, 20, 18),
                                   child: Row(
                                     children: [
                                       Text(
@@ -178,7 +188,8 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 0, 20, 20),
                                   child: Row(
                                     children: [
                                       SoftTag(
@@ -192,7 +203,7 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                           _stringValue('title'),
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
-                                            fontSize: 18,
+                                            fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                             color: SoftColors.text,
                                           ),
@@ -210,7 +221,10 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                               Expanded(
                                 child: _ActionButton(
                                   icon: Icons.reply_rounded,
-                                  iconColors: const [Color(0xFFE1D8FF), Color(0xFF9B7BFF)],
+                                  iconColors: const [
+                                    Color(0xFFE1D8FF),
+                                    Color(0xFF9B7BFF)
+                                  ],
                                   label: '分享海报',
                                   onTap: _showMoreSheet,
                                 ),
@@ -219,7 +233,10 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                               Expanded(
                                 child: _ActionButton(
                                   icon: Icons.download_rounded,
-                                  iconColors: const [Color(0xFFD5F9D6), Color(0xFF73D977)],
+                                  iconColors: const [
+                                    Color(0xFFD5F9D6),
+                                    Color(0xFF73D977)
+                                  ],
                                   label: '保存图片',
                                   onTap: () {},
                                 ),
@@ -227,8 +244,13 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                               const SizedBox(width: 14),
                               Expanded(
                                 child: _ActionButton(
-                                  icon: _favorite ? Icons.star_rounded : Icons.star_border_rounded,
-                                  iconColors: const [Color(0xFFFFE8B7), Color(0xFFFFBE3D)],
+                                  icon: _favorite
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  iconColors: const [
+                                    Color(0xFFFFE8B7),
+                                    Color(0xFFFFBE3D)
+                                  ],
                                   label: _favorite ? '已收藏' : '收藏',
                                   onTap: _toggleFavorite,
                                 ),
@@ -237,7 +259,10 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                               Expanded(
                                 child: _ActionButton(
                                   icon: Icons.delete_rounded,
-                                  iconColors: const [Color(0xFFFFD6D1), Color(0xFFFF715C)],
+                                  iconColors: const [
+                                    Color(0xFFFFD6D1),
+                                    Color(0xFFFF715C)
+                                  ],
                                   label: '删除',
                                   onTap: _deletePoster,
                                 ),
@@ -259,7 +284,8 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                         child: DecoratedBox(
                                           decoration: BoxDecoration(
                                             color: SoftColors.coral,
-                                            borderRadius: BorderRadius.all(Radius.circular(999)),
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(999)),
                                           ),
                                         ),
                                       ),
@@ -278,7 +304,10 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                 SoftListTile(
                                   leading: const SoftIconBadge(
                                     icon: Icons.schedule_rounded,
-                                    colors: [Color(0xFFFFD8C2), Color(0xFFFF8A52)],
+                                    colors: [
+                                      Color(0xFFFFD8C2),
+                                      Color(0xFFFF8A52)
+                                    ],
                                   ),
                                   title: '创建时间',
                                   subtitle: _stringValue('created_at_label'),
@@ -287,10 +316,14 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                                 SoftListTile(
                                   leading: const SoftIconBadge(
                                     icon: Icons.description_rounded,
-                                    colors: [Color(0xFFE2D8FF), Color(0xFF967CFF)],
+                                    colors: [
+                                      Color(0xFFE2D8FF),
+                                      Color(0xFF967CFF)
+                                    ],
                                   ),
                                   title: '来源会话',
-                                  subtitle: _stringValue('source_session_title'),
+                                  subtitle:
+                                      _stringValue('source_session_title'),
                                   trailing: const Icon(
                                     Icons.chevron_right_rounded,
                                     color: Color(0xFFA5A9B0),
@@ -377,7 +410,9 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 _SheetItem(
-                  icon: _favorite ? Icons.star_rounded : Icons.star_border_rounded,
+                  icon: _favorite
+                      ? Icons.star_rounded
+                      : Icons.star_border_rounded,
                   iconColor: const Color(0xFFFFB936),
                   label: _favorite ? '取消收藏' : '设为收藏',
                   onTap: () async {
