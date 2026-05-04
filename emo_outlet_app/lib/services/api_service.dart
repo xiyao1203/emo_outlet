@@ -215,6 +215,11 @@ class ApiService {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
+  Future<Map<String, dynamic>> getPosterBySession(String sessionId) async {
+    final response = await _dio.get('/posters/session/$sessionId');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
   Future<Map<String, dynamic>> updatePosterFavorite(
     String posterId,
     bool isFavorite,

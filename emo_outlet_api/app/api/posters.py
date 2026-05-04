@@ -85,7 +85,10 @@ async def generate_poster(
     )
     session = session_result.scalar_one_or_none()
     if session is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Completed session not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Completed session not found",
+        )
 
     existing_result = await db.execute(
         select(PosterModel).where(PosterModel.session_id == req.session_id)
@@ -95,7 +98,9 @@ async def generate_poster(
         return PosterResponse.model_validate(existing)
 
     emotion_data = _safe_json(session.emotion_summary)
-    target_result = await db.execute(select(TargetModel).where(TargetModel.id == session.target_id))
+    target_result = await db.execute(
+        select(TargetModel).where(TargetModel.id == session.target_id)
+    )
     target = target_result.scalar_one_or_none()
     target_name = target.name if target else ""
 
@@ -119,7 +124,10 @@ async def generate_poster(
             [{"content": item.content, "sender": item.sender} for item in messages]
         )
 
-    poster_content = await poster_service.generate_poster_content(emotion_result, target_name)
+    poster_content = await poster_service.generate_poster_content(
+        emotion_result,
+        target_name,
+    )
     poster_data = await poster_service.generate_mock_poster_base64(poster_content)
 
     poster = PosterModel(
@@ -180,8 +188,10 @@ async def get_poster_detail(
         title=title,
         date=poster.created_at.strftime("%Y.%m.%d") if poster.created_at else "",
         tag=f"释放·{emotion_type}",
-        summary=poster.suggestion or "每一次释放，都是向内在温柔地靠近。",
-        created_at_label=poster.created_at.strftime("%Y年%m月%d日 %H:%M") if poster.created_at else "",
+        summary=poster.suggestion or "每一次释放，都是向内在温柔靠近。",
+        created_at_label=poster.created_at.strftime("%Y年%m月%d日 %H:%M")
+        if poster.created_at
+        else "",
         source_session_title=session.summary_text if session and session.summary_text else title,
         poster_data=poster.poster_data,
         is_favorite=poster.is_favorite,
@@ -300,11 +310,11 @@ async def get_emotion_report(
     average_intensity = round(total_intensity / total, 1) if total else 0
 
     suggestion_map = {
-        "愤怒": "最近最常见的是愤怒型释放，适合在起火前先做一次短暂停顿，把火气和诉求分开。",
+        "愤怒": "最近更常见的是愤怒型释放，适合在起火前先做一次短暂停顿，把火气和诉求分开。",
         "委屈": "这段时间你更需要被理解，先照顾感受，再处理关系里的问题。",
-        "焦虑": "焦虑占比偏高，试试把压力拆小，优先完成最具体的一步。",
-        "疲惫": "疲惫感比较明显，报告更建议你先补休息，而不是继续硬顶。",
-        "无奈": "无奈感偏多时，先把注意力收回到自己能掌控的小事上。",
+        "焦虑": "焦虑占比偏高，试着把压力拆小，优先完成最具体的一步。",
+        "疲惫": "疲惫感比较明显，报告更建议你先补休息，而不是继续硬扛。",
+        "无助": "无助感偏多时，先把注意力收回到自己能掌控的小事上。",
         "平静": "你的情绪波动正在变稳，继续保持这种可表达、可觉察的节奏就很好。",
     }
 
@@ -314,7 +324,10 @@ async def get_emotion_report(
         dominant_emotion=dominant,
         emotion_distribution=distribution,
         daily_trend=trend,
-        suggestion=f"{suggestion_map.get(dominant, '继续稳定表达自己的情绪。')} 当前平均波动强度约 {average_intensity} 分。",
+        suggestion=(
+            f"{suggestion_map.get(dominant, '继续稳定表达自己的情绪。')} "
+            f"当前平均波动强度约 {average_intensity} 分。"
+        ),
     )
 
 
@@ -347,7 +360,10 @@ async def get_emotion_report_detail(
         )
 
     targets_result = await db.execute(
-        select(TargetModel).where(TargetModel.user_id == current_user.id, TargetModel.is_deleted == False)
+        select(TargetModel).where(
+            TargetModel.user_id == current_user.id,
+            TargetModel.is_deleted == False,
+        )
     )
     target_names = {item.id: item.name for item in targets_result.scalars().all()}
 

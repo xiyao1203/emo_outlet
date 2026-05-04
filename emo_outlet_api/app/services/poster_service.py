@@ -14,7 +14,7 @@ EMOTION_STYLES: dict[str, dict[str, str]] = {
         "badge": "释放·释放火气",
         "accent": "#FF7B6B",
         "secondary": "#FFC29A",
-        "summary": "每一次安全释放，都是在帮情绪找出口。",
+        "summary": "每一次安全释放，都是在帮情绪找到出口。",
     },
     "委屈": {
         "title": "委屈也值得被看见",
@@ -40,10 +40,10 @@ EMOTION_STYLES: dict[str, dict[str, str]] = {
         "secondary": "#D9F5E9",
         "summary": "休息不是退后，而是在帮自己恢复力量。",
     },
-    "无奈": {
+    "无助": {
         "title": "先把没办法说出来",
         "subtitle": "松一点，事情才有空间",
-        "badge": "释放·松开执拗",
+        "badge": "释放·松开拉扯",
         "accent": "#F4A85A",
         "secondary": "#FFE3BC",
         "summary": "允许事情先停在这里，也是一种温柔。",
@@ -71,12 +71,9 @@ class PosterService:
     ) -> dict[str, Any]:
         style = EMOTION_STYLES.get(emotion_result.primary_emotion, EMOTION_STYLES["平静"])
         keywords = emotion_result.keywords[:5]
-        title = style["title"]
-        if target_name:
-            title = f"{title}"
 
         return {
-            "title": title,
+            "title": style["title"],
             "subtitle": style["subtitle"],
             "emotion_type": emotion_result.primary_emotion,
             "emotion_intensity": emotion_result.intensity,

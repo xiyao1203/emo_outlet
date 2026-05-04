@@ -7,29 +7,87 @@ from app.schemas.poster import EmotionAnalysisResult
 
 EMOTION_KEYWORDS: dict[str, list[str]] = {
     "愤怒": [
-        "生气", "火大", "烦死", "讨厌", "崩溃", "受不了", "恶心", "气死",
-        "吵", "骂", "加班", "不公平",
+        "生气",
+        "火大",
+        "烦死",
+        "讨厌",
+        "崩溃",
+        "受不了",
+        "恶心",
+        "气死",
+        "吵",
+        "骂",
+        "加班",
+        "不公平",
     ],
     "委屈": [
-        "委屈", "难过", "想哭", "失望", "伤心", "心痛", "被误会", "没人懂",
+        "委屈",
+        "难过",
+        "想哭",
+        "失望",
+        "伤心",
+        "心痛",
+        "被误会",
+        "没人懂",
     ],
     "焦虑": [
-        "焦虑", "担心", "害怕", "紧张", "不安", "压力", "睡不着", "怕",
+        "焦虑",
+        "担心",
+        "害怕",
+        "紧张",
+        "不安",
+        "压力",
+        "睡不着",
+        "慌",
     ],
     "疲惫": [
-        "累", "疲惫", "好困", "没劲", "麻木", "撑不住", "精疲力尽", "想躺平",
+        "累",
+        "疲惫",
+        "好困",
+        "没劲",
+        "麻木",
+        "撑不住",
+        "精疲力尽",
+        "想躺平",
     ],
-    "无奈": [
-        "无奈", "算了", "随便", "就这样吧", "没办法", "认了", "懒得说",
+    "无助": [
+        "无助",
+        "算了",
+        "随便",
+        "就这样吧",
+        "没办法",
+        "认了",
+        "懒得说",
     ],
     "平静": [
-        "还好", "平静", "慢慢来", "释怀", "轻松", "放下", "舒服",
+        "还好",
+        "平静",
+        "慢慢来",
+        "释怀",
+        "轻松",
+        "放下",
+        "舒服",
     ],
 }
 
 STOPWORDS = {
-    "就是", "已经", "一个", "没有", "自己", "我们", "他们", "然后", "真的",
-    "这个", "那个", "因为", "但是", "还是", "一下", "感觉", "事情", "现在",
+    "就是",
+    "已经",
+    "一个",
+    "没有",
+    "自己",
+    "我们",
+    "他们",
+    "然后",
+    "真的",
+    "这个",
+    "那个",
+    "因为",
+    "但是",
+    "还是",
+    "感觉",
+    "事情",
+    "现在",
 }
 
 
@@ -76,8 +134,8 @@ class EmotionService:
             emotions={"平静": 100.0},
             intensity=20,
             keywords=[],
-            summary="这次记录里没有明显的情绪波动，更像是在做一次平稳的表达。",
-            suggestion="保持这种能把话说出来的状态，需要时继续来这里放松一下。",
+            summary="这次记录里的情绪起伏不大，更像是在做一次平稳的表达。",
+            suggestion="保持这种能把话说出来的状态，想聊的时候随时再来。",
         )
 
     def _collect_stats(self, text: str) -> TextStats:
@@ -99,7 +157,6 @@ class EmotionService:
             for word in words:
                 scores[emotion] += text.count(word) * 18
 
-        # punctuation and length tuning
         scores["愤怒"] += stats.exclamation_count * 6
         scores["焦虑"] += stats.question_count * 5
         scores["疲惫"] += min(stats.total_chars / 25, 8)
@@ -130,7 +187,7 @@ class EmotionService:
         counter: Counter[str] = Counter()
         for size in (2, 3, 4):
             for idx in range(0, max(0, len(text_no_space) - size + 1)):
-                token = text_no_space[idx: idx + size]
+                token = text_no_space[idx : idx + size]
                 if any(char in "，。！？,.!?\n\r\t " for char in token):
                     continue
                 if token in STOPWORDS or len(set(token)) == 1:
@@ -150,31 +207,49 @@ class EmotionService:
     def _generate_summary(self, emotion: str, intensity: int, keywords: list[str]) -> str:
         keyword_text = f"关键词里反复出现了“{keywords[0]}”。" if keywords else ""
         if emotion == "愤怒":
-            return f"这次释放里，愤怒最明显，强度大约在 {intensity}% 左右。{keyword_text}你对边界和公平感受得很强。"
+            return (
+                f"这次释放里，愤怒最明显，强度大约在 {intensity}% 左右。"
+                f"{keyword_text}你对边界和公平感受得很强。"
+            )
         if emotion == "委屈":
-            return f"这次更像是在消化委屈和失落，情绪强度约 {intensity}%。{keyword_text}你需要被理解，而不是被催着立刻好起来。"
+            return (
+                f"这次更像是在消化委屈和失落，情绪强度约 {intensity}%。"
+                f"{keyword_text}你需要被理解，而不是被催着立刻好起来。"
+            )
         if emotion == "焦虑":
-            return f"你最近像是长期绷着，焦虑感大约 {intensity}%。{keyword_text}很多压力还停留在“还没发生但已经在担心”的阶段。"
+            return (
+                f"你最近像是长期绷着，焦虑感大约 {intensity}%。"
+                f"{keyword_text}很多压力还停留在“还没发生但已经在担心”的阶段。"
+            )
         if emotion == "疲惫":
-            return f"你透出来的更多是累和耗尽，强度大约 {intensity}%。{keyword_text}这不是脆弱，更像是身体和情绪都在提醒你该休息了。"
-        if emotion == "无奈":
-            return f"这次记录里，无奈感更突出，强度约 {intensity}%。{keyword_text}你可能已经尝试过很多办法，所以才会有这种松掉力气的感觉。"
-        return f"整体情绪比较平稳，强度约 {intensity}%。{keyword_text}你已经在用更柔和的方式表达自己。"
+            return (
+                f"你透出来的更多是累和耗尽，强度大约 {intensity}%。"
+                f"{keyword_text}这不是脆弱，更像是身体和情绪都在提醒你该休息了。"
+            )
+        if emotion == "无助":
+            return (
+                f"这次记录里，无助感更突出，强度约 {intensity}%。"
+                f"{keyword_text}你可能已经尝试过很多办法，所以才会有这种松掉力气的感觉。"
+            )
+        return (
+            f"整体情绪比较平稳，强度约 {intensity}%。"
+            f"{keyword_text}你已经在用更柔和的方式表达自己。"
+        )
 
     def _generate_suggestion(self, emotion: str, intensity: int) -> str:
         if emotion == "愤怒":
-            return "先离开让你上火的场景 5 分钟，再做一次短句记录：我为什么生气、我想守住什么。"
+            return "先离开让你上火的场景 5 分钟，再记一小句：我为什么生气，我想守住什么。"
         if emotion == "委屈":
-            return "试着把“我最希望被怎样对待”写下来，给自己一个更清楚的情绪出口。"
+            return "试着把“我最希望被怎样对待”写下来，给自己一个更清楚的出口。"
         if emotion == "焦虑":
             return "把担心拆成可行动和不可行动两列，一次只处理最小的一件事。"
         if emotion == "疲惫":
-            return "今天更适合做减法。暂停一件不必要的事，让身体先回一点电。"
-        if emotion == "无奈":
-            return "先别逼自己立刻解决，把注意力收回到能掌控的小步骤上。"
+            return "今天更适合做减法。先暂停一件不必要的事，让身体回一点电。"
+        if emotion == "无助":
+            return "先别逼自己立刻解决，把注意力收回到眼下能控制的小步骤。"
         if intensity >= 70:
             return "情绪起伏有点大，今天适合轻一点安排，给自己留出缓冲。"
-        return "继续保持这种把感受说出来的习惯，你已经在慢慢变稳。"
+        return "继续保持这种能把感受说出来的习惯，你已经在慢慢变稳。"
 
 
 emotion_service = EmotionService()
