@@ -1,4 +1,3 @@
-"""消息相关 Pydantic Schema"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -7,14 +6,10 @@ from pydantic import BaseModel, Field
 
 
 class MessageSendRequest(BaseModel):
-    """发送消息请求"""
-    content: str = Field(
-        ..., min_length=1, max_length=5000, description="消息内容"
-    )
+    content: str = Field(..., min_length=1, max_length=5000, description="Message content")
 
 
 class MessageResponse(BaseModel):
-    """消息响应"""
     id: str
     session_id: str
     content: str
@@ -31,8 +26,7 @@ class MessageResponse(BaseModel):
 
 
 class MessageListResponse(BaseModel):
-    """消息列表响应"""
-    messages: list[MessageResponse] = []
+    messages: list[MessageResponse] = Field(default_factory=list)
     total: int = 0
     session_status: str = "active"
     remaining_seconds: int = 0

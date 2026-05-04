@@ -1,21 +1,20 @@
-"""会话 API 路由"""
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.dependencies import check_daily_session_limit, get_current_user
 from app.database import get_db
 from app.models.message import MessageModel
 from app.models.session import SessionModel
 from app.models.target import TargetModel
 from app.models.user import UserModel
-from app.config import settings
-from app.schemas.message import MessageListResponse, MessageResponse
+from app.schemas.message import MessageResponse
 from app.schemas.session import (
     SessionCreateRequest,
     SessionEndRequest,
@@ -24,10 +23,10 @@ from app.schemas.session import (
 )
 from app.services.emotion_service import emotion_service
 
+router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
-# 辅助：将 Session ORM 对象转为响应，附带 target 关联信息
+
 def _session_to_response(session: SessionModel) -> SessionResponse:
-    """将 Session ORM 转为响应，填充 target_name / target_avatar_url"""
     return SessionResponse(
         id=session.id,
         user_id=session.user_id,
@@ -47,8 +46,6 @@ def _session_to_response(session: SessionModel) -> SessionResponse:
         created_at=session.created_at,
     )
 
-router = APIRouter(prefix="/api/sessions", tags=["会话"])
-
 
 @router.post("", response_model=SessionResponse, status_code=status.HTTP_201_CREATED)
 async def create_session(
@@ -56,39 +53,35 @@ async def create_session(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """创建新会话"""
-    # 验证目标存在
-    result = await db.execute(
+    target_result = await db.execute(
         select(TargetModel).where(
             TargetModel.id == req.target_id,
             TargetModel.user_id == current_user.id,
+            TargetModel.is_deleted == False,
         )
     )
-    target = result.scalar_one_or_none()
-    if not target:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="目标不存在")
+    target = target_result.scalar_one_or_none()
+    if target is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target not found")
 
-    # 检查每日限制（年龄感知）
     if not await check_daily_session_limit(current_user):
         limit = settings.MAX_DAILY_SESSIONS_ADULT
-        if current_user.age_range == "<14":
+        if current_user.is_visitor:
+            limit = settings.MAX_DAILY_SESSIONS_VISITOR
+        elif current_user.age_range == "<14":
             limit = settings.MAX_DAILY_SESSIONS_UNDER_14
         elif current_user.age_range == "14-18":
             limit = settings.MAX_DAILY_SESSIONS_14_TO_18
-        elif current_user.is_visitor:
-            limit = settings.MAX_DAILY_SESSIONS_VISITOR
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"每日会话上限（{limit}次）已到，请明天再来",
+            detail=f"Daily session limit reached ({limit})",
         )
 
-    # 更新用户计数
     today = datetime.now(timezone.utc).date().isoformat()
     current_user.daily_session_count += 1
     current_user.last_active_date = today
     db.add(current_user)
 
-    # 创建会话
     session = SessionModel(
         user_id=current_user.id,
         target_id=req.target_id,
@@ -102,8 +95,6 @@ async def create_session(
     db.add(session)
     await db.flush()
     await db.refresh(session)
-
-    # 重新加载 target 关系
     await db.refresh(session, ["target"])
     return _session_to_response(session)
 
@@ -115,8 +106,7 @@ async def list_sessions(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """获取会话历史列表"""
-    query = (
+    result = await db.execute(
         select(SessionModel)
         .where(
             SessionModel.user_id == current_user.id,
@@ -126,10 +116,8 @@ async def list_sessions(
         .offset((page - 1) * page_size)
         .limit(page_size)
     )
-    result = await db.execute(query)
     sessions = result.scalars().all()
-
-    return [_session_to_response(s) for s in sessions]
+    return [_session_to_response(item) for item in sessions]
 
 
 @router.get("/active", response_model=SessionResponse | None)
@@ -137,7 +125,6 @@ async def get_active_session(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """获取当前活跃的会话"""
     result = await db.execute(
         select(SessionModel).where(
             SessionModel.user_id == current_user.id,
@@ -145,9 +132,7 @@ async def get_active_session(
         )
     )
     session = result.scalar_one_or_none()
-    if not session:
-        return None
-    return _session_to_response(session)
+    return _session_to_response(session) if session else None
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
@@ -156,7 +141,6 @@ async def get_session(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """获取会话详情"""
     result = await db.execute(
         select(SessionModel).where(
             SessionModel.id == session_id,
@@ -164,9 +148,8 @@ async def get_session(
         )
     )
     session = result.scalar_one_or_none()
-    if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
+    if session is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     return _session_to_response(session)
 
 
@@ -177,7 +160,6 @@ async def end_session(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """结束会话 + 情绪分析"""
     result = await db.execute(
         select(SessionModel).where(
             SessionModel.id == session_id,
@@ -185,45 +167,41 @@ async def end_session(
         )
     )
     session = result.scalar_one_or_none()
-    if not session:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-
+    if session is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Session not found")
     if session.is_completed:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="会话已结束")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session already completed")
 
-    # 结束会话
     session.status = "interrupted" if req.force else "completed"
     session.is_completed = True
     session.end_time = datetime.now(timezone.utc)
     db.add(session)
 
-    # 获取消息
     msg_result = await db.execute(
         select(MessageModel)
         .where(MessageModel.session_id == session_id)
-        .order_by(MessageModel.sequence)
+        .order_by(MessageModel.sequence.asc())
     )
     messages = msg_result.scalars().all()
 
-    # 情绪分析
-    msg_dicts = [
+    raw_messages = [
         {
-            "content": m.content,
-            "sender": m.sender,
-            "emotion_type": m.emotion_type,
-            "emotion_intensity": m.emotion_intensity,
+            "content": item.content,
+            "sender": item.sender,
+            "emotion_type": item.emotion_type,
+            "emotion_intensity": item.emotion_intensity,
         }
-        for m in messages
+        for item in messages
     ]
-    emotion_result = await emotion_service.analyze_messages(msg_dicts)
+    emotion_result = await emotion_service.analyze_messages(raw_messages)
 
-    # 保存分析结果
     session.emotion_summary = json.dumps(
         {
             "primary_emotion": emotion_result.primary_emotion,
             "emotions": emotion_result.emotions,
             "intensity": emotion_result.intensity,
             "keywords": emotion_result.keywords,
+            "summary": emotion_result.summary,
             "suggestion": emotion_result.suggestion,
         },
         ensure_ascii=False,
@@ -236,6 +214,6 @@ async def end_session(
 
     return SessionSummaryResponse(
         session=_session_to_response(session),
-        messages=[MessageResponse.model_validate(m) for m in messages],
+        messages=[MessageResponse.model_validate(item) for item in messages],
         emotion_analysis=emotion_result.model_dump(),
     )

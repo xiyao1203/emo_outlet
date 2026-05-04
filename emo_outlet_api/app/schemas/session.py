@@ -1,4 +1,3 @@
-"""会话相关 Pydantic Schema"""
 from __future__ import annotations
 
 from datetime import datetime
@@ -7,24 +6,14 @@ from pydantic import BaseModel, Field
 
 
 class SessionCreateRequest(BaseModel):
-    """创建会话请求"""
-    target_id: str = Field(..., description="泄愤对象 ID")
-    mode: str = Field(default="single", description="single=单向, dual=双向")
-    chat_style: str = Field(
-        default="apologetic",
-        description="对话风格: stubborn/apologetic/cold/sarcastic/rational"
-    )
-    dialect: str = Field(
-        default="mandarin",
-        description="方言: mandarin/cantonese/sichuan/northeastern/shanghainese"
-    )
-    duration_minutes: int = Field(
-        default=3, ge=1, le=10, description="时长(分钟): 1/3/5/10"
-    )
+    target_id: str = Field(..., description="Target ID")
+    mode: str = Field(default="single", description="single or dual")
+    chat_style: str = Field(default="apologetic", description="Conversation style")
+    dialect: str = Field(default="mandarin", description="Response dialect")
+    duration_minutes: int = Field(default=3, ge=1, le=10, description="Session duration")
 
 
 class SessionResponse(BaseModel):
-    """会话响应"""
     id: str
     user_id: str
     target_id: str
@@ -47,15 +36,13 @@ class SessionResponse(BaseModel):
 
 
 class SessionEndRequest(BaseModel):
-    """结束会话请求"""
-    force: bool = Field(default=False, description="是否强制中断")
+    force: bool = Field(default=False, description="Force interrupt")
 
 
 class SessionSummaryResponse(BaseModel):
-    """会话总结响应（含消息）"""
     session: SessionResponse
-    messages: list = []
-    emotion_analysis: dict = {}
+    messages: list = Field(default_factory=list)
+    emotion_analysis: dict = Field(default_factory=dict)
 
     class Config:
         from_attributes = True

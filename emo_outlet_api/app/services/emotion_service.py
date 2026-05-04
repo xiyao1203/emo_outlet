@@ -1,169 +1,180 @@
-"""情绪分析服务"""
 from __future__ import annotations
 
-import json
-import random
-from typing import Any
+from collections import Counter
+from dataclasses import dataclass
 
 from app.schemas.poster import EmotionAnalysisResult
 
-
-# 情绪关键词映射
-EMOTION_KEYWORDS = {
+EMOTION_KEYWORDS: dict[str, list[str]] = {
     "愤怒": [
-        "气死", "混蛋", "烦死了", "受不了", "可恶", "滚", "恶心",
-        "去死", "垃圾", "废物", "操", "他妈的", "王八蛋",
+        "生气", "火大", "烦死", "讨厌", "崩溃", "受不了", "恶心", "气死",
+        "吵", "骂", "加班", "不公平",
     ],
-    "悲伤": [
-        "难过", "伤心", "哭", "委屈", "想哭", "心痛", "绝望",
-        "孤独", "失落", "失望", "无助",
+    "委屈": [
+        "委屈", "难过", "想哭", "失望", "伤心", "心痛", "被误会", "没人懂",
     ],
     "焦虑": [
-        "担心", "害怕", "紧张", "不安", "焦虑", "恐慌", "压力",
-        "睡不着", "烦躁",
+        "焦虑", "担心", "害怕", "紧张", "不安", "压力", "睡不着", "怕",
     ],
     "疲惫": [
-        "累", "累了", "疲惫", "不想动", "没劲", "困", "乏",
-        "精疲力尽",
+        "累", "疲惫", "好困", "没劲", "麻木", "撑不住", "精疲力尽", "想躺平",
     ],
     "无奈": [
-        "算了", "随便", "无所谓", "就这样吧", "没办法", "认了",
-        "懒得说", "凑合",
+        "无奈", "算了", "随便", "就这样吧", "没办法", "认了", "懒得说",
+    ],
+    "平静": [
+        "还好", "平静", "慢慢来", "释怀", "轻松", "放下", "舒服",
     ],
 }
 
+STOPWORDS = {
+    "就是", "已经", "一个", "没有", "自己", "我们", "他们", "然后", "真的",
+    "这个", "那个", "因为", "但是", "还是", "一下", "感觉", "事情", "现在",
+}
+
+
+@dataclass
+class TextStats:
+    total_chars: int
+    exclamation_count: int
+    question_count: int
+    repeated_count: int
+
 
 class EmotionService:
-    """情绪分析服务"""
-
     async def analyze_messages(self, messages: list[dict]) -> EmotionAnalysisResult:
-        """分析会话中的消息，输出情绪分析结果"""
         if not messages:
-            return EmotionAnalysisResult(
-                primary_emotion="平静",
-                emotions={"平静": 100.0},
-                intensity=0,
-                keywords=[],
-                summary="没有检测到明显的情绪波动。",
-                suggestion="找个时间聊聊你的心情吧。",
-            )
+            return self._empty_result()
 
-        # 提取用户消息
-        user_messages = [
-            m["content"] for m in messages if m.get("sender") == "user"
-        ]
-        text = " ".join(user_messages)
+        user_text = " ".join(
+            str(item.get("content", "")).strip()
+            for item in messages
+            if item.get("sender") == "user"
+        ).strip()
 
-        if not text.strip():
-            return EmotionAnalysisResult(
-                primary_emotion="平静",
-                emotions={"平静": 100.0},
-                intensity=0,
-                keywords=[],
-                summary="对话中没有留下文字内容。",
-                suggestion="试试说出你的感受。",
-            )
+        if not user_text:
+            return self._empty_result()
 
-        # 情绪检测
-        emotion_scores = self._detect_emotions(text)
-        primary = max(emotion_scores, key=emotion_scores.get)
-        intensity = int(emotion_scores[primary])
-
-        # 关键词提取
-        keywords = self._extract_keywords(text)
-
-        # 生成总结和建议
-        summary = self._generate_summary(primary, intensity, keywords)
-        suggestion = self._generate_suggestion(primary)
+        stats = self._collect_stats(user_text)
+        scores = self._score_emotions(user_text, stats)
+        primary_emotion = max(scores, key=scores.get)
+        intensity = int(max(scores.values()))
+        keywords = self._extract_keywords(user_text, primary_emotion)
 
         return EmotionAnalysisResult(
-            primary_emotion=primary,
-            emotions=emotion_scores,
+            primary_emotion=primary_emotion,
+            emotions=scores,
             intensity=intensity,
-            keywords=keywords[:8],
-            summary=summary,
-            suggestion=suggestion,
+            keywords=keywords,
+            summary=self._generate_summary(primary_emotion, intensity, keywords),
+            suggestion=self._generate_suggestion(primary_emotion, intensity),
         )
 
-    def _detect_emotions(self, text: str) -> dict[str, float]:
-        """检测文本中的情绪分布"""
-        scores: dict[str, float] = {}
-        total_score = 0.0
+    def _empty_result(self) -> EmotionAnalysisResult:
+        return EmotionAnalysisResult(
+            primary_emotion="平静",
+            emotions={"平静": 100.0},
+            intensity=20,
+            keywords=[],
+            summary="这次记录里没有明显的情绪波动，更像是在做一次平稳的表达。",
+            suggestion="保持这种能把话说出来的状态，需要时继续来这里放松一下。",
+        )
 
-        for emotion, keywords in EMOTION_KEYWORDS.items():
-            score = 0.0
-            for keyword in keywords:
-                count = text.count(keyword)
-                score += count * 10
-            if score > 0:
-                scores[emotion] = min(score, 100)
-                total_score += score
+    def _collect_stats(self, text: str) -> TextStats:
+        repeated = 0
+        for idx in range(1, len(text)):
+            if text[idx] == text[idx - 1] and text[idx].strip():
+                repeated += 1
+        return TextStats(
+            total_chars=len(text),
+            exclamation_count=text.count("!") + text.count("！"),
+            question_count=text.count("?") + text.count("？"),
+            repeated_count=repeated,
+        )
 
-        # 归一化
-        if scores:
-            max_score = max(scores.values())
-            if max_score > 0:
-                for k in scores:
-                    scores[k] = round((scores[k] / max_score) * 100, 1)
+    def _score_emotions(self, text: str, stats: TextStats) -> dict[str, float]:
+        scores = {emotion: 0.0 for emotion in EMOTION_KEYWORDS}
 
-        # 添加"平静"基线
-        if not scores:
-            scores["平静"] = 100.0
-        else:
-            calm = max(0, 100 - max(scores.values()))
-            scores["平静"] = round(calm, 1)
+        for emotion, words in EMOTION_KEYWORDS.items():
+            for word in words:
+                scores[emotion] += text.count(word) * 18
 
-        # 按强度排序
-        return dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
+        # punctuation and length tuning
+        scores["愤怒"] += stats.exclamation_count * 6
+        scores["焦虑"] += stats.question_count * 5
+        scores["疲惫"] += min(stats.total_chars / 25, 8)
+        scores["委屈"] += stats.repeated_count * 2
+        scores["平静"] += 12
 
-    def _extract_keywords(self, text: str) -> list[str]:
-        """提取高频情绪关键词"""
-        found = []
-        for emotion, keywords in EMOTION_KEYWORDS.items():
-            for kw in keywords:
-                if kw in text and kw not in found:
-                    found.append(kw)
-        return found
+        max_score = max(scores.values()) if scores else 0
+        if max_score <= 0:
+            return {"平静": 100.0}
+
+        normalized = {
+            emotion: round(max(0.0, value / max_score * 100), 1)
+            for emotion, value in scores.items()
+            if value > 0
+        }
+        if "平静" not in normalized:
+            normalized["平静"] = round(max(8.0, 100 - max(normalized.values())), 1)
+        return dict(sorted(normalized.items(), key=lambda item: item[1], reverse=True))
+
+    def _extract_keywords(self, text: str, primary_emotion: str) -> list[str]:
+        found: list[str] = []
+
+        for word in EMOTION_KEYWORDS.get(primary_emotion, []):
+            if word in text and word not in found:
+                found.append(word)
+
+        text_no_space = text.replace(" ", "")
+        counter: Counter[str] = Counter()
+        for size in (2, 3, 4):
+            for idx in range(0, max(0, len(text_no_space) - size + 1)):
+                token = text_no_space[idx: idx + size]
+                if any(char in "，。！？,.!?\n\r\t " for char in token):
+                    continue
+                if token in STOPWORDS or len(set(token)) == 1:
+                    continue
+                counter[token] += 1
+
+        for token, count in counter.most_common(20):
+            if count < 2:
+                continue
+            if token not in found:
+                found.append(token)
+            if len(found) >= 6:
+                break
+
+        return found[:6]
 
     def _generate_summary(self, emotion: str, intensity: int, keywords: list[str]) -> str:
-        """生成情绪总结文案"""
-        templates = {
-            "愤怒": [
-                f"你表达了强烈的愤怒情绪（{intensity}%），看起来有些事情让你非常不满。",
-                "愤怒是正常的情绪，重要的是你选择了安全的释放方式。",
-                f"你用了「{keywords[0] if keywords else '强烈'}」这样的词汇来表达不满。",
-            ],
-            "悲伤": [
-                f"你流露出悲伤的情绪（{intensity}%），似乎有些事情让你感到难过。",
-                "允许自己难过也是一种勇气。",
-            ],
-            "焦虑": [
-                f"你感到明显的焦虑（{intensity}%），压力和不安在影响着你。",
-                "识别焦虑是管理焦虑的第一步。",
-            ],
-            "疲惫": [
-                f"你表达了疲惫感（{intensity}%），身心需要休息。",
-                "累了就歇一歇，不必总是坚强。",
-            ],
-            "无奈": [
-                f"你透露出一些无奈（{intensity}%），有些事情可能暂时无法改变。",
-                "接受不能改变的，改变能改变的。",
-            ],
-        }
+        keyword_text = f"关键词里反复出现了“{keywords[0]}”。" if keywords else ""
+        if emotion == "愤怒":
+            return f"这次释放里，愤怒最明显，强度大约在 {intensity}% 左右。{keyword_text}你对边界和公平感受得很强。"
+        if emotion == "委屈":
+            return f"这次更像是在消化委屈和失落，情绪强度约 {intensity}%。{keyword_text}你需要被理解，而不是被催着立刻好起来。"
+        if emotion == "焦虑":
+            return f"你最近像是长期绷着，焦虑感大约 {intensity}%。{keyword_text}很多压力还停留在“还没发生但已经在担心”的阶段。"
+        if emotion == "疲惫":
+            return f"你透出来的更多是累和耗尽，强度大约 {intensity}%。{keyword_text}这不是脆弱，更像是身体和情绪都在提醒你该休息了。"
+        if emotion == "无奈":
+            return f"这次记录里，无奈感更突出，强度约 {intensity}%。{keyword_text}你可能已经尝试过很多办法，所以才会有这种松掉力气的感觉。"
+        return f"整体情绪比较平稳，强度约 {intensity}%。{keyword_text}你已经在用更柔和的方式表达自己。"
 
-        pool = templates.get(emotion, ["你完成了一次情绪释放。"])
-        return random.choice(pool)
-
-    def _generate_suggestion(self, emotion: str) -> str:
-        """生成情绪调节建议"""
-        suggestions = {
-            "愤怒": "试试深呼吸 5 次，喝杯水。如果需要，出去走走换个环境。",
-            "悲伤": "允许自己难过，但不要沉浸在情绪里太久了。听点喜欢的音乐吧。",
-            "焦虑": "把担心的事情写下来，分清楚哪些是可以控制的，哪些不是。",
-            "疲惫": "今天就到这里吧。泡杯热茶，早点休息。",
-            "无奈": "有些事情需要时间，不必急于解决。照顾好自己。",
-        }
-        return suggestions.get(emotion, "照顾好自己，情绪总会过去的。")
+    def _generate_suggestion(self, emotion: str, intensity: int) -> str:
+        if emotion == "愤怒":
+            return "先离开让你上火的场景 5 分钟，再做一次短句记录：我为什么生气、我想守住什么。"
+        if emotion == "委屈":
+            return "试着把“我最希望被怎样对待”写下来，给自己一个更清楚的情绪出口。"
+        if emotion == "焦虑":
+            return "把担心拆成可行动和不可行动两列，一次只处理最小的一件事。"
+        if emotion == "疲惫":
+            return "今天更适合做减法。暂停一件不必要的事，让身体先回一点电。"
+        if emotion == "无奈":
+            return "先别逼自己立刻解决，把注意力收回到能掌控的小步骤上。"
+        if intensity >= 70:
+            return "情绪起伏有点大，今天适合轻一点安排，给自己留出缓冲。"
+        return "继续保持这种把感受说出来的习惯，你已经在慢慢变稳。"
 
 
 emotion_service = EmotionService()

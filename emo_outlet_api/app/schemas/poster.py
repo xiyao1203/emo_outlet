@@ -57,8 +57,8 @@ class EmotionReportResponse(BaseModel):
 
 class EmotionReportDetailResponse(BaseModel):
     period: str
-    trend_points: list[dict]
-    mode_distribution: dict[str, float]
-    target_distribution: list[dict]
-    time_distribution: list[dict]
-    keyword_counts: list[dict]
+    trend_points: list[dict] = Field(default_factory=list)
+    mode_distribution: dict[str, float] = Field(default_factory=dict)
+    target_distribution: list[dict] = Field(default_factory=list)
+    time_distribution: list[dict] = Field(default_factory=list)
+    keyword_counts: list[dict] = Field(default_factory=list)

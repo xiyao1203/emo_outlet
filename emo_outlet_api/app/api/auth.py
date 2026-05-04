@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -38,17 +39,15 @@ async def register(
     if req.phone:
         result = await db.execute(select(UserModel).where(UserModel.phone == req.phone))
         if result.scalar_one_or_none():
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="手机号已注册")
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Phone already registered")
 
     if req.email:
         result = await db.execute(select(UserModel).where(UserModel.email == req.email))
         if result.scalar_one_or_none():
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="邮箱已注册")
-
-    import uuid
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email already registered")
 
     user = UserModel(
-        nickname=req.nickname or f"用户{uuid.uuid4().hex[:8]}",
+        nickname=req.nickname or f"用户{uuid.uuid4().hex[:6]}",
         phone=req.phone,
         email=req.email,
         password_hash=hash_password(req.password),
@@ -61,7 +60,7 @@ async def register(
     await db.refresh(user)
 
     if req.consent_version:
-        for consent_type in ["privacy", "terms"]:
+        for consent_type in ("privacy", "terms"):
             db.add(
                 ConsentRecord(
                     user_id=user.id,
@@ -86,8 +85,8 @@ async def login(
         )
     )
     user = result.scalar_one_or_none()
-    if not user or not user.password_hash or not verify_password(req.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="账号或密码错误")
+    if user is None or not user.password_hash or not verify_password(req.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid account or password")
 
     token = create_access_token({"sub": user.id})
     return TokenResponse(access_token=token, user=UserResponse.model_validate(user))
@@ -105,8 +104,7 @@ async def visitor_login(
         )
     )
     user = result.scalar_one_or_none()
-
-    if not user:
+    if user is None:
         user = UserModel(
             nickname=req.nickname,
             is_visitor=True,
@@ -148,9 +146,7 @@ async def get_profile_detail(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(UserProfileDetailModel).where(
-            UserProfileDetailModel.user_id == current_user.id
-        )
+        select(UserProfileDetailModel).where(UserProfileDetailModel.user_id == current_user.id)
     )
     detail = result.scalar_one_or_none()
     return UserProfileDetailResponse(
@@ -161,7 +157,7 @@ async def get_profile_detail(
         signature=detail.signature if detail else "拥抱情绪，遇见更好的自己",
         gender=detail.gender if detail else "女",
         birthday=detail.birthday if detail else "1998-05-20",
-        region=detail.region if detail else "中国 · 上海",
+        region=detail.region if detail else "中国·上海",
     )
 
 
@@ -172,12 +168,10 @@ async def update_profile_detail(
     db: AsyncSession = Depends(get_db),
 ):
     result = await db.execute(
-        select(UserProfileDetailModel).where(
-            UserProfileDetailModel.user_id == current_user.id
-        )
+        select(UserProfileDetailModel).where(UserProfileDetailModel.user_id == current_user.id)
     )
     detail = result.scalar_one_or_none()
-    if not detail:
+    if detail is None:
         detail = UserProfileDetailModel(user_id=current_user.id)
 
     if req.nickname is not None:
@@ -198,14 +192,14 @@ async def update_profile_detail(
     await db.flush()
 
     return UserProfileDetailResponse(
-      user_id=current_user.id,
-      nickname=current_user.nickname,
-      avatar_url=current_user.avatar_url,
-      phone=current_user.phone,
-      signature=detail.signature,
-      gender=detail.gender,
-      birthday=detail.birthday,
-      region=detail.region,
+        user_id=current_user.id,
+        nickname=current_user.nickname,
+        avatar_url=current_user.avatar_url,
+        phone=current_user.phone,
+        signature=detail.signature,
+        gender=detail.gender,
+        birthday=detail.birthday,
+        region=detail.region,
     )
 
 
@@ -214,16 +208,14 @@ async def delete_account(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    session_ids_subq = select(SessionModel.id).where(SessionModel.user_id == current_user.id)
+    session_ids_subquery = select(SessionModel.id).where(SessionModel.user_id == current_user.id)
 
-    await db.execute(delete(MessageModel).where(MessageModel.session_id.in_(session_ids_subq)))
+    await db.execute(delete(MessageModel).where(MessageModel.session_id.in_(session_ids_subquery)))
     await db.execute(delete(PosterModel).where(PosterModel.user_id == current_user.id))
     await db.execute(delete(SessionModel).where(SessionModel.user_id == current_user.id))
     await db.execute(delete(TargetModel).where(TargetModel.user_id == current_user.id))
     await db.execute(delete(ConsentRecord).where(ConsentRecord.user_id == current_user.id))
-    await db.execute(
-        delete(UserProfileDetailModel).where(UserProfileDetailModel.user_id == current_user.id)
-    )
+    await db.execute(delete(UserProfileDetailModel).where(UserProfileDetailModel.user_id == current_user.id))
 
     current_user.nickname = "已注销用户"
     current_user.phone = None
@@ -236,7 +228,7 @@ async def delete_account(
     current_user.daily_session_count = 0
     db.add(current_user)
     await db.flush()
-    return {"message": "账号已注销，所有数据已清除"}
+    return {"message": "Account deleted and user data cleared"}
 
 
 @router.get("/data/export")
@@ -244,22 +236,21 @@ async def export_user_data(
     current_user: UserModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
+    sessions_result = await db.execute(
         select(SessionModel)
         .where(SessionModel.user_id == current_user.id)
-        .order_by(SessionModel.created_at)
+        .order_by(SessionModel.created_at.asc())
     )
-    sessions = result.scalars().all()
+    sessions = sessions_result.scalars().all()
     session_ids = [item.id for item in sessions]
 
     messages_data: list[dict] = []
     if session_ids:
-        result = await db.execute(
+        messages_result = await db.execute(
             select(MessageModel)
             .where(MessageModel.session_id.in_(session_ids))
-            .order_by(MessageModel.sequence)
+            .order_by(MessageModel.sequence.asc())
         )
-        messages = result.scalars().all()
         messages_data = [
             {
                 "id": item.id,
@@ -268,21 +259,16 @@ async def export_user_data(
                 "sender": item.sender,
                 "created_at": item.created_at.isoformat() if item.created_at else None,
             }
-            for item in messages
+            for item in messages_result.scalars().all()
         ]
 
-    result = await db.execute(
+    targets_result = await db.execute(
         select(TargetModel).where(
             TargetModel.user_id == current_user.id,
             TargetModel.is_deleted == False,
         )
     )
-    targets = result.scalars().all()
-
-    result = await db.execute(
-        select(PosterModel).where(PosterModel.user_id == current_user.id)
-    )
-    posters = result.scalars().all()
+    posters_result = await db.execute(select(PosterModel).where(PosterModel.user_id == current_user.id))
 
     return {
         "user": {
@@ -301,7 +287,7 @@ async def export_user_data(
                 "type": item.type,
                 "created_at": item.created_at.isoformat() if item.created_at else None,
             }
-            for item in targets
+            for item in targets_result.scalars().all()
         ],
         "sessions": [
             {
@@ -325,7 +311,7 @@ async def export_user_data(
                 "emotion_type": item.emotion_type,
                 "created_at": item.created_at.isoformat() if item.created_at else None,
             }
-            for item in posters
+            for item in posters_result.scalars().all()
         ],
         "export_time": datetime.now(timezone.utc).isoformat(),
     }
