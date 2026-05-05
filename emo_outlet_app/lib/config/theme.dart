@@ -45,13 +45,13 @@ class AppColors {
 
   // 阴影
   static BoxShadow cardShadow = BoxShadow(
-    color: Colors.black.withOpacity(0.08),
+    color: Colors.black.withValues(alpha: 0.08),
     blurRadius: 12,
     offset: const Offset(0, 4),
   );
 
   static BoxShadow buttonShadow = BoxShadow(
-    color: Colors.black.withOpacity(0.15),
+    color: Colors.black.withValues(alpha: 0.15),
     blurRadius: 8,
     offset: const Offset(0, 4),
   );

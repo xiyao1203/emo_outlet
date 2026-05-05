@@ -364,7 +364,8 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withValues(alpha: 0.32),
-      builder: (context) {
+      builder: (sheetContext) {
+        final navigator = Navigator.of(sheetContext);
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: SoftCard(
@@ -395,19 +396,19 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   icon: Icons.share_rounded,
                   iconColor: const Color(0xFF1EC95B),
                   label: '分享给好友',
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () => navigator.pop(),
                 ),
                 _SheetItem(
                   icon: Icons.photo_library_outlined,
                   iconColor: const Color(0xFF7EA8FF),
                   label: '分享到朋友圈',
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () => navigator.pop(),
                 ),
                 _SheetItem(
                   icon: Icons.download_rounded,
                   iconColor: const Color(0xFF9680FF),
                   label: '保存到本地',
-                  onTap: () => Navigator.of(context).pop(),
+                  onTap: () => navigator.pop(),
                 ),
                 _SheetItem(
                   icon: _favorite
@@ -418,7 +419,7 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   onTap: () async {
                     await _toggleFavorite();
                     if (!mounted) return;
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
                 ),
                 _SheetItem(
@@ -428,7 +429,7 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   onTap: () async {
                     await _deletePoster();
                     if (!mounted) return;
-                    Navigator.of(context).pop();
+                    navigator.pop();
                   },
                 ),
                 const SizedBox(height: 10),
@@ -437,7 +438,7 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   child: SoftOutlineButton(
                     text: '取消',
                     textColor: SoftColors.coral,
-                    onTap: () => Navigator.of(context).pop(),
+                    onTap: () => navigator.pop(),
                   ),
                 ),
               ],

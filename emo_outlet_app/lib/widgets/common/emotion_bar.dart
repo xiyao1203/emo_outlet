@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../config/theme.dart';
 
 class EmotionBar extends StatelessWidget {
@@ -49,7 +50,7 @@ class EmotionBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(4),
             child: LinearProgressIndicator(
               value: value / 100,
-              backgroundColor: color.withOpacity(0.15),
+              backgroundColor: color.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation<Color>(color),
               minHeight: 8,
             ),
@@ -81,7 +82,6 @@ class EmotionPieChart extends StatelessWidget {
 
     return Column(
       children: [
-        // 饼图
         SizedBox(
           height: 160,
           child: Stack(
@@ -108,7 +108,7 @@ class EmotionPieChart extends StatelessWidget {
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  Text(
+                  const Text(
                     '主导情绪',
                     style: TextStyle(
                       fontSize: 12,
@@ -121,7 +121,6 @@ class EmotionPieChart extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        // 图例
         Wrap(
           spacing: 16,
           runSpacing: 8,
@@ -186,7 +185,6 @@ class _PieChartPainter extends CustomPainter {
       startAngle += sweepAngle;
     }
 
-    // 内圈白色（挖空效果）
     final innerPaint = Paint()..color = Colors.white;
     canvas.drawCircle(center, radius * 0.55, innerPaint);
   }

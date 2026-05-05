@@ -58,7 +58,7 @@ class EmoOutletApp extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               elevation: 4,
-              shadowColor: AppColors.primary.withOpacity(0.3),
+              shadowColor: AppColors.primary.withValues(alpha: 0.3),
             ),
           ),
           inputDecorationTheme: InputDecorationTheme(

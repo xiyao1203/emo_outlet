@@ -90,6 +90,7 @@ class SettingsScreen extends StatelessWidget {
     await showDialog<void>(
       context: context,
       builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -129,7 +130,7 @@ class SettingsScreen extends StatelessWidget {
                     Expanded(
                       child: SoftOutlineButton(
                         text: '取消',
-                        onTap: () => Navigator.of(dialogContext).pop(),
+                        onTap: () => navigator.pop(),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -140,7 +141,8 @@ class SettingsScreen extends StatelessWidget {
                           await AuthService().logout();
                           if (!context.mounted) return;
                           Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const LoginScreen()),
                             (route) => false,
                           );
                         },
@@ -284,6 +286,8 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.24),
       builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
+        final rootNavigator = Navigator.of(context);
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -372,8 +376,12 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                         onTap: _confirmed
                             ? () async {
                                 await AuthService().deleteAccount();
-                                if (!context.mounted) return;
-                                Navigator.of(context).pushAndRemoveUntil(
+                                if (!dialogContext.mounted ||
+                                    !context.mounted) {
+                                  return;
+                                }
+                                navigator.pop();
+                                rootNavigator.pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (_) => const LoginScreen(),
                                   ),
@@ -465,9 +473,10 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                           icon: Icons.chat_rounded,
                           colors: const [Color(0xFFDDF8E4), Color(0xFF59CE7A)],
                           title: '微信绑定',
-                          value: (_preferences?['wechat_bound'] as bool? ?? false)
-                              ? '已绑定'
-                              : '未绑定',
+                          value:
+                              (_preferences?['wechat_bound'] as bool? ?? false)
+                                  ? '已绑定'
+                                  : '未绑定',
                           onTap: _openWechatBinding,
                           showDivider: false,
                         ),
@@ -481,7 +490,8 @@ class _AccountSecurityScreenState extends State<AccountSecurityScreen> {
                       onTap: _showDeleteDialog,
                       borderRadius: BorderRadius.circular(28),
                       child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                         child: Row(
                           children: [
                             SoftIconBadge(
@@ -826,7 +836,8 @@ class _NotificationSettingsScreenState
         _PreferenceSwitchEntry(
           title: '活动通知',
           value: preference('activity_notification'),
-          onChanged: (value) => updatePreference('activity_notification', value),
+          onChanged: (value) =>
+              updatePreference('activity_notification', value),
         ),
         _PreferenceSwitchEntry(
           title: '系统通知',
@@ -916,6 +927,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) {
+          final navigator = Navigator.of(dialogContext);
           return Dialog(
             backgroundColor: Colors.transparent,
             insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -954,7 +966,7 @@ class _HelpFeedbackScreenState extends State<HelpFeedbackScreen> {
                     width: double.infinity,
                     child: SoftGradientButton(
                       text: '完成',
-                      onTap: () => Navigator.of(dialogContext).pop(),
+                      onTap: () => navigator.pop(),
                     ),
                   ),
                 ],
@@ -1113,7 +1125,9 @@ abstract class _PreferenceScreenState<T extends StatefulWidget>
   Widget build(BuildContext context) {
     return _SimpleSubPage(
       title: title,
-      child: _loading ? const Center(child: CircularProgressIndicator()) : buildContent(),
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : buildContent(),
     );
   }
 }
@@ -1185,7 +1199,6 @@ class _LineEntry extends StatelessWidget {
     required this.icon,
     required this.colors,
     required this.title,
-    this.subtitle,
     this.value,
     this.onTap,
     this.showDivider = true,
@@ -1194,7 +1207,6 @@ class _LineEntry extends StatelessWidget {
   final IconData icon;
   final List<Color> colors;
   final String title;
-  final String? subtitle;
   final String? value;
   final VoidCallback? onTap;
   final bool showDivider;
@@ -1204,7 +1216,6 @@ class _LineEntry extends StatelessWidget {
     return SoftListTile(
       leading: SoftIconBadge(icon: icon, colors: colors),
       title: title,
-      subtitle: subtitle,
       showDivider: showDivider,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

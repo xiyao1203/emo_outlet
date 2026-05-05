@@ -98,7 +98,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.cardBackground,
                 border: Border(
-                  top: BorderSide(color: AppColors.divider.withOpacity(0.5)),
+                  top: BorderSide(color: AppColors.divider.withValues(alpha: 0.5)),
                 ),
               ),
               child: SizedBox(

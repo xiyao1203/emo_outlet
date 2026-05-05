@@ -88,8 +88,8 @@ class _HomeTab extends StatelessWidget {
                 'Hi, ${user?.nickname ?? '\u5c0f\u592a\u9633'} \uD83D\uDC4B',
                 style: const TextStyle(
                   color: AuthPalette.textPrimary,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
                   height: 1.06,
                   letterSpacing: -0.9,
                 ),

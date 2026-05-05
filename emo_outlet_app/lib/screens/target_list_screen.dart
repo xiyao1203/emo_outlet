@@ -151,7 +151,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                       child: const Center(
                         child: Text(
                           '\uD83D\uDC65',
-                          style: TextStyle(fontSize: 30),
+                          style: TextStyle(fontSize: 24),
                         ),
                       ),
                     ),
@@ -166,24 +166,24 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                 const TextSpan(
                                   text: '\u5171 ',
                                   style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
                                     color: AuthPalette.textPrimary,
                                   ),
                                 ),
                                 TextSpan(
                                   text: '${targets.length}',
                                   style: const TextStyle(
-                                    fontSize: 28,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w700,
                                     color: Color(0xFFFF754C),
                                   ),
                                 ),
                                 const TextSpan(
                                   text: ' \u4e2a\u5bf9\u8c61',
                                   style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
                                     color: AuthPalette.textPrimary,
                                   ),
                                 ),
@@ -291,7 +291,7 @@ class _TargetCard extends StatelessWidget {
               child: Center(
                 child: Text(
                   _avatarByType(target.type),
-                  style: const TextStyle(fontSize: 32),
+                  style: const TextStyle(fontSize: 26),
                 ),
               ),
             ),
@@ -306,8 +306,8 @@ class _TargetCard extends StatelessWidget {
                         child: Text(
                           target.name,
                           style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
                             color: AuthPalette.textPrimary,
                           ),
                         ),

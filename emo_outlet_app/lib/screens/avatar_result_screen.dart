@@ -15,24 +15,29 @@ class AvatarResultScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('生成结果', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
+        title: const Text('生成结果',
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF333333))),
         centerTitle: true,
         backgroundColor: const Color(0xFFF8F8F8),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.close, color: Color(0xFF666666)),
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+          onPressed: () =>
+              Navigator.of(context).popUntil((route) => route.isFirst),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(24),
         child: Column(
           children: [
             const Spacer(),
             // 大号头像
             Container(
-              width: 200,
-              height: 200,
+              width: 168,
+              height: 168,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
@@ -40,27 +45,38 @@ class AvatarResultScreen extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 24, offset: const Offset(0, 8))],
+                boxShadow: [
+                  BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8))
+                ],
               ),
               child: Center(
                 child: Text(
                   name.length >= 2 ? name.substring(0, 2) : name[0],
-                  style: const TextStyle(fontSize: 72, color: Colors.white, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 56,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600),
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             // 文案
             const Text(
               '说出来好多了！',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF333333)),
             ),
             const SizedBox(height: 8),
             Text(
               '这是 $name 的形象',
               style: const TextStyle(fontSize: 15, color: Color(0xFF999999)),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 36),
             // 按钮区
             SizedBox(
               width: double.infinity,
@@ -68,16 +84,22 @@ class AvatarResultScreen extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SessionModeScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const SessionModeScreen()),
                   );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
                   elevation: 4,
-                  shadowColor: AppColors.primary.withOpacity(0.3),
+                  shadowColor: AppColors.primary.withValues(alpha: 0.3),
                 ),
-                child: const Text('开始释放情绪', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white)),
+                child: const Text('开始释放情绪',
+                    style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white)),
               ),
             ),
             const SizedBox(height: 14),
@@ -90,9 +112,12 @@ class AvatarResultScreen extends StatelessWidget {
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('重新生成', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    child: const Text('重新生成',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -103,9 +128,12 @@ class AvatarResultScreen extends StatelessWidget {
                       foregroundColor: AppColors.secondary,
                       side: const BorderSide(color: AppColors.secondary),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('分享给朋友', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+                    child: const Text('分享给朋友',
+                        style: TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.w500)),
                   ),
                 ),
               ],

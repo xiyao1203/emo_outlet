@@ -58,7 +58,7 @@ class SoftHeader extends StatelessWidget {
             child: GestureDetector(
               onTap: onBack,
               behavior: HitTestBehavior.opaque,
-              child: SizedBox(
+              child: const SizedBox(
                 width: 48,
                 height: 48,
                 child: Icon(
@@ -89,7 +89,7 @@ class SoftCard extends StatelessWidget {
   const SoftCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(18),
+    this.padding = const EdgeInsets.all(16),
     this.radius = 28,
   });
 
@@ -123,8 +123,8 @@ class SoftGradientButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onTap,
-    this.height = 58,
-    this.fontSize = 17,
+    this.height = 56,
+    this.fontSize = 16,
   });
 
   final String text;
@@ -176,7 +176,7 @@ class SoftOutlineButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onTap,
-    this.height = 58,
+    this.height = 54,
     this.textColor = SoftColors.text,
   });
 
@@ -203,7 +203,7 @@ class SoftOutlineButton extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: textColor,
               ),
@@ -220,7 +220,7 @@ class SoftIconBadge extends StatelessWidget {
     super.key,
     required this.icon,
     required this.colors,
-    this.size = 52,
+    this.size = 48,
     this.iconColor = Colors.white,
   });
 
@@ -264,7 +264,7 @@ class SoftListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final content = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
       child: Row(
         children: [
           leading,
@@ -276,7 +276,7 @@ class SoftListTile extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w600,
                     color: SoftColors.text,
                   ),
@@ -287,6 +287,7 @@ class SoftListTile extends StatelessWidget {
                     subtitle!,
                     style: const TextStyle(
                       fontSize: 13,
+                      height: 1.4,
                       color: SoftColors.subtext,
                     ),
                   ),
@@ -342,7 +343,7 @@ class SoftTag extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 12.5,
           fontWeight: FontWeight.w600,
           color: color,
         ),

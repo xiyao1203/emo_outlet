@@ -97,22 +97,23 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                 const Spacer(),
                 const Text(
                   '编辑对象',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
                 const SizedBox(width: 56),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Row(
               children: [
                 const Spacer(),
-                const EmoDecorationCloud(size: 170),
+                const EmoDecorationCloud(size: 126),
               ],
             ),
             Transform.translate(
-              offset: const Offset(0, -18),
+              offset: const Offset(0, -10),
               child: EmoSectionCard(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
                 child: Column(
                   children: [
                     Row(
@@ -122,7 +123,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                             EmoAvatar(
                               label: avatarEmojiByType(widget.target.type),
                               background: avatarBgByType(widget.target.type),
-                              size: 126,
+                              size: 96,
                             ),
                             Positioned(
                               right: -4,
@@ -142,21 +143,23 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(width: 18),
+                        const SizedBox(width: 14),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Row(
+                              Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                spacing: 10,
+                                runSpacing: 8,
                                 children: [
                                   Text(
                                     widget.target.name,
                                     style: const TextStyle(
-                                      fontSize: 34,
-                                      fontWeight: FontWeight.w800,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
                                   EmoTypePill(
                                     text: widget.target.typeLabel,
                                     color: color,
@@ -164,20 +167,21 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 10),
                               Text(
                                 widget.target.relationship ?? '总是临时加需求，周末还要开会…',
                                 style: const TextStyle(
-                                  fontSize: 17,
+                                  fontSize: 14,
+                                  height: 1.5,
                                   color: Color(0xFF706660),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                               Text(
                                 '最近更新：${formatFriendlyTime(widget.target.createdAt)}',
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 13,
                                   color: Color(0xFF9A948F),
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -206,7 +210,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
             const SizedBox(height: 16),
             EmoSectionCard(
               child: SizedBox(
-                height: 62,
+                height: 56,
                 child: Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -217,7 +221,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                       Text(
                         '重新生成形象',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF3A3A3A),
                         ),
@@ -230,8 +234,8 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
             const SizedBox(height: 16),
             GradientPrimaryButton(
               text: '保存修改',
-              height: 68,
-              fontSize: 22,
+              height: 60,
+              fontSize: 18,
               onTap: _save,
             ),
           ],
@@ -249,16 +253,17 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: EmoSectionCard(
+        padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 30),
-            const SizedBox(width: 18),
+            Icon(icon, color: color, size: 24),
+            const SizedBox(width: 14),
             SizedBox(
-              width: 110,
+              width: 86,
               child: Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 15.5,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -269,15 +274,18 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   isDense: true,
+                  contentPadding: EdgeInsets.zero,
                 ),
                 style: const TextStyle(
-                  fontSize: 19,
+                  fontSize: 15,
+                  height: 1.4,
                   color: Color(0xFF3A3A3A),
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
-            const Icon(Icons.edit_outlined, color: Color(0xFF9A9A9A), size: 26),
+            const SizedBox(width: 8),
+            const Icon(Icons.edit_outlined, color: Color(0xFF9A9A9A), size: 20),
           ],
         ),
       ),

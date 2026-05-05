@@ -138,7 +138,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     return showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
+      builder: (dialogContext) {
         return SafeArea(
           top: false,
           child: SoftCard(
@@ -263,7 +263,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
     await showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.2),
-      builder: (context) {
+      builder: (dialogContext) {
+        final navigator = Navigator.of(dialogContext);
         return Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(horizontal: 28),
@@ -318,7 +319,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                     Expanded(
                       child: SoftOutlineButton(
                         text: '取消',
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () => navigator.pop(),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -328,7 +329,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                         onTap: () async {
                           await onConfirm();
                           if (!mounted) return;
-                          Navigator.of(context).pop();
+                          navigator.pop();
                         },
                       ),
                     ),
@@ -469,7 +470,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                               const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
                               ),
                           ],
                         ),
@@ -485,7 +487,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFFFC7B3), Color(0xFFFF8E66)],
                               ),
                               title: '昵称',
-                              trailing: _trailingValue(_stringValue('nickname')),
+                              trailing:
+                                  _trailingValue(_stringValue('nickname')),
                               onTap: _showNicknameDialog,
                             ),
                             SoftListTile(
@@ -505,7 +508,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFFFDCE7), Color(0xFFFF638E)],
                               ),
                               title: '个性签名',
-                              trailing: _trailingValue(_stringValue('signature')),
+                              trailing:
+                                  _trailingValue(_stringValue('signature')),
                               onTap: _showSignatureDialog,
                               showDivider: false,
                             ),
@@ -532,7 +536,8 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                                 colors: [Color(0xFFFFE5B8), Color(0xFFFFB548)],
                               ),
                               title: '生日',
-                              trailing: _trailingValue(_stringValue('birthday')),
+                              trailing:
+                                  _trailingValue(_stringValue('birthday')),
                               onTap: _selectBirthday,
                             ),
                             SoftListTile(

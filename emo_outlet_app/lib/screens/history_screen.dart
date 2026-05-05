@@ -72,7 +72,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   List<HistoryRecordModel> get _filtered {
     final now = DateTime.now();
-    var items = _records.where((item) {
+    final items = _records.where((item) {
       final matchQuery = _query.isEmpty ||
           _normalize(item.name).contains(_query) ||
           item.keywords.any((tag) => _normalize(tag).contains(_query)) ||
@@ -125,7 +125,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             const SizedBox(height: 10),
             const Text(
               '历史记录',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 18),
             _rangeTabs(),
@@ -158,7 +158,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ),
               ),
             const SizedBox(height: 12),
-            const EmoDecorationCloud(size: 170),
+            const EmoDecorationCloud(size: 132),
             const SizedBox(height: 12),
             const Text(
               '记录每一次情绪释放，见证内心慢慢松开。',
@@ -176,16 +176,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _emptyState() {
     return EmoSectionCard(
-      radius: 32,
+      radius: 30,
       child: Column(
         children: const [
-          SizedBox(height: 10),
-          EmoDecorationCloud(size: 140),
+          SizedBox(height: 8),
+          EmoDecorationCloud(size: 128),
           SizedBox(height: 8),
           Text(
             '还没有历史记录',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
@@ -195,7 +195,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             '完成一次会话后，这里会自动展示真实的记录和情绪总结。',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 13.5,
               height: 1.6,
               color: Color(0xFF857972),
             ),
@@ -226,7 +226,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         borderRadius: BorderRadius.circular(999),
         onTap: () => setState(() => _range = key),
         child: Container(
-          height: 46,
+          height: 44,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: active
@@ -239,8 +239,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
                 color: active ? Colors.white : const Color(0xFF2F2825),
               ),
             ),
@@ -252,11 +252,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _searchBar() {
     return EmoSectionCard(
-      radius: 26,
+      radius: 24,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, color: Color(0xFF8C8C8C), size: 22),
+          const Icon(Icons.search_rounded, color: Color(0xFF8C8C8C), size: 21),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -266,12 +266,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 border: InputBorder.none,
                 hintText: '搜索对象、情绪或关键词',
                 hintStyle: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14.5,
                   color: Color(0xFF9C9C9C),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+              style:
+                  const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -337,7 +338,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     const Text(
                       '筛选记录',
                       style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 20),
                     const Text('会话模式',
@@ -470,7 +471,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: selected ? const Color(0xFFFF6C55) : const Color(0xFF6C635D),
           ),
@@ -494,8 +495,8 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EmoSectionCard(
-      radius: 30,
-      padding: const EdgeInsets.all(18),
+      radius: 28,
+      padding: const EdgeInsets.all(16),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
@@ -513,16 +514,16 @@ class _HistoryCard extends StatelessWidget {
                       Text(
                         record.name,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 17,
                           fontWeight: FontWeight.w700,
                           color: AuthPalette.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       Text(
                         _formatDate(record.timestamp),
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: 13.5,
                           color: Color(0xFF8B8079),
                         ),
                       ),
@@ -532,7 +533,7 @@ class _HistoryCard extends StatelessWidget {
                 EmoTypePill(text: record.modeLabel),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             Row(
               children: [
                 _MiniInfo(
@@ -557,7 +558,7 @@ class _HistoryCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -565,14 +566,14 @@ class _HistoryCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13.5,
                   height: 1.6,
                   color: Color(0xFF5A504A),
                 ),
               ),
             ),
             if (record.keywords.isNotEmpty) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -581,7 +582,9 @@ class _HistoryCard extends StatelessWidget {
                     .map(
                       (item) => Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 7,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0x14FF7C68),
                           borderRadius: BorderRadius.circular(999),
@@ -589,7 +592,7 @@ class _HistoryCard extends StatelessWidget {
                         child: Text(
                           item,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 13,
                             color: Color(0xFFFF6E57),
                             fontWeight: FontWeight.w600,
                           ),
@@ -620,10 +623,10 @@ class _AvatarBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 56,
-      height: 56,
+      width: 54,
+      height: 54,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(18),
         gradient: const LinearGradient(
           colors: [Color(0xFFFFE1D8), Color(0xFFFFF0E9)],
         ),
@@ -632,7 +635,7 @@ class _AvatarBox extends StatelessWidget {
         child: Text(
           name.isEmpty ? '?' : name.characters.first,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: Color(0xFF7E5745),
           ),
@@ -654,7 +657,7 @@ class _MiniInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(999),
@@ -662,12 +665,12 @@ class _MiniInfo extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFFFF7B62)),
+          Icon(icon, size: 15, color: const Color(0xFFFF7B62)),
           const SizedBox(width: 6),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 13,
               color: Color(0xFF6B625C),
               fontWeight: FontWeight.w600,
             ),

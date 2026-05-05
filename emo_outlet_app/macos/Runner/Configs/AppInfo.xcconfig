@@ -1,0 +1,4 @@
+// Application-level settings for the Runner target.
+PRODUCT_NAME = 情绪释放
+PRODUCT_BUNDLE_IDENTIFIER = com.emo.outlet
+PRODUCT_COPYRIGHT = Copyright © 2026 Emo Outlet. All rights reserved.

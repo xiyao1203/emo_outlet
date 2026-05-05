@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 
 import '../models/message_model.dart';
 import '../models/session_model.dart';
@@ -20,8 +21,11 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+  final stt.SpeechToText _speech = stt.SpeechToText();
   Timer? _timer;
   bool _timeoutShown = false;
+  bool _isListening = false;
+  int _lastMessageCount = 0;
 
   @override
   void initState() {
@@ -40,7 +44,9 @@ class _ChatScreenState extends State<ChatScreen> {
         _timeoutShown = true;
         _showTimeoutDialog();
       }
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -53,72 +59,48 @@ class _ChatScreenState extends State<ChatScreen> {
       provider.seedMessages([
         MessageModel(
           sessionId: id,
-          content: '我真的受够了！每次我加班到很晚，结果还被说效率低，凭什么啊！',
+          content: '我真的受够了，明明我已经很努力了，还是一直被否定。',
           sender: MessageSender.user,
           createdAt: now.subtract(const Duration(minutes: 4)),
         ),
         MessageModel(
           sessionId: id,
-          content: '我在听，你可以继续说。',
+          content: '我在听，你可以把最想说的那句话先说出来。',
           sender: MessageSender.ai,
           createdAt: now.subtract(const Duration(minutes: 4)),
         ),
         MessageModel(
           sessionId: id,
-          content: '明明是工作太多了，根本不是我的能力问题，凭什么都怪我！',
+          content: '他们总把问题丢给我，出了事又像全是我的责任。',
           sender: MessageSender.user,
           createdAt: now.subtract(const Duration(minutes: 3)),
         ),
         MessageModel(
           sessionId: id,
-          content: '这件事确实让你很委屈。',
+          content: '这份委屈我接住了，你继续说，我陪你把它讲完整。',
           sender: MessageSender.ai,
           createdAt: now.subtract(const Duration(minutes: 3)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '而且其他人也没做多少，领导却只盯着我，太不公平了！',
-          sender: MessageSender.user,
-          createdAt: now.subtract(const Duration(minutes: 2)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '我理解你的感受，你可以继续说。',
-          sender: MessageSender.ai,
-          createdAt: now.subtract(const Duration(minutes: 2)),
         ),
       ]);
     } else {
       provider.seedMessages([
         MessageModel(
           sessionId: id,
-          content: '我注意到最近你情绪比较大，是不是工作压力太大了？',
+          content: '最近你对我的不满，好像已经积了很久。',
           sender: MessageSender.ai,
           createdAt: now.subtract(const Duration(minutes: 4)),
         ),
         MessageModel(
           sessionId: id,
-          content: '是啊，你总是临时加需求，完全不考虑我们现在的进度。',
+          content: '是，你总是临时改需求，根本不考虑我这边的节奏。',
           sender: MessageSender.user,
           createdAt: now.subtract(const Duration(minutes: 4)),
         ),
         MessageModel(
           sessionId: id,
-          content: '我只是希望你把事情做好。客户的期望很高，我也有压力。',
+          content: '我听见了，你生气不是没理由的，我们可以把最刺的点讲清楚。',
           sender: MessageSender.ai,
           createdAt: now.subtract(const Duration(minutes: 3)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '我理解你有压力，但频繁改需求真的让我们很被动。',
-          sender: MessageSender.user,
-          createdAt: now.subtract(const Duration(minutes: 3)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '你说得有道理，频繁调整确实会影响效率。我可能在沟通上考虑得不够。',
-          sender: MessageSender.ai,
-          createdAt: now.subtract(const Duration(minutes: 2)),
         ),
       ]);
     }
@@ -127,9 +109,95 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _speech.stop();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleVoiceInput() async {
+    if (_isListening) {
+      await _speech.stop();
+      if (mounted) {
+        setState(() => _isListening = false);
+      }
+      return;
+    }
+
+    final available = await _speech.initialize(
+      onStatus: (status) {
+        if (!mounted) return;
+        if (status == 'done' || status == 'notListening') {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() => _isListening = false);
+      },
+    );
+
+    if (!available) {
+      if (!mounted) return;
+      _showTopMessage('当前设备暂不支持语音输入');
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await _speech.listen(
+      onResult: (result) {
+        if (!mounted) return;
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+          _isListening = !result.finalResult;
+        });
+      },
+      listenOptions: stt.SpeechListenOptions(
+        listenMode: stt.ListenMode.confirmation,
+        partialResults: true,
+      ),
+    );
+  }
+
+  void _showTopMessage(String text) {
+    final overlay = Overlay.of(context);
+    final entry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 10,
+        left: 18,
+        right: 18,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xE6221D1B),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x26000000),
+                  blurRadius: 24,
+                  offset: Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    overlay.insert(entry);
+    Future<void>.delayed(const Duration(seconds: 2), entry.remove);
   }
 
   void _send() {
@@ -152,24 +220,26 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('⏰', style: TextStyle(fontSize: 70)),
+              const Text('⏰', style: TextStyle(fontSize: 62)),
               const SizedBox(height: 16),
               const Text(
                 '时间到了',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 12),
               const Text(
-                '本次释放时间已结束，要不要再说一句？',
+                '这次释放时间已经结束，要不要再给自己一分钟，把最后想说的话说完？',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF6D6662),
-                    fontWeight: FontWeight.w500),
+                  fontSize: 15,
+                  color: Color(0xFF6D6662),
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
               ),
               const SizedBox(height: 24),
               OutlineSoftButton(
-                text: '延长1分钟',
+                text: '延长 1 分钟',
                 onTap: () {
                   context.read<SessionProvider>().addTime(1);
                   _timeoutShown = false;
@@ -179,8 +249,8 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 14),
               GradientPrimaryButton(
                 text: '结束释放',
-                height: 58,
-                fontSize: 20,
+                height: 54,
+                fontSize: 17,
                 onTap: () {
                   Navigator.of(ctx).pop();
                   _showEndConfirmDialog();
@@ -208,17 +278,18 @@ class _ChatScreenState extends State<ChatScreen> {
               const EmoDecorationCloud(size: 120),
               const Text(
                 '确认结束释放？',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
               ),
               const SizedBox(height: 14),
               const Text(
-                '结束后将停止本次对话，\n并进入情绪总结与海报生成。',
+                '结束后会停止本次对话，并进入情绪总结与海报生成。',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 18,
-                    height: 1.5,
-                    color: Color(0xFF6D6662),
-                    fontWeight: FontWeight.w500),
+                  fontSize: 15,
+                  height: 1.5,
+                  color: Color(0xFF6D6662),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               const SizedBox(height: 22),
               EmoGradientOutlineButton(
@@ -228,15 +299,16 @@ class _ChatScreenState extends State<ChatScreen> {
               const SizedBox(height: 14),
               GradientPrimaryButton(
                 text: '结束并生成总结',
-                height: 62,
-                fontSize: 22,
+                height: 58,
+                fontSize: 18,
                 onTap: () {
                   provider.endSession();
                   provider.clearCurrentSession();
                   Navigator.of(ctx).pop();
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                        builder: (_) => const HomeScreen(initialIndex: 2)),
+                      builder: (_) => const HomeScreen(initialIndex: 2),
+                    ),
                     (route) => route.isFirst,
                   );
                 },
@@ -255,35 +327,54 @@ class _ChatScreenState extends State<ChatScreen> {
     final target = context.watch<TargetProvider>().currentTarget;
     final dual = session?.mode == SessionMode.dual;
     final messages = provider.messages;
+    final totalCount = messages.length + (provider.isSending ? 1 : 0);
+
+    if (totalCount != _lastMessageCount) {
+      _lastMessageCount = totalCount;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_scrollController.hasClients) return;
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 120,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
+      });
+    }
 
     return EmoPageScaffold(
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
             child: Row(
               children: [
                 EmoRoundIconButton(
                   icon: Icons.chevron_left_rounded,
                   onTap: () => Navigator.of(context).pop(),
                 ),
-                const SizedBox(width: 18),
+                const SizedBox(width: 12),
                 EmoAvatar(
                   label: avatarEmojiByType(target?.type ?? 'boss'),
                   background: avatarBgByType(target?.type ?? 'boss'),
-                  size: 72,
+                  size: 60,
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Text(
-                            session?.targetName ?? '王总',
-                            style: const TextStyle(
-                                fontSize: 24, fontWeight: FontWeight.w800),
+                          Expanded(
+                            child: Text(
+                              session?.targetName ?? '未命名对象',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 10),
                           EmoTypePill(
@@ -295,18 +386,19 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        dual ? '正在双向交流，彼此理解中…' : '本次倾诉剩余时间',
+                        dual ? '正在双向交流，慢慢说清楚你的感受' : '本次倾诉剩余时间',
                         style: const TextStyle(
-                            fontSize: 16,
-                            color: Color(0xFF86807B),
-                            fontWeight: FontWeight.w500),
+                          fontSize: 13.5,
+                          color: Color(0xFF86807B),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.64),
                     borderRadius: BorderRadius.circular(24),
@@ -314,73 +406,92 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time_rounded,
-                          color: Color(0xFFFF6E53)),
+                      const Icon(
+                        Icons.access_time_rounded,
+                        color: Color(0xFFFF6E53),
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         provider.formattedTime,
                         style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFFFF6E53)),
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFFF6E53),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                if (dual) ...[
-                  const SizedBox(width: 12),
-                  TextButton.icon(
-                    onPressed: _showEndConfirmDialog,
-                    icon: const Icon(Icons.power_settings_new_rounded,
-                        color: Color(0xFFFF6E53)),
-                    label: const Text(
-                      '结束',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Color(0xFFFF6E53),
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18),
             child: EmoSectionCard(
+              padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
               child: Row(
                 children: [
                   Icon(
-                    dual ? Icons.forum_rounded : Icons.volume_up_rounded,
+                    dual ? Icons.forum_rounded : Icons.favorite_border_rounded,
                     color: dual
                         ? const Color(0xFF8D73FF)
                         : const Color(0xFFFF8D73),
-                    size: 30,
+                    size: 22,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       dual
-                          ? '双向模式进行中，Ta会回应，你也会被理解'
-                          : '单向倾诉中，TA不会反驳，只会倾听和理解你 ❤️',
+                          ? '双向模式进行中，Ta 会回应你，你也能听见自己的情绪被接住。'
+                          : '单向倾诉中，AI 会先倾听和接纳，不会和你争辩。',
                       style: const TextStyle(
-                          fontSize: 18,
-                          color: Color(0xFF726964),
-                          fontWeight: FontWeight.w500),
+                        fontSize: 13.5,
+                        height: 1.45,
+                        color: Color(0xFF726964),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  const EmoDecorationCloud(size: 120),
+                  const SizedBox(width: 8),
+                  const EmoDecorationCloud(size: 82),
                 ],
               ),
             ),
           ),
+          if (provider.sendError != null) ...[
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                decoration: BoxDecoration(
+                  color: const Color(0x14FF6B5D),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0x33FF6B5D)),
+                ),
+                child: Text(
+                  provider.sendError!,
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFFCC5C54),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 0),
-              itemCount: messages.length,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              itemCount: totalCount,
               itemBuilder: (context, index) {
+                if (index >= messages.length) {
+                  return _TypingBubble(targetType: target?.type ?? 'boss');
+                }
                 final msg = messages[index];
                 return _MessageBubble(
                   message: msg,
@@ -398,50 +509,79 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             child: EmoSectionCard(
               radius: 28,
-              padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+              padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
               child: Row(
                 children: [
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      decoration: const InputDecoration(
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(
                         border: InputBorder.none,
-                        hintText: '把想说的话说出来…',
-                        hintStyle: TextStyle(
-                          fontSize: 18,
+                        hintText: _isListening ? '正在听你说话...' : '把想说的话说出来',
+                        hintStyle: const TextStyle(
+                          fontSize: 15,
                           color: Color(0xFFBCB8B5),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w500),
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0x0FF2F2F2),
-                    ),
-                    child: const Icon(Icons.mic_none_rounded,
-                        color: Color(0xFF8F8F8F), size: 28),
-                  ),
-                  const SizedBox(width: 12),
                   InkWell(
-                    onTap: _send,
+                    onTap: _toggleVoiceInput,
                     borderRadius: BorderRadius.circular(999),
                     child: Ink(
-                      width: 64,
-                      height: 64,
-                      decoration: const BoxDecoration(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Color(0xFFFF9863), Color(0xFFFF5A6A)],
+                        color: _isListening
+                            ? const Color(0x14FF6D5E)
+                            : const Color(0x0FF2F2F2),
+                        border: Border.all(
+                          color: _isListening
+                              ? const Color(0x44FF6D5E)
+                              : Colors.transparent,
                         ),
                       ),
-                      child: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 30),
+                      child: Icon(
+                        _isListening
+                            ? Icons.graphic_eq_rounded
+                            : Icons.mic_none_rounded,
+                        color: _isListening
+                            ? const Color(0xFFFF6D5E)
+                            : const Color(0xFF8F8F8F),
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  InkWell(
+                    onTap: provider.isSending ? null : _send,
+                    borderRadius: BorderRadius.circular(999),
+                    child: Ink(
+                      width: 54,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: provider.isSending
+                            ? const LinearGradient(
+                                colors: [Color(0xFFFFC0A6), Color(0xFFFF9CAA)],
+                              )
+                            : const LinearGradient(
+                                colors: [Color(0xFFFF9863), Color(0xFFFF5A6A)],
+                              ),
+                      ),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                   ),
                 ],
@@ -477,13 +617,17 @@ class _MessageBubble extends StatelessWidget {
         children: [
           Padding(
             padding: EdgeInsets.only(
-                left: user ? 0 : 78, right: user ? 16 : 0, bottom: 8),
+              left: user ? 0 : 56,
+              right: user ? 12 : 0,
+              bottom: 8,
+            ),
             child: Text(
               '$hh:$mm',
               style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFFA7A2A0),
-                  fontWeight: FontWeight.w500),
+                fontSize: 13,
+                color: Color(0xFFA7A2A0),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
           Row(
@@ -495,14 +639,14 @@ class _MessageBubble extends StatelessWidget {
                 EmoAvatar(
                   label: avatarEmojiByType(targetType),
                   background: avatarBgByType(targetType),
-                  size: 56,
+                  size: 42,
                 ),
                 const SizedBox(width: 10),
               ],
               Flexible(
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                   decoration: BoxDecoration(
                     color: user ? null : Colors.white.withValues(alpha: 0.82),
                     gradient: user
@@ -511,19 +655,19 @@ class _MessageBubble extends StatelessWidget {
                           )
                         : null,
                     borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(26),
-                      topRight: const Radius.circular(26),
-                      bottomLeft: Radius.circular(user ? 26 : 8),
-                      bottomRight: Radius.circular(user ? 8 : 26),
+                      topLeft: const Radius.circular(24),
+                      topRight: const Radius.circular(24),
+                      bottomLeft: Radius.circular(user ? 24 : 8),
+                      bottomRight: Radius.circular(user ? 8 : 24),
                     ),
                   ),
                   child: Text(
                     message.content,
                     style: TextStyle(
-                      fontSize: 19,
-                      height: 1.45,
+                      fontSize: 15,
+                      height: 1.55,
                       color: user ? Colors.white : const Color(0xFF4F4845),
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -531,6 +675,77 @@ class _MessageBubble extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TypingBubble extends StatelessWidget {
+  const _TypingBubble({required this.targetType});
+
+  final String targetType;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          EmoAvatar(
+            label: avatarEmojiByType(targetType),
+            background: avatarBgByType(targetType),
+            size: 42,
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.82),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+                bottomRight: Radius.circular(24),
+                bottomLeft: Radius.circular(8),
+              ),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _Dot(),
+                SizedBox(width: 6),
+                _Dot(),
+                SizedBox(width: 6),
+                _Dot(),
+                SizedBox(width: 10),
+                Text(
+                  '正在输入...',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF8A817C),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Dot extends StatelessWidget {
+  const _Dot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 6,
+      height: 6,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFF8C78),
+        shape: BoxShape.circle,
       ),
     );
   }

@@ -12,6 +12,7 @@ from app.database import get_db
 from app.models.compliance import ContentAuditLog
 from app.models.message import MessageModel
 from app.models.session import SessionModel
+from app.models.target import TargetModel
 from app.models.user import UserModel
 from app.schemas.message import MessageListResponse, MessageResponse, MessageSendRequest
 from app.services.ai_service import ai_service
@@ -137,6 +138,23 @@ async def send_message(
     history_messages = history_result.scalars().all()
     history = [{"sender": item.sender, "content": item.content} for item in history_messages]
 
+    target_result = await db.execute(
+        select(TargetModel).where(TargetModel.id == session.target_id)
+    )
+    target = target_result.scalar_one_or_none()
+    target_context = (
+        {
+            "name": target.name,
+            "type": target.type,
+            "relationship": target.relation,
+            "appearance": target.appearance,
+            "personality": target.personality,
+            "style": target.style,
+        }
+        if target is not None
+        else None
+    )
+
     max_turns = settings.MAX_CONVERSATION_TURNS
     if current_user.age_range == "<14":
         max_turns = settings.MAX_CONVERSATION_TURNS_UNDER_14
@@ -169,6 +187,7 @@ async def send_message(
         dialect=session.dialect,
         history=history,
         age_range=current_user.age_range,
+        target_context=target_context,
     )
     ai_emotion = await emotion_service.analyze_messages([{"sender": "user", "content": ai_content}])
 

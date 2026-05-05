@@ -17,10 +17,11 @@ class SessionModeScreen extends StatefulWidget {
 
 class _SessionModeScreenState extends State<SessionModeScreen> {
   SessionMode _mode = SessionMode.single;
-  String _language = '普通话';
-  String _dialect = '四川话';
+  final String _language = '简体中文';
+  String _dialect = '普通话';
   int _duration = 5;
   bool _textInput = true;
+  String _chatStyleLabel = '道歉型';
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                 const Spacer(),
                 const Text(
                   '开始释放情绪',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
                 const EmoDecorationCloud(size: 104),
@@ -66,7 +67,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                         Expanded(
                           child: _modeCard(
                             title: '单向模式',
-                            subtitle: 'Ta只倾听，不会反驳',
+                            subtitle: 'Ta 只倾听，不会反驳',
                             icon: Icons.headphones_rounded,
                             active: _mode == SessionMode.single,
                             iconColor: const Color(0xFFFF9657),
@@ -78,7 +79,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                         Expanded(
                           child: _modeCard(
                             title: '双向模式',
-                            subtitle: 'Ta会回应，也会适度反驳',
+                            subtitle: 'Ta 会回应，也会适度反馈',
                             icon: Icons.forum_rounded,
                             active: _mode == SessionMode.dual,
                             iconColor: const Color(0xFF8C72FF),
@@ -91,21 +92,42 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   ),
                   const SizedBox(height: 14),
                   _section(
-                    '选择语言',
+                    'AI 人格',
+                    child: Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: AppConstants.chatStyles.entries
+                          .map(
+                            (entry) => _styleChip(
+                              label: entry.key,
+                              subtitle: entry.value,
+                              active: _chatStyleLabel == entry.key,
+                              onTap: () =>
+                                  setState(() => _chatStyleLabel = entry.key),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  _section(
+                    '回复设置',
                     child: Column(
                       children: [
                         _simpleSelectRow(
-                          icon: Icons.chat_bubble_outline_rounded,
+                          icon: Icons.language_rounded,
                           iconColor: const Color(0xFFFF9B58),
-                          title: '选择语言',
+                          title: '回复语言',
                           value: _language,
+                          onTap: null,
                         ),
                         const SizedBox(height: 12),
                         _simpleSelectRow(
                           icon: Icons.location_on_outlined,
                           iconColor: const Color(0xFF8E74FF),
-                          title: '选择方言（可选）',
+                          title: '方言语气',
                           value: _dialect,
+                          onTap: _pickDialect,
                         ),
                       ],
                     ),
@@ -118,9 +140,13 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                         final active = value == _duration;
                         return Expanded(
                           child: Padding(
-                            padding: const EdgeInsets.only(right: 8),
+                            padding: EdgeInsets.only(
+                              right: value == AppConstants.sessionDurations.last
+                                  ? 0
+                                  : 8,
+                            ),
                             child: _selectCapsule(
-                              text: '$value分钟',
+                              text: '$value 分钟',
                               active: active,
                               onTap: () => setState(() => _duration = value),
                             ),
@@ -157,26 +183,29 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   const SizedBox(height: 18),
                   GradientPrimaryButton(
                     text: '开始释放',
-                    height: 72,
-                    fontSize: 20,
+                    height: 68,
+                    fontSize: 18,
                     onTap: target == null
                         ? null
                         : () async {
                             context
                                 .read<TargetProvider>()
                                 .setCurrentTarget(target);
+                            final navigator = Navigator.of(context);
                             await context.read<SessionProvider>().createSession(
                                   targetId: target.id ?? 'local_target',
                                   targetName: target.name,
                                   targetAvatarUrl: target.avatarUrl,
                                   mode: _mode,
+                                  chatStyle: _mapLabelToStyle(_chatStyleLabel),
                                   dialect: _dialect,
                                   durationMinutes: _duration,
                                 );
                             if (!mounted) return;
-                            Navigator.of(context).push(
+                            navigator.push(
                               MaterialPageRoute(
-                                  builder: (_) => const ChatScreen()),
+                                builder: (_) => const ChatScreen(),
+                              ),
                             );
                           },
                   ),
@@ -189,6 +218,89 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
     );
   }
 
+  ChatStyle _mapLabelToStyle(String label) {
+    switch (label) {
+      case '嘴硬型':
+        return ChatStyle.stubborn;
+      case '冷漠型':
+        return ChatStyle.cold;
+      case '阴阳型':
+        return ChatStyle.sarcastic;
+      case '理性型':
+        return ChatStyle.rational;
+      case '道歉型':
+      default:
+        return ChatStyle.apologetic;
+    }
+  }
+
+  Future<void> _pickDialect() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return SafeArea(
+          top: false,
+          child: EmoSectionCard(
+            radius: 28,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 42,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE7D8D0),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  '选择方言语气',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                for (final item in AppConstants.dialects)
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(item),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              item,
+                              style: const TextStyle(
+                                fontSize: 15.5,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          if (_dialect == item)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFFFF6F54),
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (selected == null) return;
+    setState(() => _dialect = selected);
+  }
+
   Widget _section(String title, {required Widget child}) {
     return EmoSectionCard(
       child: Column(
@@ -198,7 +310,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
             children: [
               Container(
                 width: 5,
-                height: 28,
+                height: 24,
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF6B57),
                   borderRadius: BorderRadius.circular(999),
@@ -208,11 +320,11 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
               Text(
                 title,
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           child,
         ],
       ),
@@ -231,19 +343,23 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
           EmoAvatar(
             label: avatarEmojiByType(target.type),
             background: avatarBgByType(target.type),
-            size: 72,
+            size: 64,
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Text(
-                      target.name,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w800),
+                    Flexible(
+                      child: Text(
+                        target.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 10),
                     EmoTypePill(
@@ -254,13 +370,13 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Text(
-                  target.relationship ?? '总是临时加需求，周末还要开会…',
+                  target.relationship ?? '把想说的话安全说出来。',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13.5,
                     color: Color(0xFF706760),
                     fontWeight: FontWeight.w500,
                   ),
@@ -268,8 +384,11 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
               ],
             ),
           ),
-          const Icon(Icons.chevron_right_rounded,
-              color: Color(0xFF9E9E9E), size: 22),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: Color(0xFF9E9E9E),
+            size: 20,
+          ),
         ],
       ),
     );
@@ -284,13 +403,13 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(26),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.52),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(26),
           border: Border.all(
             color: active ? const Color(0xFFFF6F54) : const Color(0xFFF1E5DF),
             width: active ? 2 : 1.2,
@@ -306,21 +425,89 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                     : Icons.radio_button_unchecked_rounded,
                 color:
                     active ? const Color(0xFFFF6F54) : const Color(0xFFD8D0CB),
-                size: 22,
+                size: 20,
               ),
             ),
-            Icon(icon, color: iconColor, size: 42),
-            const SizedBox(height: 12),
-            Text(title,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            Icon(icon, color: iconColor, size: 38),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 8),
             Text(
               subtitle,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12.5,
                 color: Color(0xFF7B726C),
+                fontWeight: FontWeight.w500,
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _styleChip({
+    required String label,
+    required String subtitle,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: 148,
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          color: active
+              ? const Color(0x14FF7D5D)
+              : Colors.white.withValues(alpha: 0.52),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active ? const Color(0xFFFF7D5D) : const Color(0xFFF1E5DF),
+            width: active ? 1.8 : 1.0,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: active
+                          ? const Color(0xFFFF6F54)
+                          : AuthPalette.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  active
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 18,
+                  color: active
+                      ? const Color(0xFFFF6F54)
+                      : const Color(0xFFD0C8C2),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12.5,
+                height: 1.4,
+                color: Color(0xFF7A706B),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -335,30 +522,43 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
     required Color iconColor,
     required String title,
     required String value,
+    required VoidCallback? onTap,
   }) {
-    return Container(
-      height: 66,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.56),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: iconColor, size: 22),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Text(title,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        height: 62,
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.56),
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 20),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                title,
                 style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          ),
-          Text(value,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          const SizedBox(width: 8),
-          const Icon(Icons.chevron_right_rounded,
-              color: Color(0xFF9A9A9A), size: 22),
-        ],
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              onTap == null
+                  ? Icons.lock_outline_rounded
+                  : Icons.chevron_right_rounded,
+              color: const Color(0xFF9A9A9A),
+              size: 20,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -373,7 +573,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
       child: Container(
-        height: 58,
+        height: 54,
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.54),
           borderRadius: BorderRadius.circular(999),
@@ -394,14 +594,14 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                       color: active
                           ? const Color(0xFFFF6F54)
                           : const Color(0xFF8E8E8E),
-                      size: 24,
+                      size: 22,
                     ),
                     const SizedBox(width: 8),
                   ],
                   Text(
                     text,
                     style: TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: active
                           ? const Color(0xFFFF6F54)
@@ -415,8 +615,11 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
               const Positioned(
                 top: -1,
                 right: -1,
-                child: Icon(Icons.check_circle_rounded,
-                    color: Color(0xFFFF6F54), size: 22),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFFFF6F54),
+                  size: 20,
+                ),
               ),
           ],
         ),

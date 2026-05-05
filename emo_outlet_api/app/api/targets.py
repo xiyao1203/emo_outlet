@@ -15,7 +15,7 @@ from app.schemas.target import (
     TargetResponse,
     TargetUpdateRequest,
 )
-from app.services.ai_service import image_service
+from app.services.ai_service import ai_service, image_service
 
 router = APIRouter(prefix="/api/targets", tags=["targets"])
 
@@ -154,7 +154,7 @@ async def generate_avatar(
 
     target.avatar_url = await image_service.generate_avatar(
         appearance=target.appearance or "默认形象",
-        personality=target.personality or "普通",
+        personality=target.personality or "温和",
         style=target.style,
     )
     db.add(target)
@@ -165,26 +165,8 @@ async def generate_avatar(
 
 @router.post("/ai-complete", response_model=TargetAiCompleteResponse)
 async def ai_complete_target(req: TargetAiCompleteRequest):
-    relationship = req.relationship.strip()
-    presets = [
-        (("老板", "领导", "上司"), ("中年形象，衣着利落", "强势、控制感强、容易推责", "漫画")),
-        (("同事", "搭档"), ("通勤装扮，表情紧绷", "较真、爱比较、边界感弱", "漫画")),
-        (("前任", "伴侣"), ("日常穿搭，熟悉感强", "忽冷忽热、回避沟通、容易翻旧账", "漫画")),
-        (("客户",), ("商务装扮，表情严肃", "要求多、节奏急、反馈直接", "写实")),
-        (("朋友", "闺蜜", "兄弟"), ("休闲装扮", "情绪化、容易爽约、嘴硬", "Q版")),
-    ]
-
-    for keywords, payload in presets:
-        if any(keyword in relationship for keyword in keywords):
-            appearance, personality, style = payload
-            return TargetAiCompleteResponse(
-                appearance=appearance,
-                personality=personality,
-                style=style,
-            )
-
-    return TargetAiCompleteResponse(
-        appearance="自定义形象，保留一些记忆点",
-        personality="有让你在意的行为习惯和说话方式",
-        style="漫画",
+    payload = await ai_service.complete_target_profile(
+        name=req.name,
+        relationship=req.relationship,
     )
+    return TargetAiCompleteResponse(**payload)

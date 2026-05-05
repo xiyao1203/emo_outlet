@@ -67,8 +67,8 @@ class EmoSectionCard extends StatelessWidget {
   const EmoSectionCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(18),
-    this.radius = 30,
+    this.padding = const EdgeInsets.all(16),
+    this.radius = 28,
   });
 
   final Widget child;
@@ -101,7 +101,7 @@ class EmoRoundIconButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.onTap,
-    this.size = 56,
+    this.size = 48,
   });
 
   final IconData icon;
@@ -146,10 +146,10 @@ class EmoGradientOutlineButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         onTap: onTap,
         child: Ink(
-          height: 56,
+          height: 52,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(26),
             border: Border.all(color: const Color(0xFFFF7A5A), width: 1.6),
           ),
           child: Row(
@@ -162,7 +162,7 @@ class EmoGradientOutlineButton extends StatelessWidget {
               Text(
                 text,
                 style: const TextStyle(
-                  fontSize: 16,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
                   color: Color(0xFFFF7A5A),
                 ),
@@ -198,7 +198,7 @@ class EmoTypePill extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 14,
+          fontSize: 12.5,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -334,8 +334,8 @@ class EmoHeaderTitle extends StatelessWidget {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
+                  fontSize: 21,
+                  fontWeight: FontWeight.w700,
                   color: AuthPalette.textPrimary,
                 ),
               ),
@@ -398,8 +398,8 @@ class EmoMenuSheet extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
                     color: AuthPalette.textPrimary,
                   ),
                 ),
@@ -427,12 +427,12 @@ class EmoMenuSheet extends StatelessWidget {
                 borderRadius: BorderRadius.circular(24),
                 onTap: () => Navigator.of(context).pop(),
                 child: const SizedBox(
-                  height: 78,
+                  height: 66,
                   child: Center(
                     child: Text(
                       '取消',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AuthPalette.textPrimary,
                       ),
@@ -453,7 +453,7 @@ class EmoMenuSheet extends StatelessWidget {
         onTap: item.onTap,
         borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: [
               Container(
@@ -470,7 +470,7 @@ class EmoMenuSheet extends StatelessWidget {
                 child: Text(
                   item.label,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w600,
                     color: item.color,
                   ),

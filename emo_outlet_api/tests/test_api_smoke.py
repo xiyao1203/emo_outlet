@@ -7,6 +7,7 @@ from pathlib import Path
 
 TEST_DB = Path(__file__).resolve().parent / "test_emo_outlet.db"
 os.environ["SQLITE_URL"] = f"sqlite+aiosqlite:///{TEST_DB.as_posix()}"
+os.environ["DATABASE_URL"] = ""
 os.environ["LLM_PROVIDER"] = "mock"
 
 from fastapi.testclient import TestClient

@@ -96,6 +96,8 @@ class SessionProvider extends ChangeNotifier {
   int _remainingSeconds = 0;
   bool _isRunning = false;
   bool _isLoading = false;
+  bool _isSending = false;
+  String? _sendError;
 
   SessionModel? get currentSession => _currentSession;
   List<MessageModel> get messages => _messages;
@@ -103,6 +105,8 @@ class SessionProvider extends ChangeNotifier {
   int get remainingSeconds => _remainingSeconds;
   bool get isRunning => _isRunning;
   bool get isLoading => _isLoading;
+  bool get isSending => _isSending;
+  String? get sendError => _sendError;
 
   String get formattedTime {
     final min = _remainingSeconds ~/ 60;
@@ -167,12 +171,20 @@ class SessionProvider extends ChangeNotifier {
       createdAt: DateTime.now(),
     );
     _messages = [..._messages, optimistic];
+    _isSending = true;
+    _sendError = null;
     notifyListeners();
 
-    final result = await _api.sendMessage(sessionId, content);
-    final aiMessage = MessageModel.fromJson(result);
-    _messages = [..._messages, aiMessage];
-    notifyListeners();
+    try {
+      final result = await _api.sendMessage(sessionId, content);
+      final aiMessage = MessageModel.fromJson(result);
+      _messages = [..._messages, aiMessage];
+    } catch (_) {
+      _sendError = '消息发送失败，请稍后再试';
+    } finally {
+      _isSending = false;
+      notifyListeners();
+    }
   }
 
   Future<void> loadMessages(String sessionId) async {
@@ -225,6 +237,8 @@ class SessionProvider extends ChangeNotifier {
     _messages = [];
     _remainingSeconds = 0;
     _isRunning = false;
+    _isSending = false;
+    _sendError = null;
     notifyListeners();
   }
 }
