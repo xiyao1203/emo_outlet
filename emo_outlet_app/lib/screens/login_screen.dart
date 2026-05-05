@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/constants.dart';
 import '../services/auth_service.dart';
 import '../widgets/auth/auth_visuals.dart';
+import '../widgets/common/emo_ui.dart';
 import 'home_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'splash_screen.dart';
@@ -266,7 +267,11 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (context, constraints) {
               final width = constraints.maxWidth;
               final height = constraints.maxHeight;
-              final horizontal = math.min(width * 0.06, 26.0);
+              final horizontal = EmoResponsive.edgePadding(
+                width,
+                phoneFactor: 0.06,
+                phoneMax: 26,
+              );
               final compact = height < 820;
 
               return Stack(
@@ -278,36 +283,40 @@ class _LoginScreenState extends State<LoginScreen> {
                       horizontal,
                       math.max(22, height * 0.024),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _LoginNavBar(
-                          width: width,
-                          onBack: _goBack,
-                        ),
-                        SizedBox(height: compact ? 12 : 18),
-                        _LoginHero(
-                          width: width,
-                          compact: compact,
-                        ),
-                        SizedBox(height: compact ? 8 : 12),
-                        _LoginCard(
-                          phoneController: _phoneController,
-                          codeController: _codeController,
-                          isLoading: _isLoading,
-                          countdown: _countdown,
-                          tipMessage: _tipMessage,
-                          onLogin: _handleLogin,
-                          onRequestCode: _startCountdown,
-                          hasAgreed: _hasAgreed,
-                          onToggleAgreement: () {
-                            setState(() => _hasAgreed = !_hasAgreed);
-                          },
-                          onVisitorLogin: _handleVisitorLogin,
-                        ),
-                        SizedBox(height: compact ? 16 : 20),
-                        SupportExpressionRow(fontSize: width < 380 ? 13 : 14),
-                      ],
+                    child: EmoResponsiveContent(
+                      width: width,
+                      maxWidth: width >= 700 ? 560 : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _LoginNavBar(
+                            width: width,
+                            onBack: _goBack,
+                          ),
+                          SizedBox(height: compact ? 12 : 18),
+                          _LoginHero(
+                            width: width,
+                            compact: compact,
+                          ),
+                          SizedBox(height: compact ? 8 : 12),
+                          _LoginCard(
+                            phoneController: _phoneController,
+                            codeController: _codeController,
+                            isLoading: _isLoading,
+                            countdown: _countdown,
+                            tipMessage: _tipMessage,
+                            onLogin: _handleLogin,
+                            onRequestCode: _startCountdown,
+                            hasAgreed: _hasAgreed,
+                            onToggleAgreement: () {
+                              setState(() => _hasAgreed = !_hasAgreed);
+                            },
+                            onVisitorLogin: _handleVisitorLogin,
+                          ),
+                          SizedBox(height: compact ? 16 : 20),
+                          SupportExpressionRow(fontSize: width < 380 ? 13 : 14),
+                        ],
+                      ),
                     ),
                   ),
                 ],

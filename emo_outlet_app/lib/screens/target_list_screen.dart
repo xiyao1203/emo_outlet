@@ -58,204 +58,221 @@ class _TargetListScreenState extends State<TargetListScreen> {
           _normalize(target.typeLabel).contains(query);
     }).toList();
 
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-          child: Column(
-            children: [
-              SizedBox(
-                height: 54,
-                child: Stack(
-                  alignment: Alignment.center,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontal = EmoResponsive.edgePadding(width);
+
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 100),
+              child: EmoResponsiveContent(
+                width: width,
+                maxWidth: width >= 700 ? 620 : null,
+                child: Column(
                   children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: EmoRoundIconButton(
-                        icon: Icons.arrow_back_ios_new_rounded,
-                        size: 48,
-                        onTap: () {
-                          if (Navigator.of(context).canPop()) {
-                            Navigator.of(context).pop();
-                            return;
-                          }
-                          widget.onBackFallback?.call();
-                        },
-                      ),
-                    ),
-                    const Text(
-                      '\u6211\u7684\u5bf9\u8c61',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AuthPalette.textPrimary,
-                      ),
-                    ),
-                    const Align(
-                      alignment: Alignment.centerRight,
-                      child: SizedBox(
-                        width: 78,
-                        height: 64,
-                        child: EmoDecorationCloud(size: 72),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.66),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.search_rounded,
-                      size: 20,
-                      color: Color(0xFFABABAB),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        onChanged: _handleSearchChanged,
-                        decoration: const InputDecoration(
-                          hintText:
-                              '\u641c\u7d22\u5bf9\u8c61\u540d\u79f0\u6216\u5173\u952e\u8bcd',
-                          hintStyle: TextStyle(
-                            color: Color(0xFFB3B3B3),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          border: InputBorder.none,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AuthPalette.textPrimary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              EmoSectionCard(
-                radius: 28,
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '\uD83D\uDC65',
-                          style: TextStyle(fontSize: 22),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    SizedBox(
+                      height: 54,
+                      child: Stack(
+                        alignment: Alignment.center,
                         children: [
-                          Text.rich(
-                            TextSpan(
-                              children: [
-                                const TextSpan(
-                                  text: '\u5171 ',
-                                  style: TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AuthPalette.textPrimary,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: '${targets.length}',
-                                  style: const TextStyle(
-                                    fontSize: 21,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFFFF754C),
-                                  ),
-                                ),
-                                const TextSpan(
-                                  text: ' \u4e2a\u5bf9\u8c61',
-                                  style: TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AuthPalette.textPrimary,
-                                  ),
-                                ),
-                              ],
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: EmoRoundIconButton(
+                              icon: Icons.arrow_back_ios_new_rounded,
+                              size: 48,
+                              onTap: () {
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop();
+                                  return;
+                                }
+                                widget.onBackFallback?.call();
+                              },
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            query.isEmpty
-                                ? '\u9009\u62e9\u5bf9\u8c61\uff0c\u5411 TA \u503e\u8bc9\u4f60\u7684\u60c5\u7eea\u5427'
-                                : '\u5df2\u627e\u5230 ${filtered.length} \u4e2a\u76f8\u5173\u5bf9\u8c61',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF8A7D77),
-                              fontWeight: FontWeight.w500,
+                          const Text(
+                            '\u6211\u7684\u5bf9\u8c61',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AuthPalette.textPrimary,
+                            ),
+                          ),
+                          const Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              width: 78,
+                              height: 64,
+                              child: EmoDecorationCloud(size: 72),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(
-                      width: 82,
-                      height: 64,
-                      child: EmoDecorationCloud(size: 74),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.66),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: Colors.white),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.search_rounded,
+                            size: 20,
+                            color: Color(0xFFABABAB),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextField(
+                              controller: _searchController,
+                              onChanged: _handleSearchChanged,
+                              decoration: const InputDecoration(
+                                hintText:
+                                    '\u641c\u7d22\u5bf9\u8c61\u540d\u79f0\u6216\u5173\u952e\u8bcd',
+                                hintStyle: TextStyle(
+                                  color: Color(0xFFB3B3B3),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                border: InputBorder.none,
+                              ),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: AuthPalette.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 14),
+                    EmoSectionCard(
+                      radius: 28,
+                      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                '\uD83D\uDC65',
+                                style: TextStyle(fontSize: 22),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      const TextSpan(
+                                        text: '\u5171 ',
+                                        style: TextStyle(
+                                          fontSize: 15.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: AuthPalette.textPrimary,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: '${targets.length}',
+                                        style: const TextStyle(
+                                          fontSize: 21,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFFFF754C),
+                                        ),
+                                      ),
+                                      const TextSpan(
+                                        text: ' \u4e2a\u5bf9\u8c61',
+                                        style: TextStyle(
+                                          fontSize: 15.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: AuthPalette.textPrimary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  query.isEmpty
+                                      ? '\u9009\u62e9\u5bf9\u8c61\uff0c\u5411 TA \u503e\u8bc9\u4f60\u7684\u60c5\u7eea\u5427'
+                                      : '\u5df2\u627e\u5230 ${filtered.length} \u4e2a\u76f8\u5173\u5bf9\u8c61',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    color: Color(0xFF8A7D77),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(
+                            width: 82,
+                            height: 64,
+                            child: EmoDecorationCloud(size: 74),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    if (filtered.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 18),
+                        child: Text(
+                          '\u6ca1\u6709\u627e\u5230\u5339\u914d\u7684\u5bf9\u8c61',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF8A7D77),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                    else
+                      for (final target in filtered) ...[
+                        _TargetCard(target: target),
+                        const SizedBox(height: 12),
+                      ],
                   ],
                 ),
               ),
-              const SizedBox(height: 14),
-              if (filtered.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.only(top: 18),
-                  child: Text(
-                    '\u6ca1\u6709\u627e\u5230\u5339\u914d\u7684\u5bf9\u8c61',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Color(0xFF8A7D77),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                )
-              else
-                for (final target in filtered) ...[
-                  _TargetCard(target: target),
-                  const SizedBox(height: 12),
-                ],
-            ],
-          ),
-        ),
-        Positioned(
-          left: 18,
-          right: 18,
-          bottom: 18,
-          child: GradientPrimaryButton(
-            text: '\u002b \u65b0\u5efa\u5bf9\u8c61',
-            height: 56,
-            fontSize: 17,
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CreateTargetScreen()),
-              );
-            },
-          ),
-        ),
-      ],
+            ),
+            Positioned(
+              left: horizontal,
+              right: horizontal,
+              bottom: 18,
+              child: EmoResponsiveContent(
+                width: width,
+                maxWidth: width >= 700 ? 620 : null,
+                child: GradientPrimaryButton(
+                  text: '\u002b \u65b0\u5efa\u5bf9\u8c61',
+                  height: 56,
+                  fontSize: 17,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const CreateTargetScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

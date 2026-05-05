@@ -4,8 +4,10 @@ import base64
 import hashlib
 import html
 import json
+from pathlib import Path
 from typing import Any
 
+import httpx
 from openai import AsyncOpenAI
 
 from app.config import settings
@@ -42,16 +44,16 @@ STYLE_TRAITS: dict[str, dict[str, str]] = {
 DIALECT_MARKERS: dict[str, tuple[str, str]] = {
     "mandarin": ("", ""),
     "cantonese": ("我喺度听住你，", "慢慢讲啦。"),
-    "sichuan": ("我晓得你现在窝火，", "慢慢摆哈子。"),
+    "sichuan": ("我晓得你现在窝火，", "慢慢摆哈。"),
     "northeastern": ("我在这儿听着呢，", "你接着唠。"),
-    "shanghainese": ("我听出来你情绪蛮重，", "阿拉慢慢讲。"),
+    "shanghainese": ("我听出来侬心里蛮堵，", "阿拉慢慢讲。"),
 }
 
 EMOTION_CUES: dict[str, list[str]] = {
-    "anger": ["气", "火", "烦", "讨厌", "崩溃", "受不了"],
-    "sadness": ["难过", "委屈", "想哭", "失望", "心累", "心痛"],
-    "anxiety": ["焦虑", "担心", "害怕", "不安", "紧张", "压力"],
-    "exhaustion": ["累", "疲惫", "撑不住", "困", "麻木", "没劲"],
+    "anger": ["气死", "火大", "烦死", "讨厌", "崩溃", "受不了", "恶心", "临时加需求"],
+    "sadness": ["难过", "委屈", "想哭", "失望", "心累", "心痛", "伤心"],
+    "anxiety": ["焦虑", "担心", "害怕", "不安", "紧张", "压力", "睡不着"],
+    "exhaustion": ["累", "疲惫", "撑不住", "困", "麻木", "没劲", "好烦"],
 }
 
 STYLE_CANDIDATES = ("Q版", "手绘", "温和", "夸张")
@@ -91,12 +93,39 @@ class AiService:
             self._mock_mode = True
             return None
 
+        api_key = self._resolve_api_key(api_key, base_url)
         if not api_key:
             self._mock_mode = True
             return None
 
-        self._client = AsyncOpenAI(api_key=api_key, base_url=base_url)
+        self._client = AsyncOpenAI(
+            api_key=api_key,
+            base_url=base_url,
+            http_client=httpx.AsyncClient(
+                trust_env=False,
+                timeout=httpx.Timeout(40.0, connect=20.0),
+            ),
+        )
         return self._client
+
+    def _resolve_api_key(self, api_key: str, base_url: str) -> str:
+        key = api_key.strip().strip('"').strip("'")
+        if "xiaomimimo.com" not in base_url:
+            return key
+        if key.startswith("tp-"):
+            return key
+
+        env_path = Path(__file__).resolve().parents[2] / ".env"
+        try:
+            for line in env_path.read_text(encoding="utf-8").splitlines():
+                if not line.startswith("OPENAI_API_KEY="):
+                    continue
+                candidate = line.split("=", 1)[1].strip().strip('"').strip("'")
+                if candidate.startswith("tp-"):
+                    return candidate
+        except OSError:
+            pass
+        return key
 
     async def chat(
         self,
@@ -136,7 +165,7 @@ class AiService:
                 model=settings.LLM_MODEL,
                 messages=messages,
                 max_tokens=180,
-                temperature=0.7,
+                temperature=0.75,
             )
             content = (response.choices[0].message.content or "").strip()
             if not content:
@@ -153,7 +182,8 @@ class AiService:
             if not audit["passed"]:
                 return await ai_content_audit.get_safe_fallback(content)
             return content
-        except Exception:
+        except Exception as exc:
+            print(f"LLM chat failed: {type(exc).__name__}: {exc}")
             return await self._local_chat(
                 user_message,
                 mode,
@@ -177,7 +207,7 @@ class AiService:
 
         prompt = (
             "你是角色设定助手。请根据对象称呼和关系，补全一个适合情绪倾诉场景的对象画像。"
-            "返回严格 JSON，字段只有 appearance、personality、style。"
+            "返回严格 JSON，字段只包含 appearance、personality、style。"
             "appearance 用 16 到 28 个汉字描述外貌或气质；"
             "personality 用 18 到 34 个汉字描述性格与相处特征；"
             f"style 只能从 {', '.join(STYLE_CANDIDATES)} 中选择一个。"
@@ -203,7 +233,8 @@ class AiService:
             raw = (response.choices[0].message.content or "").strip()
             payload = json.loads(raw)
             return self._normalize_profile_payload(payload, clean_name, clean_relationship)
-        except Exception:
+        except Exception as exc:
+            print(f"LLM ai-complete failed: {type(exc).__name__}: {exc}")
             return self._local_complete_target_profile(clean_name, clean_relationship)
 
     async def _junior_chat(
@@ -229,7 +260,7 @@ class AiService:
         else:
             body += "你不需要一个人扛着。"
 
-        return f"{prefix}{body}{suffix}".strip()[:80]
+        return f"{prefix}{body}{suffix}".strip()[:90]
 
     async def _local_chat(
         self,
@@ -256,7 +287,7 @@ class AiService:
         audit = await ai_content_audit.audit_response(reply)
         if not audit["passed"]:
             return await ai_content_audit.get_safe_fallback(reply)
-        return reply[:120]
+        return reply[:140]
 
     def _single_mode_reply(
         self,
@@ -288,9 +319,9 @@ class AiService:
         if mood == "anger":
             bridge = "你这么生气，说明这件事真的踩到线了。"
         elif mood == "sadness":
-            bridge = "听得出来你不是闹情绪，是真的受伤了。"
+            bridge = "听得出来你不是闹情绪，是真的被伤到了。"
         elif mood == "anxiety":
-            bridge = "你现在紧绷得很明显。"
+            bridge = "你现在绷得很明显。"
         else:
             bridge = "我听见你的重点了。"
 
@@ -454,11 +485,10 @@ class AiService:
         }
 
     def _infer_mood(self, text: str) -> str:
-        lowered = text.lower()
         best_label = "neutral"
         best_score = 0
         for label, words in EMOTION_CUES.items():
-            score = sum(lowered.count(word) for word in words)
+            score = sum(text.count(word) for word in words)
             if score > best_score:
                 best_score = score
                 best_label = label
@@ -467,9 +497,9 @@ class AiService:
     def _summarize_message(self, text: str) -> str:
         clean = " ".join(text.strip().split())
         if not clean:
-            return "你还没来得及把事情说完整"
+            return "你好像还没来得及把事情说完整"
         if len(clean) <= 18:
-            return f"你在反复咬着“{clean}”这件事"
+            return f"你一直在咬着“{clean}”这件事"
         return f"你最在意的是“{clean[:18]}...”"
 
     def _history_hint(self, history: list[dict[str, Any]] | None) -> str:
@@ -499,7 +529,7 @@ class ImageService:
         self,
         appearance: str,
         personality: str,
-        style: str = "漫画",
+        style: str = "Q版",
     ) -> str:
         seed = hashlib.md5(
             f"{appearance}|{personality}|{style}".encode("utf-8")
@@ -521,44 +551,16 @@ class ImageService:
       <stop offset="100%" stop-color="{right}"/>
     </linearGradient>
   </defs>
-  <rect width="400" height="400" rx="120" fill="url(#bg)"/>
-  <circle cx="200" cy="160" r="78" fill="#FFF3EE"/>
-  <path d="M110 332c18-62 62-96 90-96s72 34 90 96" fill="#FFF7F4"/>
-  <circle cx="170" cy="150" r="9" fill="#43302B"/>
-  <circle cx="230" cy="150" r="9" fill="#43302B"/>
-  <path d="M170 196c18 18 42 18 60 0" stroke="#FF8D80" stroke-width="10" fill="none" stroke-linecap="round"/>
-  <text x="200" y="318" font-size="44" font-family="Arial, sans-serif" text-anchor="middle" fill="#7A4D45">{initial}</text>
-  <text x="200" y="360" font-size="24" font-family="Arial, sans-serif" text-anchor="middle" fill="#7A4D45">{style_label}</text>
+  <rect width="400" height="400" rx="92" fill="url(#bg)"/>
+  <circle cx="200" cy="158" r="72" fill="#FFFFFF" fill-opacity="0.90"/>
+  <path d="M98 330c14-58 60-92 102-92s88 34 102 92" fill="#FFFFFF" fill-opacity="0.92"/>
+  <text x="200" y="180" text-anchor="middle" font-size="64" font-family="Arial, sans-serif" fill="#4A3E3A">{initial}</text>
+  <rect x="106" y="292" width="188" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.88"/>
+  <text x="200" y="319" text-anchor="middle" font-size="20" font-family="Arial, sans-serif" fill="#594F4B">{style_label}</text>
 </svg>
 """.strip()
         return _svg_data_url(svg)
 
-    async def generate_poster(self, emotion_data: dict[str, Any]) -> bytes | None:
-        svg = f"""
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
-  <rect width="1080" height="1920" fill="#FFF7F1"/>
-  <text x="540" y="300" text-anchor="middle" font-size="88" fill="#2E2A2A">Emo Outlet</text>
-  <text x="540" y="420" text-anchor="middle" font-size="54" fill="#6C6663">{html.escape(str(emotion_data.get("title", "情绪海报")))}</text>
-</svg>
-""".strip()
-        return svg.encode("utf-8")
-
-
-class VoiceService:
-    async def speech_to_text(self, audio_data: bytes) -> str:
-        if not audio_data:
-            return ""
-        if settings.ASR_PROVIDER == "mock":
-            return "语音内容已接收，当前环境使用本地占位转写。"
-        return "语音服务暂未配置，已保留音频等待后续处理。"
-
-    async def text_to_speech(self, text: str, dialect: str = "mandarin") -> bytes:
-        payload = f"[{dialect}] {text}".encode("utf-8")
-        if settings.TTS_PROVIDER == "mock":
-            return payload
-        return payload
-
 
 ai_service = AiService()
 image_service = ImageService()
-voice_service = VoiceService()

@@ -34,8 +34,37 @@ def _safe_json(value: str | None) -> dict:
         return {}
     try:
         return json.loads(value)
-    except json.JSONDecodeError:
+    except (TypeError, json.JSONDecodeError):
         return {}
+
+
+def _safe_int(value: object, default: int = 0) -> int:
+    try:
+        if value is None:
+            return default
+        return int(float(str(value).strip()))
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_text(value: object, default: str = "") -> str:
+    if value is None:
+        return default
+    text = str(value).strip()
+    return text or default
+
+
+def _safe_keywords(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [text for item in value if (text := _safe_text(item))]
+    if isinstance(value, str):
+        text = value.strip()
+        if not text:
+            return []
+        if "," in text:
+            return [item.strip() for item in text.split(",") if item.strip()]
+        return [text]
+    return []
 
 
 def _period_start(period: str) -> datetime:
@@ -106,12 +135,12 @@ async def generate_poster(
 
     if emotion_data:
         emotion_result = EmotionAnalysisResult(
-            primary_emotion=emotion_data.get("primary_emotion", "平静"),
+            primary_emotion=_safe_text(emotion_data.get("primary_emotion"), "平静"),
             emotions=emotion_data.get("emotions", {"平静": 100.0}),
-            intensity=emotion_data.get("intensity", 20),
-            keywords=emotion_data.get("keywords", []),
-            summary=emotion_data.get("summary", ""),
-            suggestion=emotion_data.get("suggestion", ""),
+            intensity=max(0, min(100, _safe_int(emotion_data.get("intensity"), 20))),
+            keywords=_safe_keywords(emotion_data.get("keywords")),
+            summary=_safe_text(emotion_data.get("summary")),
+            suggestion=_safe_text(emotion_data.get("suggestion")),
         )
     else:
         msg_result = await db.execute(
@@ -187,7 +216,7 @@ async def get_poster_detail(
         session_id=poster.session_id,
         title=title,
         date=poster.created_at.strftime("%Y.%m.%d") if poster.created_at else "",
-        tag=f"释放·{emotion_type}",
+        tag=f"释放 · {emotion_type}",
         summary=poster.suggestion or "每一次释放，都是向内在温柔靠近。",
         created_at_label=poster.created_at.strftime("%Y年%m月%d日 %H:%M")
         if poster.created_at
@@ -287,10 +316,10 @@ async def get_emotion_report(
     total_intensity = 0
 
     for item in sessions:
-        total_duration += item.duration_minutes
+        total_duration += _safe_int(item.duration_minutes)
         data = _safe_json(item.emotion_summary)
-        emotion = data.get("primary_emotion", "平静")
-        intensity = int(data.get("intensity", 20))
+        emotion = _safe_text(data.get("primary_emotion"), "平静")
+        intensity = max(0, min(100, _safe_int(data.get("intensity"), 20)))
         emotion_counts[emotion] = emotion_counts.get(emotion, 0) + 1
         total_intensity += intensity
         trend.append(
@@ -302,15 +331,15 @@ async def get_emotion_report(
         )
 
     dominant = max(emotion_counts, key=emotion_counts.get)
-    total = sum(emotion_counts.values())
+    total = sum(emotion_counts.values()) or 1
     distribution = {
         key: round(value / total * 100, 1)
         for key, value in sorted(emotion_counts.items(), key=lambda pair: pair[1], reverse=True)
     }
-    average_intensity = round(total_intensity / total, 1) if total else 0
+    average_intensity = round(total_intensity / total, 1)
 
     suggestion_map = {
-        "愤怒": "最近更常见的是愤怒型释放，适合在起火前先做一次短暂停顿，把火气和诉求分开。",
+        "愤怒": "最近更常出现的是愤怒型释放，适合在起火前先做一次短暂停顿，把火气和诉求分开。",
         "委屈": "这段时间你更需要被理解，先照顾感受，再处理关系里的问题。",
         "焦虑": "焦虑占比偏高，试着把压力拆小，优先完成最具体的一步。",
         "疲惫": "疲惫感比较明显，报告更建议你先补休息，而不是继续硬扛。",
@@ -384,23 +413,23 @@ async def get_emotion_report_detail(
         target_count[target_name] = target_count.get(target_name, 0) + 1
 
         data = _safe_json(item.emotion_summary)
-        intensity = int(data.get("intensity", 20))
+        intensity = max(0, min(100, _safe_int(data.get("intensity"), 20)))
         trend_points.append(
             {
                 "date": item.created_at.strftime("%m-%d") if item.created_at else "",
                 "score": intensity,
                 "level": _detail_level(intensity),
-                "emotion": data.get("primary_emotion", "平静"),
+                "emotion": _safe_text(data.get("primary_emotion"), "平静"),
             }
         )
 
-        for keyword in data.get("keywords", [])[:6]:
+        for keyword in _safe_keywords(data.get("keywords"))[:6]:
             keyword_count[keyword] = keyword_count.get(keyword, 0) + 1
 
         bucket = _time_bucket(item.created_at.hour if item.created_at else 12)
         time_count[bucket] += 1
 
-    total_sessions = len(sessions)
+    total_sessions = len(sessions) or 1
     return EmotionReportDetailResponse(
         period=period,
         trend_points=trend_points,

@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -98,7 +96,11 @@ class _HomeTab extends StatelessWidget {
         final compact = constraints.maxHeight < 860;
         final horizontal = EmoResponsive.edgePadding(width);
         final gridCount = EmoResponsive.featureGridCount(width);
-        final gridAspectRatio = width >= 760 ? 1.56 : 1.46;
+        final gridAspectRatio = width >= 980
+            ? 1.42
+            : width >= 760
+                ? 1.24
+                : 1.02;
 
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(horizontal, 8, horizontal, 12),
@@ -134,7 +136,9 @@ class _HomeTab extends StatelessWidget {
                   compact: compact,
                   onTap: () {
                     if (topTarget != null) {
-                      context.read<TargetProvider>().setCurrentTarget(topTarget);
+                      context
+                          .read<TargetProvider>()
+                          .setCurrentTarget(topTarget);
                     }
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -180,7 +184,8 @@ class _HomeTab extends StatelessWidget {
                       title: '\u8bbe\u7f6e\u4e2d\u5fc3',
                       subtitle: '\u4e2a\u6027\u5316\u4f60\u7684\u4f53\u9a8c',
                       onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                        MaterialPageRoute(
+                            builder: (_) => const SettingsScreen()),
                       ),
                     ),
                   ],
@@ -399,17 +404,18 @@ class _FeatureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return EmoSectionCard(
       radius: 28,
-      padding: const EdgeInsets.fromLTRB(14, 14, 12, 14),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
         onTap: onTap,
         child: Stack(
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 74,
-                  height: 74,
+                  width: 60,
+                  height: 60,
                   child: Image.asset(
                     imageAsset,
                     fit: BoxFit.contain,
@@ -418,20 +424,20 @@ class _FeatureCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(right: 30),
+                    padding: const EdgeInsets.only(right: 28, top: 2),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           title,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 15,
                             fontWeight: FontWeight.w800,
                             color: AuthPalette.textPrimary,
-                            height: 1.1,
+                            height: 1.22,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -440,10 +446,10 @@ class _FeatureCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 12.2,
+                            fontSize: 12.5,
                             color: Color(0xFF7C716C),
                             fontWeight: FontWeight.w500,
-                            height: 1.28,
+                            height: 1.36,
                           ),
                         ),
                       ],
@@ -456,8 +462,8 @@ class _FeatureCard extends StatelessWidget {
               right: 0,
               bottom: 2,
               child: Container(
-                width: 34,
-                height: 34,
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.92),
@@ -472,7 +478,7 @@ class _FeatureCard extends StatelessWidget {
                 child: const Icon(
                   Icons.chevron_right_rounded,
                   color: Color(0xFF9B938F),
-                  size: 22,
+                  size: 20,
                 ),
               ),
             ),

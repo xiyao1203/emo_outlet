@@ -115,62 +115,74 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-            const Text(
-              '历史记录',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 14),
-            _rangeTabs(),
-            const SizedBox(height: 14),
-            GestureDetector(
-              onLongPress: _showFilterSheet,
-              child: _searchBar(),
-            ),
-            const SizedBox(height: 14),
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.only(top: 80),
-                child: CircularProgressIndicator(),
-              )
-            else if (_filtered.isEmpty)
-              _emptyState()
-            else
-              ..._filtered.map(
-                (record) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _HistoryCard(
-                    record: record,
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => HistoryDetailScreen(record: record),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontal = EmoResponsive.edgePadding(width);
+
+        return RefreshIndicator(
+          onRefresh: _load,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(horizontal, 12, horizontal, 8),
+            child: EmoResponsiveContent(
+              width: width,
+              maxWidth: width >= 700 ? 620 : null,
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  const Text(
+                    '历史记录',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 14),
+                  _rangeTabs(),
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onLongPress: _showFilterSheet,
+                    child: _searchBar(),
+                  ),
+                  const SizedBox(height: 14),
+                  if (_loading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 80),
+                      child: CircularProgressIndicator(),
+                    )
+                  else if (_filtered.isEmpty)
+                    _emptyState()
+                  else
+                    ..._filtered.map(
+                      (record) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _HistoryCard(
+                          record: record,
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  HistoryDetailScreen(record: record),
+                            ),
+                          ),
+                          onDelete: () => _showDeleteDialog(record),
+                        ),
                       ),
                     ),
-                    onDelete: () => _showDeleteDialog(record),
+                  const SizedBox(height: 10),
+                  const EmoDecorationCloud(size: 118),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '记录每一次情绪释放，见证内心慢慢松开。',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF79716B),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ),
-            const SizedBox(height: 10),
-            const EmoDecorationCloud(size: 118),
-            const SizedBox(height: 10),
-            const Text(
-              '记录每一次情绪释放，见证内心慢慢松开。',
-              style: TextStyle(
-                fontSize: 13,
-                color: Color(0xFF79716B),
-                fontWeight: FontWeight.w500,
+                ],
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -341,8 +353,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 18),
-                    const Text('会话模式',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text(
+                      '会话模式',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
@@ -360,8 +374,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    const Text('排序方式',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text(
+                      '排序方式',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
@@ -376,8 +392,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    const Text('情绪标签',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    const Text(
+                      '情绪标签',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
