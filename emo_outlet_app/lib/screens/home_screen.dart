@@ -96,92 +96,97 @@ class _HomeTab extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final compact = constraints.maxHeight < 860;
-        final horizontal = math.min(width * 0.045, 20.0);
+        final horizontal = EmoResponsive.edgePadding(width);
+        final gridCount = EmoResponsive.featureGridCount(width);
+        final gridAspectRatio = width >= 760 ? 1.56 : 1.46;
 
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(horizontal, 8, horizontal, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const _HomeTopBar(),
-              SizedBox(height: compact ? 18 : 24),
-              Text(
-                'Hi, ${user?.nickname ?? '\u5c0f\u592a\u9633'} \uD83D\uDC4B',
-                style: const TextStyle(
-                  color: AuthPalette.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  height: 1.08,
-                  letterSpacing: -0.6,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '\u4eca\u5929\u60f3\u628a\u54ea\u4e9b\u60c5\u7eea\u8bf4\u51fa\u6765\u5462\uff1f',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  color: Color(0xFF746962),
-                  fontWeight: FontWeight.w500,
-                  height: 1.3,
-                ),
-              ),
-              SizedBox(height: compact ? 16 : 20),
-              _HeroReleaseCard(
-                compact: compact,
-                onTap: () {
-                  if (topTarget != null) {
-                    context.read<TargetProvider>().setCurrentTarget(topTarget);
-                  }
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const SessionModeScreen(),
-                    ),
-                  );
-                },
-              ),
-              SizedBox(height: compact ? 16 : 20),
-              GridView.count(
-                crossAxisCount: 2,
-                physics: const NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                mainAxisSpacing: 14,
-                crossAxisSpacing: 14,
-                childAspectRatio: 1.46,
-                children: [
-                  _FeatureCard(
-                    imageAsset: 'assets/images/home_icon_target.png',
-                    title: '\u6211\u7684\u5bf9\u8c61',
-                    subtitle: '\u7ba1\u7406\u4f60\u5173\u5fc3\u7684\u4eba',
-                    onTap: () => onSwitchTab(AppConstants.navIndexTarget),
+          child: EmoResponsiveContent(
+            width: width,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _HomeTopBar(),
+                SizedBox(height: compact ? 18 : 24),
+                Text(
+                  'Hi, ${user?.nickname ?? '\u5c0f\u592a\u9633'} \uD83D\uDC4B',
+                  style: const TextStyle(
+                    color: AuthPalette.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    height: 1.08,
+                    letterSpacing: -0.6,
                   ),
-                  _FeatureCard(
-                    imageAsset: 'assets/images/home_icon_history.png',
-                    title: '\u5386\u53f2\u8bb0\u5f55',
-                    subtitle: '\u67e5\u770b\u8fc7\u53bb\u7684\u503e\u8bc9',
-                    onTap: () => onSwitchTab(AppConstants.navIndexHistory),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '\u4eca\u5929\u60f3\u628a\u54ea\u4e9b\u60c5\u7eea\u8bf4\u51fa\u6765\u5462\uff1f',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: Color(0xFF746962),
+                    fontWeight: FontWeight.w500,
+                    height: 1.3,
                   ),
-                  _FeatureCard(
-                    imageAsset: 'assets/images/home_icon_report.png',
-                    title: '\u60c5\u7eea\u62a5\u544a',
-                    subtitle:
-                        '\u63a2\u7d22\u4f60\u7684\u60c5\u7eea\u8d8b\u52bf',
-                    onTap: () => Navigator.of(context).push(
+                ),
+                SizedBox(height: compact ? 16 : 20),
+                _HeroReleaseCard(
+                  compact: compact,
+                  onTap: () {
+                    if (topTarget != null) {
+                      context.read<TargetProvider>().setCurrentTarget(topTarget);
+                    }
+                    Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => const EmotionReportScreen(),
+                        builder: (_) => const SessionModeScreen(),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: compact ? 16 : 20),
+                GridView.count(
+                  crossAxisCount: gridCount,
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  childAspectRatio: gridAspectRatio,
+                  children: [
+                    _FeatureCard(
+                      imageAsset: 'assets/images/home_icon_target.png',
+                      title: '\u6211\u7684\u5bf9\u8c61',
+                      subtitle: '\u7ba1\u7406\u4f60\u5173\u5fc3\u7684\u4eba',
+                      onTap: () => onSwitchTab(AppConstants.navIndexTarget),
+                    ),
+                    _FeatureCard(
+                      imageAsset: 'assets/images/home_icon_history.png',
+                      title: '\u5386\u53f2\u8bb0\u5f55',
+                      subtitle: '\u67e5\u770b\u8fc7\u53bb\u7684\u503e\u8bc9',
+                      onTap: () => onSwitchTab(AppConstants.navIndexHistory),
+                    ),
+                    _FeatureCard(
+                      imageAsset: 'assets/images/home_icon_report.png',
+                      title: '\u60c5\u7eea\u62a5\u544a',
+                      subtitle:
+                          '\u63a2\u7d22\u4f60\u7684\u60c5\u7eea\u8d8b\u52bf',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const EmotionReportScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                  _FeatureCard(
-                    imageAsset: 'assets/images/home_icon_settings.png',
-                    title: '\u8bbe\u7f6e\u4e2d\u5fc3',
-                    subtitle: '\u4e2a\u6027\u5316\u4f60\u7684\u4f53\u9a8c',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                    _FeatureCard(
+                      imageAsset: 'assets/images/home_icon_settings.png',
+                      title: '\u8bbe\u7f6e\u4e2d\u5fc3',
+                      subtitle: '\u4e2a\u6027\u5316\u4f60\u7684\u4f53\u9a8c',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

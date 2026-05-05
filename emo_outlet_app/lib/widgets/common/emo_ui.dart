@@ -25,6 +25,66 @@ class EmoPageScaffold extends StatelessWidget {
   }
 }
 
+class EmoResponsive {
+  EmoResponsive._();
+
+  static bool isTabletWidth(double width) => width >= 700;
+
+  static double edgePadding(
+    double width, {
+    double phoneFactor = 0.045,
+    double phoneMax = 20,
+    double tabletPadding = 24,
+  }) {
+    if (width >= 700) return tabletPadding;
+    return math.min(width * phoneFactor, phoneMax);
+  }
+
+  static double contentMaxWidth(
+    double width, {
+    double tabletMax = 620,
+    double desktopMax = 880,
+  }) {
+    if (width >= 980) return desktopMax;
+    if (width >= 700) return tabletMax;
+    return width;
+  }
+
+  static int featureGridCount(double width) {
+    if (width >= 1080) return 4;
+    if (width >= 760) return 3;
+    return 2;
+  }
+}
+
+class EmoResponsiveContent extends StatelessWidget {
+  const EmoResponsiveContent({
+    super.key,
+    required this.width,
+    required this.child,
+    this.alignment = Alignment.topCenter,
+    this.maxWidth,
+  });
+
+  final double width;
+  final Widget child;
+  final Alignment alignment;
+  final double? maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignment,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxWidth: maxWidth ?? EmoResponsive.contentMaxWidth(width),
+        ),
+        child: child,
+      ),
+    );
+  }
+}
+
 class EmoTopBrandBar extends StatelessWidget {
   const EmoTopBrandBar({
     super.key,
