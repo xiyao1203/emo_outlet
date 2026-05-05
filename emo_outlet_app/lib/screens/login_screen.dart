@@ -266,7 +266,7 @@ class _LoginScreenState extends State<LoginScreen> {
             builder: (context, constraints) {
               final width = constraints.maxWidth;
               final height = constraints.maxHeight;
-              final horizontal = math.min(width * 0.068, 30.0);
+              final horizontal = math.min(width * 0.06, 26.0);
               final compact = height < 820;
 
               return Stack(
@@ -285,12 +285,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           width: width,
                           onBack: _goBack,
                         ),
-                        SizedBox(height: compact ? 16 : 22),
+                        SizedBox(height: compact ? 12 : 18),
                         _LoginHero(
                           width: width,
                           compact: compact,
                         ),
-                        SizedBox(height: compact ? 10 : 16),
+                        SizedBox(height: compact ? 8 : 12),
                         _LoginCard(
                           phoneController: _phoneController,
                           codeController: _codeController,
@@ -305,8 +305,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                           onVisitorLogin: _handleVisitorLogin,
                         ),
-                        SizedBox(height: compact ? 18 : 24),
-                        SupportExpressionRow(fontSize: width < 380 ? 14 : 15),
+                        SizedBox(height: compact ? 16 : 20),
+                        SupportExpressionRow(fontSize: width < 380 ? 13 : 14),
                       ],
                     ),
                   ),
@@ -334,8 +334,8 @@ class _LoginNavBar extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: width < 380 ? 40 : 44,
-          height: width < 380 ? 40 : 44,
+          width: width < 380 ? 38 : 42,
+          height: width < 380 ? 38 : 42,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.58),
             borderRadius: BorderRadius.circular(15),
@@ -361,9 +361,9 @@ class _LoginNavBar extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         AppBrand(
-          fontSize: width < 380 ? 23 : 27,
-          logoSize: width < 380 ? 40 : 44,
-          spacing: 10,
+          fontSize: width < 380 ? 21 : 24,
+          logoSize: width < 380 ? 36 : 40,
+          spacing: 8,
         ),
       ],
     );
@@ -382,7 +382,7 @@ class _LoginHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: width < 380 ? 170 : 188,
+      height: width < 380 ? 154 : 170,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -411,7 +411,7 @@ class _LoginHero extends StatelessWidget {
                 Expanded(
                   flex: 11,
                   child: Padding(
-                    padding: EdgeInsets.only(top: compact ? 42 : 50),
+                    padding: EdgeInsets.only(top: compact ? 34 : 40),
                     child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -422,11 +422,11 @@ class _LoginHero extends StatelessWidget {
                             Text(
                               '\u6b22\u8fce\u56de\u6765',
                               style: TextStyle(
-                                fontSize: 31,
+                                fontSize: 27,
                                 fontWeight: FontWeight.w800,
                                 height: 1.02,
                                 color: AuthPalette.textPrimary,
-                                letterSpacing: -1.1,
+                                letterSpacing: -0.8,
                               ),
                             ),
                             Padding(
@@ -435,15 +435,15 @@ class _LoginHero extends StatelessWidget {
                             ),
                           ],
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 8),
                         Text(
                           '\u7528\u66f4\u8f7b\u677e\u7684\u65b9\u5f0f\uff0c\u628a\u60c5\u7eea\u8bf4\u51fa\u6765',
                           maxLines: 1,
                           overflow: TextOverflow.visible,
                           style: TextStyle(
-                            fontSize: 14.5,
+                            fontSize: 13.5,
                             color: AuthPalette.textSecondary,
-                            height: 1.24,
+                            height: 1.2,
                             fontWeight: FontWeight.w600,
                             letterSpacing: -0.1,
                           ),
@@ -458,11 +458,11 @@ class _LoginHero extends StatelessWidget {
           ),
           Positioned(
             right: 2,
-            top: compact ? 14 : 10,
+            top: compact ? 8 : 8,
             child: SizedBox(
-              width: width < 380 ? 146 : 166,
+              width: width < 380 ? 132 : 148,
               child: LoginCloudIllustration(
-                size: width < 380 ? 146 : 166,
+                size: width < 380 ? 132 : 148,
               ),
             ),
           ),

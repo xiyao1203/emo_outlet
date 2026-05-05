@@ -61,11 +61,11 @@ class _TargetListScreenState extends State<TargetListScreen> {
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(18, 16, 18, 104),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
           child: Column(
             children: [
               SizedBox(
-                height: 58,
+                height: 54,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -73,7 +73,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                       alignment: Alignment.centerLeft,
                       child: EmoRoundIconButton(
                         icon: Icons.arrow_back_ios_new_rounded,
-                        size: 52,
+                        size: 48,
                         onTap: () {
                           if (Navigator.of(context).canPop()) {
                             Navigator.of(context).pop();
@@ -86,7 +86,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                     const Text(
                       '\u6211\u7684\u5bf9\u8c61',
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                         color: AuthPalette.textPrimary,
                       ),
@@ -94,27 +94,27 @@ class _TargetListScreenState extends State<TargetListScreen> {
                     const Align(
                       alignment: Alignment.centerRight,
                       child: SizedBox(
-                        width: 88,
-                        height: 72,
-                        child: EmoDecorationCloud(size: 80),
+                        width: 78,
+                        height: 64,
+                        child: EmoDecorationCloud(size: 72),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.66),
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: Colors.white),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.search_rounded,
-                      size: 22,
+                      size: 20,
                       color: Color(0xFFABABAB),
                     ),
                     const SizedBox(width: 10),
@@ -127,13 +127,13 @@ class _TargetListScreenState extends State<TargetListScreen> {
                               '\u641c\u7d22\u5bf9\u8c61\u540d\u79f0\u6216\u5173\u952e\u8bcd',
                           hintStyle: TextStyle(
                             color: Color(0xFFB3B3B3),
-                            fontSize: 15,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                           border: InputBorder.none,
                         ),
                         style: const TextStyle(
-                          fontSize: 15,
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AuthPalette.textPrimary,
                         ),
@@ -142,27 +142,27 @@ class _TargetListScreenState extends State<TargetListScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               EmoSectionCard(
-                radius: 30,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+                radius: 28,
+                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
                 child: Row(
                   children: [
                     Container(
-                      width: 72,
-                      height: 72,
+                      width: 64,
+                      height: 64,
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(18),
                       ),
                       child: const Center(
                         child: Text(
                           '\uD83D\uDC65',
-                          style: TextStyle(fontSize: 24),
+                          style: TextStyle(fontSize: 22),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -173,7 +173,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                 const TextSpan(
                                   text: '\u5171 ',
                                   style: TextStyle(
-                                    fontSize: 17,
+                                    fontSize: 15.5,
                                     fontWeight: FontWeight.w600,
                                     color: AuthPalette.textPrimary,
                                   ),
@@ -181,7 +181,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                 TextSpan(
                                   text: '${targets.length}',
                                   style: const TextStyle(
-                                    fontSize: 24,
+                                    fontSize: 21,
                                     fontWeight: FontWeight.w700,
                                     color: Color(0xFFFF754C),
                                   ),
@@ -189,7 +189,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                 const TextSpan(
                                   text: ' \u4e2a\u5bf9\u8c61',
                                   style: TextStyle(
-                                    fontSize: 17,
+                                    fontSize: 15.5,
                                     fontWeight: FontWeight.w600,
                                     color: AuthPalette.textPrimary,
                                   ),
@@ -203,7 +203,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                 ? '\u9009\u62e9\u5bf9\u8c61\uff0c\u5411 TA \u503e\u8bc9\u4f60\u7684\u60c5\u7eea\u5427'
                                 : '\u5df2\u627e\u5230 ${filtered.length} \u4e2a\u76f8\u5173\u5bf9\u8c61',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Color(0xFF8A7D77),
                               fontWeight: FontWeight.w500,
                             ),
@@ -212,14 +212,14 @@ class _TargetListScreenState extends State<TargetListScreen> {
                       ),
                     ),
                     const SizedBox(
-                      width: 92,
-                      height: 72,
-                      child: EmoDecorationCloud(size: 84),
+                      width: 82,
+                      height: 64,
+                      child: EmoDecorationCloud(size: 74),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               if (filtered.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 18),
@@ -246,8 +246,8 @@ class _TargetListScreenState extends State<TargetListScreen> {
           bottom: 18,
           child: GradientPrimaryButton(
             text: '\u002b \u65b0\u5efa\u5bf9\u8c61',
-            height: 60,
-            fontSize: 18,
+            height: 56,
+            fontSize: 17,
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const CreateTargetScreen()),

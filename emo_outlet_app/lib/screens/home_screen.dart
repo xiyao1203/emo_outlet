@@ -96,36 +96,36 @@ class _HomeTab extends StatelessWidget {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final compact = constraints.maxHeight < 860;
-        final horizontal = math.min(width * 0.05, 22.0);
+        final horizontal = math.min(width * 0.045, 20.0);
 
         return SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(horizontal, 10, horizontal, 14),
+          padding: EdgeInsets.fromLTRB(horizontal, 8, horizontal, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _HomeTopBar(),
-              SizedBox(height: compact ? 22 : 28),
+              SizedBox(height: compact ? 18 : 24),
               Text(
                 'Hi, ${user?.nickname ?? '\u5c0f\u592a\u9633'} \uD83D\uDC4B',
                 style: const TextStyle(
                   color: AuthPalette.textPrimary,
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  height: 1.06,
-                  letterSpacing: -0.9,
+                  height: 1.08,
+                  letterSpacing: -0.6,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 '\u4eca\u5929\u60f3\u628a\u54ea\u4e9b\u60c5\u7eea\u8bf4\u51fa\u6765\u5462\uff1f',
                 style: TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 13.5,
                   color: Color(0xFF746962),
                   fontWeight: FontWeight.w500,
-                  height: 1.35,
+                  height: 1.3,
                 ),
               ),
-              SizedBox(height: compact ? 18 : 22),
+              SizedBox(height: compact ? 16 : 20),
               _HeroReleaseCard(
                 compact: compact,
                 onTap: () {
@@ -139,14 +139,14 @@ class _HomeTab extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: compact ? 18 : 22),
+              SizedBox(height: compact ? 16 : 20),
               GridView.count(
                 crossAxisCount: 2,
                 physics: const NeverScrollableScrollPhysics(),
                 shrinkWrap: true,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 1.38,
+                mainAxisSpacing: 14,
+                crossAxisSpacing: 14,
+                childAspectRatio: 1.46,
                 children: [
                   _FeatureCard(
                     imageAsset: 'assets/images/home_icon_target.png',
@@ -199,12 +199,12 @@ class _HomeTopBar extends StatelessWidget {
         const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppBrand(fontSize: 22, logoSize: 40, spacing: 10),
+            AppBrand(fontSize: 20, logoSize: 36, spacing: 8),
             SizedBox(height: 5),
             Text(
               '\u628a\u4e0d\u8212\u670d\u7684\u60c5\u7eea\uff0c\u8f7b\u8f7b\u653e\u51fa\u6765',
               style: TextStyle(
-                fontSize: 13.5,
+                fontSize: 12.5,
                 color: Color(0xFF7C6C63),
                 fontWeight: FontWeight.w500,
               ),
@@ -213,8 +213,8 @@ class _HomeTopBar extends StatelessWidget {
         ),
         const Spacer(),
         Container(
-          width: 62,
-          height: 62,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 2.5),
@@ -259,11 +259,11 @@ class _HeroReleaseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return EmoSectionCard(
       radius: 34,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Column(
         children: [
           SizedBox(
-            height: compact ? 236 : 254,
+            height: compact ? 216 : 232,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -286,14 +286,14 @@ class _HeroReleaseCard extends StatelessWidget {
                 const Positioned(
                   left: 4,
                   top: 18,
-                  right: 160,
+                  right: 148,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '\u628a\u4e0d\u8212\u670d\u7684\u60c5\u7eea',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 18.5,
                           fontWeight: FontWeight.w800,
                           color: AuthPalette.textPrimary,
                           height: 1.12,
@@ -304,21 +304,21 @@ class _HeroReleaseCard extends StatelessWidget {
                       Text(
                         '\u8f7b\u8f7b\u653e\u51fa\u6765',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 18.5,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFFFF6D4C),
                           height: 1.06,
                           letterSpacing: -0.9,
                         ),
                       ),
-                      SizedBox(height: 14),
+                      SizedBox(height: 12),
                       Text(
                         '\u5b89\u5168\u8868\u8fbe\u00b7\u5373\u65f6\u758f\u89e3\u00b7\u4e13\u5c5e\u966a\u4f34',
                         style: TextStyle(
-                          fontSize: 14.2,
+                          fontSize: 12.8,
                           color: Color(0xFF776B66),
                           fontWeight: FontWeight.w500,
-                          height: 1.35,
+                          height: 1.3,
                         ),
                       ),
                     ],
@@ -328,17 +328,17 @@ class _HeroReleaseCard extends StatelessWidget {
                   top: -4,
                   right: -8,
                   bottom: 0,
-                  width: 260,
+                  width: 236,
                   child: _HomeHeroCloud(),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           GradientPrimaryButton(
             text: '\u5f00\u59cb\u91ca\u653e\u60c5\u7eea',
-            height: 60,
-            fontSize: 18,
+            height: 56,
+            fontSize: 17,
             onTap: onTap,
           ),
         ],

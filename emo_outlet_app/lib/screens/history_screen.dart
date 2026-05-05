@@ -119,22 +119,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
       onRefresh: _load,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: Column(
           children: [
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             const Text(
               '历史记录',
-              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
             _rangeTabs(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             GestureDetector(
               onLongPress: _showFilterSheet,
               child: _searchBar(),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 14),
             if (_loading)
               const Padding(
                 padding: EdgeInsets.only(top: 80),
@@ -145,7 +145,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             else
               ..._filtered.map(
                 (record) => Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: _HistoryCard(
                     record: record,
                     onTap: () => Navigator.of(context).push(
@@ -157,13 +157,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                 ),
               ),
-            const SizedBox(height: 12),
-            const EmoDecorationCloud(size: 132),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+            const EmoDecorationCloud(size: 118),
+            const SizedBox(height: 10),
             const Text(
               '记录每一次情绪释放，见证内心慢慢松开。',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 color: Color(0xFF79716B),
                 fontWeight: FontWeight.w500,
               ),
@@ -176,16 +176,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _emptyState() {
     return const EmoSectionCard(
-      radius: 30,
+      radius: 28,
       child: Column(
         children: [
           SizedBox(height: 8),
-          EmoDecorationCloud(size: 128),
+          EmoDecorationCloud(size: 120),
           SizedBox(height: 8),
           Text(
             '还没有历史记录',
             style: TextStyle(
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
@@ -195,8 +195,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
             '完成一次会话后，这里会自动展示真实的记录和情绪总结。',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 13.5,
-              height: 1.6,
+              fontSize: 12.8,
+              height: 1.55,
               color: Color(0xFF857972),
             ),
           ),
@@ -208,7 +208,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _rangeTabs() {
     return EmoSectionCard(
       radius: 999,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: Row(
         children: [
           _tabItem('all', '全部'),
@@ -226,7 +226,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         borderRadius: BorderRadius.circular(999),
         onTap: () => setState(() => _range = key),
         child: Container(
-          height: 44,
+          height: 40,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: active
@@ -239,7 +239,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: active ? Colors.white : const Color(0xFF2F2825),
               ),
@@ -253,11 +253,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _searchBar() {
     return EmoSectionCard(
       radius: 24,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       child: Row(
         children: [
-          const Icon(Icons.search_rounded, color: Color(0xFF8C8C8C), size: 21),
-          const SizedBox(width: 10),
+          const Icon(Icons.search_rounded, color: Color(0xFF8C8C8C), size: 20),
+          const SizedBox(width: 8),
           Expanded(
             child: TextField(
               controller: _searchController,
@@ -266,13 +266,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 border: InputBorder.none,
                 hintText: '搜索对象、情绪或关键词',
                 hintStyle: TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 13.5,
                   color: Color(0xFF9C9C9C),
                   fontWeight: FontWeight.w500,
                 ),
               ),
               style:
-                  const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500),
+                  const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w500),
             ),
           ),
         ],
@@ -334,13 +334,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
                     const Text(
                       '筛选记录',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
                     const Text('会话模式',
                         style: TextStyle(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
@@ -460,7 +460,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
           color: selected ? const Color(0x1AFF7E68) : Colors.white,
@@ -471,7 +471,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 13.5,
             fontWeight: FontWeight.w600,
             color: selected ? const Color(0xFFFF6C55) : const Color(0xFF6C635D),
           ),
@@ -495,8 +495,8 @@ class _HistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return EmoSectionCard(
-      radius: 28,
-      padding: const EdgeInsets.all(16),
+      radius: 26,
+      padding: const EdgeInsets.all(15),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
@@ -506,7 +506,7 @@ class _HistoryCard extends StatelessWidget {
             Row(
               children: [
                 _AvatarBox(name: record.name),
-                const SizedBox(width: 14),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -514,16 +514,16 @@ class _HistoryCard extends StatelessWidget {
                       Text(
                         record.name,
                         style: const TextStyle(
-                          fontSize: 17,
+                          fontSize: 16,
                           fontWeight: FontWeight.w700,
                           color: AuthPalette.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       Text(
                         _formatDate(record.timestamp),
                         style: const TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 12.8,
                           color: Color(0xFF8B8079),
                         ),
                       ),
@@ -533,7 +533,7 @@ class _HistoryCard extends StatelessWidget {
                 EmoTypePill(text: record.modeLabel),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 12),
             Row(
               children: [
                 _MiniInfo(
@@ -558,7 +558,7 @@ class _HistoryCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -566,14 +566,14 @@ class _HistoryCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 13.5,
-                  height: 1.6,
+                  fontSize: 13,
+                  height: 1.55,
                   color: Color(0xFF5A504A),
                 ),
               ),
             ),
             if (record.keywords.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
@@ -592,7 +592,7 @@ class _HistoryCard extends StatelessWidget {
                         child: Text(
                           item,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             color: Color(0xFFFF6E57),
                             fontWeight: FontWeight.w600,
                           ),
@@ -623,10 +623,10 @@ class _AvatarBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 54,
-      height: 54,
+      width: 50,
+      height: 50,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
           colors: [Color(0xFFFFE1D8), Color(0xFFFFF0E9)],
         ),
@@ -635,7 +635,7 @@ class _AvatarBox extends StatelessWidget {
         child: Text(
           name.isEmpty ? '?' : name.characters.first,
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: Color(0xFF7E5745),
           ),
@@ -670,7 +670,7 @@ class _MiniInfo extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 13,
+              fontSize: 12.5,
               color: Color(0xFF6B625C),
               fontWeight: FontWeight.w600,
             ),
