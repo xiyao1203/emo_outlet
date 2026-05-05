@@ -27,12 +27,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late int _currentIndex;
+  late int _previousIndex;
   final _authService = AuthService();
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _previousIndex = AppConstants.navIndexHome;
     _authService.init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TargetProvider>().loadTargets();
@@ -41,21 +43,38 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _switchTab(int index) {
+    if (_currentIndex == index) return;
+    setState(() {
+      _previousIndex = _currentIndex;
+      _currentIndex = index;
+    });
+  }
+
+  void _returnToPreviousTab(int currentTab) {
+    final fallbackIndex = _previousIndex == currentTab
+        ? AppConstants.navIndexHome
+        : _previousIndex;
+    setState(() => _currentIndex = fallbackIndex);
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = <Widget>[
-      const _HomeTab(),
-      const TargetListScreen(),
+      _HomeTab(onSwitchTab: _switchTab),
+      TargetListScreen(
+        onBackFallback: () => _returnToPreviousTab(AppConstants.navIndexTarget),
+      ),
       const HistoryScreen(),
       ProfileHomeScreen(
-        onSwitchTab: (index) => setState(() => _currentIndex = index),
+        onSwitchTab: _switchTab,
       ),
     ];
 
     return EmoPageScaffold(
       bottomNavigationBar: AppBottomNav(
         currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        onTap: _switchTab,
       ),
       child: pages[_currentIndex],
     );
@@ -63,7 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _HomeTab extends StatelessWidget {
-  const _HomeTab();
+  const _HomeTab({required this.onSwitchTab});
+
+  final ValueChanged<int> onSwitchTab;
 
   @override
   Widget build(BuildContext context) {
@@ -131,21 +152,13 @@ class _HomeTab extends StatelessWidget {
                     imageAsset: 'assets/images/home_icon_target.png',
                     title: '\u6211\u7684\u5bf9\u8c61',
                     subtitle: '\u7ba1\u7406\u4f60\u5173\u5fc3\u7684\u4eba',
-                    onTap: () => Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const HomeScreen(
-                          initialIndex: AppConstants.navIndexTarget,
-                        ),
-                      ),
-                    ),
+                    onTap: () => onSwitchTab(AppConstants.navIndexTarget),
                   ),
                   _FeatureCard(
                     imageAsset: 'assets/images/home_icon_history.png',
                     title: '\u5386\u53f2\u8bb0\u5f55',
                     subtitle: '\u67e5\u770b\u8fc7\u53bb\u7684\u503e\u8bc9',
-                    onTap: () => Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const HistoryScreen()),
-                    ),
+                    onTap: () => onSwitchTab(AppConstants.navIndexHistory),
                   ),
                   _FeatureCard(
                     imageAsset: 'assets/images/home_icon_report.png',

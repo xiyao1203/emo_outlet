@@ -82,9 +82,9 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                   Container(
                     width: 216,
                     height: 216,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         colors: [Color(0xFFFFB28A), Color(0xFFFF7A7F)],
                       ),
                     ),
@@ -152,8 +152,8 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Expanded(
                         child: _StepChip(
                           title: '分析描述',
@@ -178,9 +178,9 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                     ],
                   ),
                   const SizedBox(height: 22),
-                  EmoSectionCard(
+                  const EmoSectionCard(
                     radius: 24,
-                    child: const Row(
+                    child: Row(
                       children: [
                         Icon(Icons.lightbulb_outline_rounded,
                             color: Color(0xFFFFB356), size: 28),

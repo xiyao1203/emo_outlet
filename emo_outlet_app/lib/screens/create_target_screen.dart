@@ -282,7 +282,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
             Expanded(
               child: TextField(
                 controller: controller,
-                textAlign: TextAlign.right,
+                textAlign: TextAlign.left,
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   hintText: hint,

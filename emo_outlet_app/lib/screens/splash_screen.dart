@@ -34,15 +34,15 @@ class SplashScreen extends StatelessWidget {
               final height = constraints.maxHeight;
               final compact = height < 820;
               final horizontal = math.min(width * 0.073, 33.0);
-              final brandFontSize = width < 380 ? 24.0 : 29.0;
-              final brandLogoSize = width < 380 ? 44.0 : 50.0;
-              final titleTopSize = width < 380 ? 36.0 : 46.0;
-              final titleAccentSize = width < 380 ? 38.0 : 50.0;
-              final subtitleSize = width < 380 ? 16.0 : 17.5;
-              final primaryButtonHeight = width < 380 ? 60.0 : 68.0;
-              final secondaryButtonHeight = width < 380 ? 56.0 : 61.0;
-              final primaryButtonFontSize = width < 380 ? 25.0 : 29.0;
-              final secondaryButtonFontSize = width < 380 ? 16.0 : 17.0;
+              final brandFontSize = width < 380 ? 21.0 : 24.0;
+              final brandLogoSize = width < 380 ? 40.0 : 44.0;
+              final titleTopSize = width < 380 ? 30.0 : 35.0;
+              final titleAccentSize = width < 380 ? 32.0 : 37.0;
+              final subtitleSize = width < 380 ? 14.0 : 15.0;
+              final primaryButtonHeight = width < 380 ? 58.0 : 64.0;
+              final secondaryButtonHeight = width < 380 ? 54.0 : 58.0;
+              final primaryButtonFontSize = width < 380 ? 19.0 : 20.0;
+              final secondaryButtonFontSize = width < 380 ? 14.5 : 15.5;
 
               return Stack(
                 children: [
@@ -65,34 +65,34 @@ class SplashScreen extends StatelessWidget {
                   SingleChildScrollView(
                     padding: EdgeInsets.fromLTRB(
                       horizontal,
-                      compact ? 14 : 16,
+                      compact ? 10 : 12,
                       horizontal,
-                      math.max(20, height * 0.026),
+                      math.max(18, height * 0.02),
                     ),
                     child: ConstrainedBox(
-                      constraints: BoxConstraints(minHeight: height - 18),
+                      constraints: BoxConstraints(minHeight: height - 12),
                       child: IntrinsicHeight(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: compact ? 12 : 18),
+                            SizedBox(height: compact ? 8 : 12),
                             AppBrand(
                               fontSize: brandFontSize,
                               logoSize: brandLogoSize,
-                              spacing: 14,
+                              spacing: 12,
                             ),
-                            SizedBox(height: compact ? 48 : 66),
+                            SizedBox(height: compact ? 34 : 44),
                             Text(
                               _headlineTop,
                               style: TextStyle(
                                 fontSize: titleTopSize,
-                                height: 1.08,
+                                height: 1.12,
                                 fontWeight: FontWeight.w800,
                                 color: AuthPalette.textPrimary,
-                                letterSpacing: -1.2,
+                                letterSpacing: -0.8,
                               ),
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -111,41 +111,41 @@ class SplashScreen extends StatelessWidget {
                                       _headlineAccent,
                                       style: TextStyle(
                                         fontSize: titleAccentSize,
-                                        height: 0.98,
+                                        height: 1.02,
                                         fontWeight: FontWeight.w800,
                                         color: Colors.white,
-                                        letterSpacing: -1.5,
+                                        letterSpacing: -0.9,
                                       ),
                                     ),
                                   ),
                                 ),
                                 const Padding(
-                                  padding: EdgeInsets.only(left: 6, top: 10),
+                                  padding: EdgeInsets.only(left: 4, top: 8),
                                   child: _AccentSpark(),
                                 ),
                               ],
                             ),
-                            SizedBox(height: compact ? 20 : 24),
+                            SizedBox(height: compact ? 14 : 16),
                             Text(
                               _subtitle,
                               style: TextStyle(
                                 fontSize: subtitleSize,
-                                height: 1.42,
+                                height: 1.5,
                                 color: AuthPalette.textSecondary,
                                 fontWeight: FontWeight.w500,
-                                letterSpacing: 0.1,
+                                letterSpacing: 0,
                               ),
                             ),
-                            SizedBox(height: compact ? 26 : 38),
+                            SizedBox(height: compact ? 18 : 22),
                             Expanded(
                               child: Center(
                                 child: SizedBox(
-                                  width: width * 0.92,
+                                  width: width * 0.84,
                                   child: const _HeroCloudImage(),
                                 ),
                               ),
                             ),
-                            SizedBox(height: compact ? 14 : 18),
+                            SizedBox(height: compact ? 10 : 14),
                             GradientPrimaryButton(
                               text: _primaryCta,
                               height: primaryButtonHeight,
@@ -160,13 +160,13 @@ class SplashScreen extends StatelessWidget {
                               trailing: const Icon(
                                 Icons.chevron_right_rounded,
                                 color: Color(0xFFDD655B),
-                                size: 22,
+                                size: 20,
                               ),
                               onTap: () => _openLogin(context),
                             ),
-                            SizedBox(height: compact ? 22 : 30),
+                            SizedBox(height: compact ? 18 : 24),
                             SupportExpressionRow(
-                                fontSize: width < 380 ? 14 : 16),
+                                fontSize: width < 380 ? 13 : 14),
                           ],
                         ),
                       ),
@@ -211,7 +211,7 @@ class _AccentSpark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       width: 30,
       height: 30,
       child: CustomPaint(

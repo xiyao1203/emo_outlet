@@ -277,7 +277,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                                       ],
                                     ),
                                   ),
-                                  dotData: FlDotData(show: true),
+                                  dotData: const FlDotData(show: true),
                                 ),
                               ],
                             ),
@@ -559,7 +559,7 @@ class _EmotionAnalysisDetailScreenState
                       LineChartData(
                         minY: 0,
                         maxY: 100,
-                        gridData: FlGridData(drawVerticalLine: false),
+                        gridData: const FlGridData(drawVerticalLine: false),
                         borderData: FlBorderData(show: false),
                         titlesData: FlTitlesData(
                           topTitles: const AxisTitles(),
@@ -595,7 +595,7 @@ class _EmotionAnalysisDetailScreenState
                             }).toList(),
                             color: SoftColors.coral,
                             barWidth: 4,
-                            dotData: FlDotData(show: true),
+                            dotData: const FlDotData(show: true),
                           ),
                         ],
                       ),
@@ -685,7 +685,7 @@ class _EmotionAnalysisDetailScreenState
                     height: 220,
                     child: BarChart(
                       BarChartData(
-                        gridData: FlGridData(drawVerticalLine: false),
+                        gridData: const FlGridData(drawVerticalLine: false),
                         borderData: FlBorderData(show: false),
                         titlesData: FlTitlesData(
                           topTitles: const AxisTitles(),

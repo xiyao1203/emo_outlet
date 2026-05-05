@@ -104,10 +104,10 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
+            const Row(
               children: [
-                const Spacer(),
-                const EmoDecorationCloud(size: 126),
+                Spacer(),
+                EmoDecorationCloud(size: 126),
               ],
             ),
             Transform.translate(
@@ -208,13 +208,13 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
             _editableRow(Icons.bolt_rounded, const Color(0xFFFF8A54), '触发事件',
                 _triggerController),
             const SizedBox(height: 16),
-            EmoSectionCard(
+            const EmoSectionCard(
               child: SizedBox(
                 height: 56,
                 child: Center(
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
+                    children: [
                       Icon(Icons.refresh_rounded,
                           color: Color(0xFF606060), size: 30),
                       SizedBox(width: 12),

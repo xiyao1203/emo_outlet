@@ -88,7 +88,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                   'We may update these terms. Significant changes will be notified '
                   'in-app. Continued use constitutes acceptance.',
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -98,7 +98,8 @@ class TermsOfServiceScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.cardBackground,
                 border: Border(
-                  top: BorderSide(color: AppColors.divider.withValues(alpha: 0.5)),
+                  top: BorderSide(
+                      color: AppColors.divider.withValues(alpha: 0.5)),
                 ),
               ),
               child: SizedBox(

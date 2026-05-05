@@ -175,10 +175,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _emptyState() {
-    return EmoSectionCard(
+    return const EmoSectionCard(
       radius: 30,
       child: Column(
-        children: const [
+        children: [
           SizedBox(height: 8),
           EmoDecorationCloud(size: 128),
           SizedBox(height: 8),

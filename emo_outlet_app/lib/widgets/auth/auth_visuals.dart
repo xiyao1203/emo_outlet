@@ -147,11 +147,11 @@ class SupportExpressionRow extends StatelessWidget {
             shape: BoxShape.circle,
             color: Colors.white.withValues(alpha: 0.72),
             border: Border.all(color: Colors.white.withValues(alpha: 0.8)),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
-                color: const Color(0x14D18D7A),
+                color: Color(0x14D18D7A),
                 blurRadius: 20,
-                offset: const Offset(0, 10),
+                offset: Offset(0, 10),
               ),
             ],
           ),
@@ -329,10 +329,10 @@ class GradientPrimaryButton extends StatelessWidget {
             ],
           ),
           boxShadow: [
-            BoxShadow(
-              color: const Color(0x36FF8965),
+            const BoxShadow(
+              color: Color(0x36FF8965),
               blurRadius: 24,
-              offset: const Offset(0, 12),
+              offset: Offset(0, 12),
             ),
             BoxShadow(
               color: Colors.white.withValues(alpha: 0.5),
@@ -429,10 +429,10 @@ class OutlineSoftButton extends StatelessWidget {
               ],
             ),
             boxShadow: [
-              BoxShadow(
-                color: const Color(0x14D9957C),
+              const BoxShadow(
+                color: Color(0x14D9957C),
                 blurRadius: 18,
-                offset: const Offset(0, 8),
+                offset: Offset(0, 8),
               ),
               BoxShadow(
                 color: Colors.white.withValues(alpha: 0.4),
@@ -451,7 +451,7 @@ class OutlineSoftButton extends StatelessWidget {
                   style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFFDD655B),
+                    color: const Color(0xFFDD655B),
                     height: 1,
                   ),
                 ),
@@ -495,11 +495,11 @@ class SocialLoginBadge extends StatelessWidget {
               shape: BoxShape.circle,
               color: Colors.white.withValues(alpha: 0.65),
               border: Border.all(color: Colors.white, width: 1.5),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0x18E0B7A7),
+                  color: Color(0x18E0B7A7),
                   blurRadius: 18,
-                  offset: const Offset(0, 10),
+                  offset: Offset(0, 10),
                 ),
               ],
             ),
@@ -525,7 +525,7 @@ class SocialIconWeChat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       width: 40,
       height: 40,
       child: Stack(
@@ -536,7 +536,7 @@ class SocialIconWeChat extends StatelessWidget {
             bottom: 5,
             child: _WeChatBubble(
               size: 23,
-              color: const Color(0xFF22C45E),
+              color: Color(0xFF22C45E),
               tailOnLeft: true,
             ),
           ),
@@ -545,7 +545,7 @@ class SocialIconWeChat extends StatelessWidget {
             top: 2,
             child: _WeChatBubble(
               size: 21,
-              color: const Color(0xFF46D56F),
+              color: Color(0xFF46D56F),
               tailOnLeft: false,
             ),
           ),
@@ -873,11 +873,11 @@ class _ChatBubble extends StatelessWidget {
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.9),
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: const Color(0x20FFD5C7),
+                  color: Color(0x20FFD5C7),
                   blurRadius: 22,
-                  offset: const Offset(0, 10),
+                  offset: Offset(0, 10),
                 ),
               ],
             ),

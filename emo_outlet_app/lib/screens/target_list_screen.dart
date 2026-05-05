@@ -11,9 +11,14 @@ import 'create_target_screen.dart';
 import 'target_detail_screen.dart';
 
 class TargetListScreen extends StatefulWidget {
-  const TargetListScreen({super.key, this.isSelectMode = false});
+  const TargetListScreen({
+    super.key,
+    this.isSelectMode = false,
+    this.onBackFallback,
+  });
 
   final bool isSelectMode;
+  final VoidCallback? onBackFallback;
 
   @override
   State<TargetListScreen> createState() => _TargetListScreenState();
@@ -72,7 +77,9 @@ class _TargetListScreenState extends State<TargetListScreen> {
                         onTap: () {
                           if (Navigator.of(context).canPop()) {
                             Navigator.of(context).pop();
+                            return;
                           }
+                          widget.onBackFallback?.call();
                         },
                       ),
                     ),

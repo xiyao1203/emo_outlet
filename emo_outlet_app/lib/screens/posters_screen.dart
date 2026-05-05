@@ -105,10 +105,10 @@ class _MyPostersScreenState extends State<MyPostersScreen> {
                   ),
                 )
               : _poster == null
-                  ? Center(
+                  ? const Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Icon(Icons.image_not_supported_outlined,
                               size: 52, color: SoftColors.subtext),
                           SizedBox(height: 12),

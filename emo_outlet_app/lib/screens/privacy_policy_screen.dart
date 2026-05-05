@@ -128,7 +128,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                   '• 邮箱 Email: support@emooutlet.app\n'
                   '• 更新时间 Last updated: 2026-05-03',
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
               ],
             ),
           ),
@@ -138,7 +138,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.cardBackground,
                 border: Border(
-                  top: BorderSide(color: AppColors.divider.withValues(alpha: 0.5)),
+                  top: BorderSide(
+                      color: AppColors.divider.withValues(alpha: 0.5)),
                 ),
               ),
               child: SizedBox(

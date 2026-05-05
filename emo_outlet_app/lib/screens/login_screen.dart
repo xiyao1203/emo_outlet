@@ -412,13 +412,13 @@ class _LoginHero extends StatelessWidget {
                   flex: 11,
                   child: Padding(
                     padding: EdgeInsets.only(top: compact ? 42 : 50),
-                    child: Column(
+                    child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               '\u6b22\u8fce\u56de\u6765',
                               style: TextStyle(
@@ -435,8 +435,8 @@ class _LoginHero extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        const Text(
+                        SizedBox(height: 10),
+                        Text(
                           '\u7528\u66f4\u8f7b\u677e\u7684\u65b9\u5f0f\uff0c\u628a\u60c5\u7eea\u8bf4\u51fa\u6765',
                           maxLines: 1,
                           overflow: TextOverflow.visible,
@@ -503,7 +503,7 @@ class _HeroAccentSpark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return const SizedBox(
       width: 24,
       height: 24,
       child: CustomPaint(
@@ -669,8 +669,8 @@ class _LoginCard extends StatelessWidget {
             onTap: isLoading ? null : onLogin,
           ),
           const SizedBox(height: 26),
-          Row(
-            children: const [
+          const Row(
+            children: [
               Expanded(child: Divider(color: Color(0xFFE8DCD6), thickness: 1)),
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
@@ -1000,10 +1000,10 @@ class _IosLoginOption extends StatelessWidget {
               border: Border.all(
                   color: Colors.white.withValues(alpha: 0.9), width: 1.4),
               boxShadow: [
-                BoxShadow(
-                  color: const Color(0x14DDA999),
+                const BoxShadow(
+                  color: Color(0x14DDA999),
                   blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  offset: Offset(0, 10),
                 ),
                 BoxShadow(
                   color: Colors.white.withValues(alpha: 0.46),
