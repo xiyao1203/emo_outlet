@@ -67,7 +67,7 @@ class TargetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> generateAvatar(String targetId) async {
+  Future<TargetModel?> generateAvatar(String targetId) async {
     final result = await _api.generateAvatar(targetId);
     final updated = TargetModel.fromJson(result);
     final idx = _targets.indexWhere((t) => t.id == targetId);
@@ -78,6 +78,7 @@ class TargetProvider extends ChangeNotifier {
       _currentTarget = updated;
     }
     notifyListeners();
+    return updated;
   }
 
   Future<Map<String, dynamic>?> aiComplete(

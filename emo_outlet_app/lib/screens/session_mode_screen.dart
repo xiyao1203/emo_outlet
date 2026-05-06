@@ -382,6 +382,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
           EmoAvatar(
             label: avatarEmojiByType(target.type),
             background: avatarBgByType(target.type),
+            imageUrl: target.avatarUrl,
             size: 60,
           ),
           const SizedBox(width: 14),

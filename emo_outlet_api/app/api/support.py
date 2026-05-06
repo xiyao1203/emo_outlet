@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,9 +13,12 @@ from app.models.user import UserModel
 from app.schemas.support import (
     SupportFeedbackCreateRequest,
     SupportFeedbackResponse,
+    SpeechSynthesizeRequest,
+    SpeechSynthesizeResponse,
     UserPreferenceResponse,
     UserPreferenceUpdateRequest,
 )
+from app.services.ai_service import ai_service
 
 router = APIRouter(prefix="/api/support", tags=["support"])
 
@@ -105,3 +108,20 @@ async def update_preferences(
     await db.flush()
     await db.refresh(preference)
     return _preference_response(preference)
+
+
+@router.post("/tts/synthesize", response_model=SpeechSynthesizeResponse)
+async def synthesize_speech(
+    req: SpeechSynthesizeRequest,
+    current_user: UserModel = Depends(get_current_user),
+):
+    try:
+        payload = await ai_service.synthesize_speech(
+            text=req.text,
+            dialect=req.dialect,
+            voice=req.voice,
+            user_id=current_user.id,
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
+    return SpeechSynthesizeResponse(**payload)

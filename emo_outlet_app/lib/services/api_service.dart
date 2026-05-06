@@ -279,4 +279,17 @@ class ApiService {
     final response = await _dio.put('/support/preferences', data: data);
     return Map<String, dynamic>.from(response.data as Map);
   }
+
+  Future<Map<String, dynamic>> synthesizeSpeech({
+    required String text,
+    required String dialect,
+    required String voice,
+  }) async {
+    final response = await _dio.post('/support/tts/synthesize', data: {
+      'text': text,
+      'dialect': dialect,
+      'voice': voice,
+    });
+    return Map<String, dynamic>.from(response.data as Map);
+  }
 }

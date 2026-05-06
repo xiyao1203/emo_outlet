@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -10,6 +12,7 @@ import '../config/constants.dart';
 import '../models/message_model.dart';
 import '../models/session_model.dart';
 import '../providers/app_providers.dart';
+import '../services/api_service.dart';
 import '../widgets/auth/auth_visuals.dart';
 import '../widgets/common/emo_ui.dart';
 import 'home_screen.dart';
@@ -24,24 +27,25 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  final ApiService _api = ApiService();
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final stt.SpeechToText _speech = stt.SpeechToText();
-  final FlutterTts _tts = FlutterTts();
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   Timer? _timer;
   bool _timeoutShown = false;
   bool _isListening = false;
-  bool _isSpeaking = false;
   bool _voiceAutoplay = true;
   int _lastMessageCount = 0;
   String? _spokenSignature;
   String? _speakingSignature;
+  String _voice = 'alloy';
 
   @override
   void initState() {
     super.initState();
-    _setupTts();
+    _bindPlayerState();
     _loadVoicePreferences();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final provider = context.read<SessionProvider>();
@@ -60,37 +64,20 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _setupTts() async {
-    await _tts.awaitSpeakCompletion(false);
-    await _tts.setSpeechRate(0.42);
-    await _tts.setVolume(1.0);
-    await _tts.setPitch(1.0);
-    _tts.setStartHandler(() {
-      if (mounted) setState(() => _isSpeaking = true);
+  void _bindPlayerState() {
+    _audioPlayer.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _speakingSignature = null;
+      });
     });
-    _tts.setCompletionHandler(() {
-      if (mounted) {
-        setState(() {
-          _isSpeaking = false;
-          _speakingSignature = null;
-        });
-      }
-    });
-    _tts.setCancelHandler(() {
-      if (mounted) {
-        setState(() {
-          _isSpeaking = false;
-          _speakingSignature = null;
-        });
-      }
-    });
-    _tts.setErrorHandler((_) {
-      if (mounted) {
-        setState(() {
-          _isSpeaking = false;
-          _speakingSignature = null;
-        });
-      }
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (!mounted) return;
+      setState(() {
+        if (state != PlayerState.playing) {
+          _speakingSignature ??= null;
+        }
+      });
     });
   }
 
@@ -99,75 +86,31 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) return;
     setState(() {
       _voiceAutoplay = prefs.getBool(AppConstants.voiceAutoplayKey) ?? true;
+      final cachedVoice = prefs.getString(AppConstants.voiceOptionKey);
+      _voice = AppConstants.ttsVoiceLabels.containsKey(cachedVoice)
+          ? cachedVoice!
+          : 'alloy';
     });
   }
 
-  Future<void> _saveVoiceAutoplay(bool value) async {
+  Future<void> _saveVoicePreferences() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(AppConstants.voiceAutoplayKey, value);
+    await prefs.setBool(AppConstants.voiceAutoplayKey, _voiceAutoplay);
+    await prefs.setString(AppConstants.voiceOptionKey, _voice);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _speech.stop();
-    _tts.stop();
+    _audioPlayer.dispose();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  String _dialectLocale(String dialect) {
-    switch (dialect) {
-      case '粤语':
-        return 'zh-HK';
-      case '四川话':
-      case '东北话':
-      case '上海话':
-      case '普通话':
-      default:
-        return 'zh-CN';
-    }
-  }
-
   String _messageSignature(MessageModel message) {
     return '${message.id ?? ''}|${message.createdAt?.toIso8601String() ?? ''}|${message.content}';
-  }
-
-  Future<void> _speakMessage(MessageModel message) async {
-    final session = context.read<SessionProvider>().currentSession;
-    final dialect = session?.dialect ?? '普通话';
-    final signature = _messageSignature(message);
-    setState(() => _speakingSignature = signature);
-    try {
-      await _tts.stop();
-      await _tts.setLanguage(_dialectLocale(dialect));
-      await _tts.speak(message.content);
-    } catch (_) {
-      if (!mounted) return;
-      _showTopMessage('当前设备暂不支持语音播报');
-      setState(() {
-        _isSpeaking = false;
-        _speakingSignature = null;
-      });
-    }
-  }
-
-  Future<void> _stopSpeaking() async {
-    await _tts.stop();
-    if (!mounted) return;
-    setState(() {
-      _isSpeaking = false;
-      _speakingSignature = null;
-    });
-  }
-
-  Future<void> _toggleVoiceAutoplay() async {
-    final next = !_voiceAutoplay;
-    setState(() => _voiceAutoplay = next);
-    await _saveVoiceAutoplay(next);
-    if (!mounted) return;
-    _showTopMessage(next ? '已开启 AI 回复自动播报' : '已关闭 AI 回复自动播报');
   }
 
   Future<void> _toggleVoiceInput() async {
@@ -263,6 +206,119 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
     setState(() {});
     await provider.sendMessage(text);
+  }
+
+  Future<void> _stopSpeaking() async {
+    await _audioPlayer.stop();
+    if (!mounted) return;
+    setState(() {
+      _speakingSignature = null;
+    });
+  }
+
+  Future<void> _toggleVoiceAutoplay() async {
+    setState(() => _voiceAutoplay = !_voiceAutoplay);
+    await _saveVoicePreferences();
+    if (!mounted) return;
+    _showTopMessage(_voiceAutoplay ? '已开启自动播报' : '已关闭自动播报');
+  }
+
+  Future<void> _pickVoice() async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return SafeArea(
+          top: false,
+          child: EmoSectionCard(
+            radius: 28,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 42,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE7D8D0),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                const Text(
+                  '选择播报音色',
+                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 10),
+                for (final entry in AppConstants.ttsVoiceLabels.entries)
+                  InkWell(
+                    onTap: () => Navigator.of(context).pop(entry.key),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 14,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              entry.value,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          if (_voice == entry.key)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFFFF6F54),
+                              size: 20,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (selected == null) return;
+    setState(() => _voice = selected);
+    await _saveVoicePreferences();
+    if (!mounted) return;
+    _showTopMessage('已切换到 ${AppConstants.ttsVoiceLabels[selected]} 音色');
+  }
+
+  Future<void> _playMessage(MessageModel message) async {
+    final session = context.read<SessionProvider>().currentSession;
+    final signature = _messageSignature(message);
+    final dialectCode =
+        AppConstants.dialectMap[session?.dialect ?? '普通话'] ?? 'mandarin';
+    setState(() => _speakingSignature = signature);
+    try {
+      final payload = await _api.synthesizeSpeech(
+        text: message.content,
+        dialect: dialectCode,
+        voice: _voice,
+      );
+      final audioBase64 = payload['audio_base64'] as String? ?? '';
+      if (audioBase64.isEmpty) {
+        throw Exception('empty-audio');
+      }
+      final bytes = Uint8List.fromList(base64Decode(audioBase64));
+      await _audioPlayer.stop();
+      await _audioPlayer.play(BytesSource(bytes));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _speakingSignature = null;
+      });
+      _showTopMessage('语音播报生成失败，请稍后再试');
+    }
   }
 
   Future<void> _showTimeoutDialog() async {
@@ -394,7 +450,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _spokenSignature = signature;
     if (_voiceAutoplay) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _speakMessage(last);
+        if (mounted) _playMessage(last);
       });
     }
   }
@@ -447,6 +503,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       EmoAvatar(
                         label: avatarEmojiByType(target?.type ?? 'boss'),
                         background: avatarBgByType(target?.type ?? 'boss'),
+                        imageUrl: target?.avatarUrl,
                         size: 52,
                       ),
                       const SizedBox(width: 12),
@@ -548,16 +605,11 @@ class _ChatScreenState extends State<ChatScreen> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: _VoiceTogglePill(
-                                icon: _isSpeaking
-                                    ? Icons.stop_circle_rounded
-                                    : Icons.play_circle_fill_rounded,
-                                label: _isSpeaking ? '停止播报' : '播放最新回复',
-                                active: _isSpeaking,
-                                onTap: messages.isNotEmpty && messages.last.isAi
-                                    ? () => _isSpeaking
-                                        ? _stopSpeaking()
-                                        : _speakMessage(messages.last)
-                                    : null,
+                                icon: Icons.record_voice_over_rounded,
+                                label:
+                                    '当前音色：${AppConstants.ttsVoiceLabels[_voice] ?? '晴暖'}',
+                                active: false,
+                                onTap: _pickVoice,
                               ),
                             ),
                           ],
@@ -625,13 +677,14 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: _MessageBubble(
                                 message: msg,
                                 targetType: target?.type ?? 'boss',
+                                targetAvatarUrl: target?.avatarUrl,
                                 isSpeaking:
                                     _speakingSignature == _messageSignature(msg),
                                 onSpeak: msg.isAi
                                     ? () => _speakingSignature ==
                                             _messageSignature(msg)
                                         ? _stopSpeaking()
-                                        : _speakMessage(msg)
+                                        : _playMessage(msg)
                                     : null,
                               ),
                             ),
@@ -861,12 +914,14 @@ class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
     required this.message,
     required this.targetType,
+    required this.targetAvatarUrl,
     required this.isSpeaking,
     required this.onSpeak,
   });
 
   final MessageModel message;
   final String targetType;
+  final String? targetAvatarUrl;
   final bool isSpeaking;
   final VoidCallback? onSpeak;
 
@@ -905,14 +960,14 @@ class _MessageBubble extends StatelessWidget {
                 EmoAvatar(
                   label: avatarEmojiByType(targetType),
                   background: avatarBgByType(targetType),
+                  imageUrl: targetAvatarUrl,
                   size: 40,
                 ),
                 const SizedBox(width: 10),
               ],
               Flexible(
-                child: Column(
-                  crossAxisAlignment:
-                      user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                child: Stack(
+                  clipBehavior: Clip.none,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -952,55 +1007,47 @@ class _MessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (!user && onSpeak != null) ...[
-                      const SizedBox(height: 8),
-                      InkWell(
-                        onTap: onSpeak,
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 7,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSpeaking
-                                ? const Color(0x14FF7A60)
-                                : Colors.white.withValues(alpha: 0.78),
+                    if (!user && onSpeak != null)
+                      Positioned(
+                        right: -4,
+                        bottom: -8,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onSpeak,
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: isSpeaking
-                                  ? const Color(0x33FF7A60)
-                                  : const Color(0x1FE5D9D4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
+                            child: Ink(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x14000000),
+                                    blurRadius: 10,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: isSpeaking
+                                      ? const Color(0x33FF7A60)
+                                      : const Color(0x1FE5D9D4),
+                                ),
+                              ),
+                              child: Icon(
                                 isSpeaking
-                                    ? Icons.stop_circle_rounded
+                                    ? Icons.stop_rounded
                                     : Icons.volume_up_rounded,
                                 size: 16,
                                 color: isSpeaking
                                     ? const Color(0xFFFF6E53)
                                     : const Color(0xFF8B837D),
                               ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isSpeaking ? '停止播报' : '语音播放',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isSpeaking
-                                      ? const Color(0xFFFF6E53)
-                                      : const Color(0xFF6F6660),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ],
                   ],
                 ),
               ),

@@ -44,3 +44,16 @@ class UserPreferenceUpdateRequest(BaseModel):
     system_notification: bool | None = None
     dialect: str | None = None
     wechat_bound: bool | None = None
+
+
+class SpeechSynthesizeRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=1200)
+    dialect: str = Field(default="mandarin")
+    voice: str = Field(default="alloy", max_length=40)
+
+
+class SpeechSynthesizeResponse(BaseModel):
+    audio_base64: str
+    mime_type: str = "audio/mpeg"
+    voice: str
+    dialect: str

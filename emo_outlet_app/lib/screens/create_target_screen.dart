@@ -184,7 +184,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                               ),
                               const SizedBox(height: 6),
                               const Text(
-                                '先补全外貌和性格，再生成更贴近记忆的对象形象',
+                                '先补全外貌和性格，再生成更贴近记忆的对象形象。',
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   height: 1.4,
@@ -262,7 +262,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                   ),
                   const SizedBox(height: 18),
                   GradientPrimaryButton(
-                    text: _isSubmitting ? '生成中...' : '生成并保存对象',
+                    text: _isSubmitting ? '保存中...' : '生成并保存对象',
                     height: 56,
                     fontSize: 15.5,
                     onTap: _isSubmitting ? null : _handleCreate,

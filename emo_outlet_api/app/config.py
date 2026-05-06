@@ -57,9 +57,14 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gpt-4o-mini"
     IMAGE_MODEL: str = "dall-e-3"
     IMAGE_SIZE: str = "1024x1024"
+    IMAGE_QUALITY: str = "high"
+    IMAGE_STYLE: str = "vivid"
 
     ASR_PROVIDER: str = "mock"
     TTS_PROVIDER: str = "mock"
+    TTS_MODEL: str = "gpt-4o-mini-tts"
+    TTS_VOICE: str = "alloy"
+    TTS_FORMAT: str = "mp3"
 
     OSS_ENABLED: bool = False
     OSS_ACCESS_KEY: str = ""

@@ -7,8 +7,10 @@ import '../providers/app_providers.dart';
 import '../widgets/auth/auth_visuals.dart';
 import '../widgets/common/app_bottom_nav.dart';
 import '../widgets/common/emo_ui.dart';
+import 'avatar_result_screen.dart';
 import 'home_screen.dart';
-import 'target_detail_screen.dart';
+
+enum _AvatarGenerationState { loading, success, failure }
 
 class GenerateAvatarScreen extends StatefulWidget {
   const GenerateAvatarScreen({super.key});
@@ -18,33 +20,91 @@ class GenerateAvatarScreen extends StatefulWidget {
 }
 
 class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
-  late Timer _timer;
-  double _progress = 0.12;
+  Timer? _timer;
+  double _progress = 0.08;
+  _AvatarGenerationState _state = _AvatarGenerationState.loading;
+  String _status = '正在分析外貌与性格描述...';
+  String _error = '';
 
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 350), (timer) {
+    _startGeneration();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startProgressTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
+      if (!mounted || _state != _AvatarGenerationState.loading) {
+        timer.cancel();
+        return;
+      }
       setState(() {
-        _progress += 0.08;
-        if (_progress >= 0.78) {
-          _progress = 0.78;
-          timer.cancel();
+        _progress += 0.06;
+        if (_progress > 0.9) {
+          _progress = 0.9;
+        }
+        if (_progress < 0.36) {
+          _status = '正在分析外貌与性格描述...';
+        } else if (_progress < 0.72) {
+          _status = '正在根据风格生成漫画头像...';
+        } else {
+          _status = '正在优化光影、表情和细节...';
         }
       });
     });
   }
 
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
+  Future<void> _startGeneration() async {
+    final provider = context.read<TargetProvider>();
+    final current = provider.currentTarget;
+    final targetId = current?.id;
+    if (targetId == null) {
+      setState(() {
+        _state = _AvatarGenerationState.failure;
+        _error = '还没有可生成的对象信息，请先完成创建。';
+      });
+      return;
+    }
+
+    setState(() {
+      _state = _AvatarGenerationState.loading;
+      _progress = 0.08;
+      _status = '正在分析外貌与性格描述...';
+      _error = '';
+    });
+    _startProgressTimer();
+
+    try {
+      await provider.generateAvatar(targetId);
+      if (!mounted) return;
+      _timer?.cancel();
+      setState(() {
+        _progress = 1;
+        _state = _AvatarGenerationState.success;
+        _status = '生成完成，已经为你准备好预览。';
+      });
+    } catch (error) {
+      if (!mounted) return;
+      _timer?.cancel();
+      setState(() {
+        _state = _AvatarGenerationState.failure;
+        _error = '形象生成失败了，请检查服务配置后重试。';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final target = context.watch<TargetProvider>().currentTarget;
     final current = target;
+
     return EmoPageScaffold(
       bottomNavigationBar: AppBottomNav(
         currentIndex: 1,
@@ -98,22 +158,37 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                         child: EmoAvatar(
                           label: avatarEmojiByType(current?.type ?? 'boss'),
                           background: avatarBgByType(current?.type ?? 'boss'),
+                          imageUrl: _state == _AvatarGenerationState.success
+                              ? current?.avatarUrl
+                              : null,
                           size: 152,
                         ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    '正在为你生成专属形象',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  Text(
+                    _state == _AvatarGenerationState.failure
+                        ? '生成失败'
+                        : _state == _AvatarGenerationState.success
+                            ? '形象生成完成'
+                            : '正在为你生成专属形象',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '请稍候，马上就好...',
+                  Text(
+                    _state == _AvatarGenerationState.failure
+                        ? _error
+                        : _status,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 12.5,
-                      color: Color(0xFFC8A79A),
+                      fontSize: 12.8,
+                      color: _state == _AvatarGenerationState.failure
+                          ? const Color(0xFFCC5C54)
+                          : const Color(0xFFC8A79A),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -131,17 +206,22 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(999),
                             child: LinearProgressIndicator(
-                              value: _progress,
-                            minHeight: 20,
+                              value: _state == _AvatarGenerationState.failure
+                                  ? null
+                                  : _progress,
+                              minHeight: 20,
                               backgroundColor: const Color(0xFFF7E8E0),
                               valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xFFFF7B7A)),
+                                Color(0xFFFF7B7A),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 14),
                         Text(
-                          '${(_progress * 100).round()}%',
+                          _state == _AvatarGenerationState.failure
+                              ? '--'
+                              : '${(_progress * 100).round()}%',
                           style: const TextStyle(
                             fontSize: 13.5,
                             fontWeight: FontWeight.w700,
@@ -152,27 +232,30 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const Row(
+                  Row(
                     children: [
                       Expanded(
                         child: _StepChip(
                           title: '分析描述',
-                          active: false,
-                          done: true,
+                          active: _progress < 0.36,
+                          done: _progress >= 0.36,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: _StepChip(
-                          title: '生成形象',
-                          active: true,
+                          title: '生成图像',
+                          active: _progress >= 0.36 && _progress < 0.9,
+                          done: _progress >= 0.9,
                         ),
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: _StepChip(
                           title: '优化细节',
-                          active: false,
+                          active: _progress >= 0.9 &&
+                              _state == _AvatarGenerationState.loading,
+                          done: _state == _AvatarGenerationState.success,
                         ),
                       ),
                     ],
@@ -182,12 +265,15 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                     radius: 24,
                     child: Row(
                       children: [
-                        Icon(Icons.lightbulb_outline_rounded,
-                            color: Color(0xFFFFB356), size: 28),
+                        Icon(
+                          Icons.lightbulb_outline_rounded,
+                          color: Color(0xFFFFB356),
+                          size: 28,
+                        ),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            '小提示：形象会根据外貌、性格和关系描述进行生成',
+                            '会结合外貌、性格和风格标签生成更贴近记忆的漫画头像。',
                             style: TextStyle(
                               fontSize: 12.5,
                               height: 1.45,
@@ -203,20 +289,33 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            GradientPrimaryButton(
-              text: '生成完成后查看详情',
-              height: 54,
-              fontSize: 15.5,
-              onTap: () {
-                if (current != null) {
+            if (_state == _AvatarGenerationState.loading)
+              const GradientPrimaryButton(
+                text: '生成中，请稍候',
+                height: 54,
+                fontSize: 15.5,
+                onTap: null,
+              )
+            else if (_state == _AvatarGenerationState.success)
+              GradientPrimaryButton(
+                text: '查看生成结果',
+                height: 54,
+                fontSize: 15.5,
+                onTap: () {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
-                      builder: (_) => TargetDetailScreen(target: current),
+                      builder: (_) => const AvatarResultScreen(),
                     ),
                   );
-                }
-              },
-            ),
+                },
+              )
+            else
+              GradientPrimaryButton(
+                text: '重新生成',
+                height: 54,
+                fontSize: 15.5,
+                onTap: _startGeneration,
+              ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -273,14 +274,26 @@ class EmoAvatar extends StatelessWidget {
     required this.label,
     required this.background,
     this.size = 88,
+    this.imageUrl,
   });
 
   final String label;
   final Color background;
   final double size;
+  final String? imageUrl;
+
+  ImageProvider? _avatarProvider() {
+    final value = imageUrl?.trim();
+    if (value == null || value.isEmpty) return null;
+    if (value.startsWith('data:image')) {
+      return MemoryImage(base64Decode(value.split(',').last));
+    }
+    return NetworkImage(value);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = _avatarProvider();
     return Container(
       width: size,
       height: size,
@@ -295,16 +308,26 @@ class EmoAvatar extends StatelessWidget {
           ],
         ),
       ),
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: size * 0.38,
-            fontWeight: FontWeight.w700,
-            color: const Color(0xFF4F3E38),
-          ),
-        ),
-      ),
+      clipBehavior: Clip.antiAlias,
+      child: provider != null
+          ? DecoratedBox(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: provider,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            )
+          : Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: size * 0.38,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF4F3E38),
+                ),
+              ),
+            ),
     );
   }
 }

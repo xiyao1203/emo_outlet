@@ -74,6 +74,7 @@ class AppConstants {
   static const String userKey = 'user_data';
   static const String onboardingKey = 'onboarding_complete';
   static const String voiceAutoplayKey = 'voice_autoplay_enabled';
+  static const String voiceOptionKey = 'tts_voice_option';
 
   static const int maxDailyFreeSessions = 3;
   static const int maxMessageLength = 5000;
@@ -83,6 +84,14 @@ class AppConstants {
   static const String complianceVersion = '1.0.0';
   static const String ageRangeKey = 'user_age_range';
   static const List<String> ageRangeOptions = ['<14', '14-18', '>18'];
+
+  static const Map<String, String> ttsVoiceLabels = {
+    'alloy': '晴暖',
+    'nova': '轻柔',
+    'sage': '知性',
+    'shimmer': '元气',
+    'echo': '沉稳',
+  };
 
   static const int navIndexHome = 0;
   static const int navIndexTarget = 1;

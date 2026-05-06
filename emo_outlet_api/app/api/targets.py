@@ -152,11 +152,18 @@ async def generate_avatar(
     if target is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target not found")
 
-    target.avatar_url = await image_service.generate_avatar(
-        appearance=target.appearance or "默认形象",
-        personality=target.personality or "温和",
-        style=target.style,
-    )
+    try:
+        target.avatar_url = await image_service.generate_avatar(
+            appearance=target.appearance or "柔和、亲切、让人有安全感",
+            personality=target.personality or "温和、愿意倾听",
+            style=target.style or "Q版",
+        )
+    except RuntimeError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(exc),
+        ) from exc
+
     db.add(target)
     await db.flush()
     await db.refresh(target)

@@ -127,6 +127,25 @@ class AiService:
             pass
         return key
 
+    def _preferred_voice_prompt(self, dialect: str) -> str:
+        prompts = {
+            "mandarin": "用自然、温柔、像朋友陪伴一样的普通话朗读，语速平稳。",
+            "cantonese": "用自然亲切的粤语口语风格朗读，保持清晰、温柔、像真人在说话。",
+            "sichuan": "用带一点四川话语气的方式朗读，保持轻松自然，不要过度夸张。",
+            "northeastern": "用自然东北口语语气朗读，像熟人聊天一样接地气，但不要喊叫。",
+            "shanghainese": "用温和的上海话口吻朗读，优先保证自然和可听懂。",
+        }
+        return prompts.get(dialect, prompts["mandarin"])
+
+    def _image_style_prompt(self, style: str) -> str:
+        prompts = {
+            "Q版": "Q版治愈漫画头像，头身比偏可爱，表情生动，适合情绪陪伴类 App。",
+            "手绘": "细腻手绘插画头像，线条柔和，质感温暖，像高质量角色设定图。",
+            "温和": "温柔治愈系半写实头像，色彩柔和，氛围轻暖，亲和力强。",
+            "夸张": "夸张漫画头像，表情和动作更有戏剧性，但仍然要可爱、精致、可用。",
+        }
+        return prompts.get(style, prompts["Q版"])
+
     async def chat(
         self,
         user_message: str,
@@ -204,6 +223,41 @@ class AiService:
 
         if self._mock_mode or client is None:
             return self._local_complete_target_profile(clean_name, clean_relationship)
+
+    async def synthesize_speech(
+        self,
+        text: str,
+        dialect: str = "mandarin",
+        voice: str = "alloy",
+        user_id: str | None = None,
+    ) -> dict[str, str]:
+        client = self._get_client()
+        if client is None:
+            raise RuntimeError("当前未配置可用的语音播报服务")
+
+        content = text.strip()
+        if not content:
+            raise RuntimeError("语音播报内容为空")
+
+        try:
+            response = await client.audio.speech.create(
+                model=settings.TTS_MODEL,
+                voice=voice or settings.TTS_VOICE,
+                input=content[:1200],
+                response_format=settings.TTS_FORMAT,
+                instructions=self._preferred_voice_prompt(dialect),
+            )
+            audio_bytes = await response.aread()
+            if not audio_bytes:
+                raise RuntimeError("语音服务未返回音频数据")
+            return {
+                "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
+                "mime_type": "audio/mpeg",
+                "voice": voice or settings.TTS_VOICE,
+                "dialect": dialect,
+            }
+        except Exception as exc:
+            raise RuntimeError(f"语音播报服务调用失败: {type(exc).__name__}") from exc
 
         prompt = (
             "你是角色设定助手。请根据对象称呼和关系，补全一个适合情绪倾诉场景的对象画像。"
@@ -525,11 +579,11 @@ class AiService:
 
 
 class ImageService:
-    async def generate_avatar(
+    def _fallback_avatar(
         self,
         appearance: str,
         personality: str,
-        style: str = "Q版",
+        style: str,
     ) -> str:
         seed = hashlib.md5(
             f"{appearance}|{personality}|{style}".encode("utf-8")
@@ -560,6 +614,47 @@ class ImageService:
 </svg>
 """.strip()
         return _svg_data_url(svg)
+
+    async def generate_avatar(
+        self,
+        appearance: str,
+        personality: str,
+        style: str = "Q版",
+    ) -> str:
+        client = ai_service._get_client()
+        if client is None:
+            return self._fallback_avatar(appearance, personality, style)
+
+        prompt = (
+            "请生成一张情绪陪伴类 App 角色头像，单人、正面、背景干净、构图居中。"
+            f"{ai_service._image_style_prompt(style)}"
+            f"外貌与气质：{appearance or '亲和、柔软、带一点漫画感'}。"
+            f"性格感觉：{personality or '温柔、愿意倾听、容易让人放松'}。"
+            "要求高质感、可爱、适合移动端头像展示，不要文字、不要水印、不要多角色。"
+        )
+
+        try:
+            response = await client.images.generate(
+                model=settings.IMAGE_MODEL,
+                prompt=prompt,
+                size=settings.IMAGE_SIZE,
+                quality=settings.IMAGE_QUALITY,
+                style=settings.IMAGE_STYLE,
+                output_format="png",
+                response_format="b64_json",
+            )
+            item = response.data[0] if response.data else None
+            if item is None:
+                raise RuntimeError("图像服务未返回结果")
+            if getattr(item, "b64_json", None):
+                return f"data:image/png;base64,{item.b64_json}"
+            if getattr(item, "url", None):
+                return item.url
+            raise RuntimeError("图像服务返回格式不支持")
+        except Exception as exc:
+            if settings.DEBUG:
+                return self._fallback_avatar(appearance, personality, style)
+            raise RuntimeError(f"图像生成失败: {type(exc).__name__}") from exc
 
 
 ai_service = AiService()

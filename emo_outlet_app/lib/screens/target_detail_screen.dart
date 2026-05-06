@@ -73,6 +73,7 @@ class TargetDetailScreen extends StatelessWidget {
                       EmoAvatar(
                         label: avatarEmojiByType(current.type),
                         background: avatarBgByType(current.type),
+                        imageUrl: current.avatarUrl,
                         size: 92,
                       ),
                       const SizedBox(width: 18),
@@ -82,11 +83,13 @@ class TargetDetailScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  current.name,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
+                                Flexible(
+                                  child: Text(
+                                    current.name,
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -99,7 +102,7 @@ class TargetDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              current.relationship ?? '管理你的泄愤对象',
+                              current.relationship ?? '把想说的话安全地留给这个对象。',
                               style: const TextStyle(
                                 fontSize: 13,
                                 height: 1.5,
@@ -108,13 +111,20 @@ class TargetDetailScreen extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 16),
-                            Row(
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
                               children: [
-                                _softTag(Icons.work_outline_rounded, '工作关系',
-                                    const Color(0xFF7CA6F3)),
-                                const SizedBox(width: 10),
-                                _softTag(Icons.bolt_rounded, '压力触发',
-                                    const Color(0xFFFFA14B)),
+                                _softTag(
+                                  Icons.work_outline_rounded,
+                                  current.typeLabel,
+                                  color,
+                                ),
+                                _softTag(
+                                  Icons.auto_awesome_rounded,
+                                  current.style,
+                                  const Color(0xFFFFA14B),
+                                ),
                               ],
                             ),
                           ],
@@ -131,9 +141,7 @@ class TargetDetailScreen extends StatelessWidget {
                           height: 54,
                           fontSize: 16,
                           onTap: () {
-                            context
-                                .read<TargetProvider>()
-                                .setCurrentTarget(current);
+                            context.read<TargetProvider>().setCurrentTarget(current);
                             Navigator.of(context).push(
                               MaterialPageRoute(
                                 builder: (_) => const SessionModeScreen(),
@@ -150,8 +158,7 @@ class TargetDetailScreen extends StatelessWidget {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    EditTargetScreen(target: current),
+                                builder: (_) => EditTargetScreen(target: current),
                               ),
                             );
                           },
@@ -166,29 +173,28 @@ class TargetDetailScreen extends StatelessWidget {
             _detailCard(
               icon: Icons.face_rounded,
               title: '外貌描述',
-              body: current.appearance ?? '中年男性，戴眼镜，发型整齐，穿着正式，给人一种严谨、专业的感觉。',
+              body: current.appearance ?? '还没有补充外貌特征。',
               color: const Color(0xFFFF8A76),
             ),
             const SizedBox(height: 14),
             _detailCard(
               icon: Icons.star_rounded,
               title: '性格描述',
-              body: current.personality ?? '做事认真，对细节要求高，追求完美，有时显得比较严厉和固执。',
+              body: current.personality ?? '还没有补充性格特征。',
               color: const Color(0xFFFF8B70),
             ),
             const SizedBox(height: 14),
             _detailCard(
               icon: Icons.people_alt_rounded,
               title: '关系描述',
-              body: current.relationship ?? '我的直属上司，负责团队管理和项目决策，对我的工作表现有直接影响。',
+              body: current.relationship ?? '还没有补充关系描述。',
               color: const Color(0xFFFF7B63),
             ),
             const SizedBox(height: 14),
             _detailCard(
               icon: Icons.bolt_rounded,
               title: '触发事件',
-              body: current.triggers ??
-                  '• 工作出现失误或进度延迟时\n• 方案未达到他的预期时\n• 当众指出问题或批评我时',
+              body: current.triggers ?? '还没有补充触发事件。',
               color: const Color(0xFFFF915C),
             ),
           ],
@@ -232,44 +238,44 @@ class TargetDetailScreen extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(minHeight: 132),
         child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color.withValues(alpha: 0.12),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(alpha: 0.12),
+              ),
+              child: Icon(icon, color: color, size: 24),
             ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: 18),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15.5,
-                    fontWeight: FontWeight.w800,
-                    color: Color(0xFF211B18),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF211B18),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  body,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    height: 1.5,
-                    color: Color(0xFF6D6560),
-                    fontWeight: FontWeight.w500,
+                  const SizedBox(height: 10),
+                  Text(
+                    body,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.5,
+                      color: Color(0xFF6D6560),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
         ),
       ),
     );
