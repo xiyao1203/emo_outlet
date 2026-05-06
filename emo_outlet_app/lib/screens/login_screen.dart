@@ -431,7 +431,7 @@ class _LoginHero extends StatelessWidget {
                             Text(
                               '\u6b22\u8fce\u56de\u6765',
                               style: TextStyle(
-                                fontSize: 27,
+                              fontSize: 25,
                                 fontWeight: FontWeight.w800,
                                 height: 1.02,
                                 color: AuthPalette.textPrimary,
@@ -450,7 +450,7 @@ class _LoginHero extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.visible,
                           style: TextStyle(
-                            fontSize: 13.5,
+                            fontSize: 13,
                             color: AuthPalette.textSecondary,
                             height: 1.2,
                             fontWeight: FontWeight.w600,
@@ -613,7 +613,7 @@ class _LoginCard extends StatelessWidget {
               controller: phoneController,
               keyboardType: TextInputType.phone,
               style: const TextStyle(
-                fontSize: 17,
+                fontSize: 16,
                 color: AuthPalette.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
@@ -633,7 +633,7 @@ class _LoginCard extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     maxLength: 6,
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       color: AuthPalette.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -798,7 +798,7 @@ class _LoginCard extends StatelessWidget {
       counterText: counterText,
       hintText: hint,
       hintStyle: const TextStyle(
-        fontSize: 16,
+        fontSize: 15.5,
         color: Color(0xFFB2A6A0),
         fontWeight: FontWeight.w500,
       ),
@@ -807,7 +807,7 @@ class _LoginCard extends StatelessWidget {
         color: const Color(0xFFFF7A66),
         size: 22,
       ),
-      contentPadding: const EdgeInsets.symmetric(vertical: 19),
+      contentPadding: const EdgeInsets.symmetric(vertical: 18),
     );
   }
 }
@@ -994,8 +994,8 @@ class _IosLoginOption extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 84,
-            height: 84,
+            width: 78,
+            height: 78,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -1029,11 +1029,11 @@ class _IosLoginOption extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             label,
             style: const TextStyle(
-              fontSize: 14.5,
+              fontSize: 13.5,
               color: Color(0xFF5E5450),
               fontWeight: FontWeight.w500,
             ),

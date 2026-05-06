@@ -7,6 +7,7 @@ import '../config/constants.dart';
 import '../providers/app_providers.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/common/emo_ui.dart';
 import '../widgets/common/soft_ui.dart';
 import 'posters_screen.dart';
 import 'profile_detail_screen.dart';
@@ -72,204 +73,229 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = AuthService().currentUser;
-    final nickname = user?.nickname ?? '用户';
+    final nickname = user?.nickname?.trim().isNotEmpty == true
+        ? user!.nickname!.trim()
+        : '游客用户';
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: Column(
-        children: [
-          const SizedBox(height: 4),
-          const Text(
-            '我的',
-            style: TextStyle(
-              fontSize: 21,
-              fontWeight: FontWeight.w700,
-              color: SoftColors.text,
-            ),
-          ),
-          const SizedBox(height: 24),
-          SoftCard(
-            padding: EdgeInsets.zero,
-            child: InkWell(
-              onTap: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                      builder: (_) => const ProfileDetailScreen()),
-                );
-                await AuthService().refreshProfile();
-                if (mounted) {
-                  setState(() {});
-                }
-              },
-              borderRadius: BorderRadius.circular(28),
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 86,
-                      height: 86,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFF8D8C8), Color(0xFFFFF1E8)],
-                        ),
-                        image: _avatarProvider(user?.avatarUrl) != null
-                            ? DecorationImage(
-                                image: _avatarProvider(user?.avatarUrl)!,
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
-                      child: user?.avatarUrl?.isNotEmpty == true
-                          ? null
-                          : const Icon(
-                              Icons.person_rounded,
-                              size: 42,
-                              color: Color(0xFFB57A55),
-                            ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontal = EmoResponsive.edgePadding(width);
+
+        return SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 24),
+          child: EmoResponsiveContent(
+            width: width,
+            maxWidth: 760,
+            child: Column(
+              children: [
+                const SizedBox(height: 4),
+                const Text(
+                  '我的',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: SoftColors.text,
+                  ),
+                ),
+                const SizedBox(height: 22),
+                SoftCard(
+                  padding: EdgeInsets.zero,
+                  child: InkWell(
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const ProfileDetailScreen()),
+                      );
+                      await AuthService().refreshProfile();
+                      if (mounted) setState(() {});
+                    },
+                    borderRadius: BorderRadius.circular(26),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
                         children: [
-                          Text(
-                            nickname,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: SoftColors.text,
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFF8D8C8), Color(0xFFFFF1E8)],
+                              ),
+                              image: _avatarProvider(user?.avatarUrl) != null
+                                  ? DecorationImage(
+                                      image: _avatarProvider(user?.avatarUrl)!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: user?.avatarUrl?.isNotEmpty == true
+                                ? null
+                                : const Icon(
+                                    Icons.person_rounded,
+                                    size: 38,
+                                    color: Color(0xFFB57A55),
+                                  ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  nickname,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: SoftColors.text,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  '点击进入个人资料与头像设置',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: SoftColors.subtext,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            '点击进入个人资料编辑',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: SoftColors.subtext,
-                            ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Color(0xFFA7ABB3),
+                            size: 24,
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
-                      Icons.chevron_right_rounded,
-                      color: Color(0xFFA7ABB3),
-                      size: 26,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        title: '我的对象',
+                        value: _loading ? '--' : '$_targetCount',
+                        hint: '管理你在意的人',
+                        actionText: '去查看',
+                        onTap: () => widget.onSwitchTab?.call(AppConstants.navIndexTarget),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _StatCard(
+                        title: '累计释放',
+                        value: _loading ? '--' : '$_sessionCount',
+                        hint: '真实对话次数累计',
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: SoftCard(
+                const SizedBox(height: 16),
+                SoftCard(
+                  padding: EdgeInsets.zero,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        '我的对象',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: SoftColors.text,
-                        ),
+                      _ProfileMenuEntry(
+                        icon: Icons.image_rounded,
+                        colors: const [Color(0xFFFFE1D6), Color(0xFFFF9164)],
+                        title: '我的海报',
+                        subtitle: _latestPosterId == null
+                            ? '完成一次会话后，这里会出现你的情绪海报'
+                            : '查看与管理最近生成的海报',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => MyPostersScreen(posterId: _latestPosterId),
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _loading ? '--' : '$_targetCount',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: SoftColors.text,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () => widget.onSwitchTab
-                            ?.call(AppConstants.navIndexTarget),
-                        child: const Text('去查看'),
+                      _ProfileMenuEntry(
+                        icon: Icons.settings_rounded,
+                        colors: const [Color(0xFFE2DFFF), Color(0xFF9B82FF)],
+                        title: '设置中心',
+                        subtitle: '账号安全、通知偏好和隐私设置',
+                        showDivider: false,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                          );
+                        },
                       ),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: SoftCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        '累计释放',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: SoftColors.text,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        _loading ? '--' : '$_sessionCount',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: SoftColors.text,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        '这些次数都来自真实会话记录',
-                        style:
-                            TextStyle(fontSize: 13, color: SoftColors.subtext),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          SoftCard(
-            padding: EdgeInsets.zero,
-            child: Column(
-              children: [
-                _ProfileMenuEntry(
-                  icon: Icons.image_rounded,
-                  colors: const [Color(0xFFFFE1D6), Color(0xFFFF9164)],
-                  title: '我的海报',
-                  subtitle: _latestPosterId == null
-                      ? '暂无海报，完成一次会话后就会出现'
-                      : '查看与管理最近生成的海报',
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            MyPostersScreen(posterId: _latestPosterId),
-                      ),
-                    );
-                  },
-                ),
-                _ProfileMenuEntry(
-                  icon: Icons.settings_rounded,
-                  colors: const [Color(0xFFE2DFFF), Color(0xFF9B82FF)],
-                  title: '设置中心',
-                  subtitle: '偏好设置与账户管理',
-                  showDivider: false,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                    );
-                  },
                 ),
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.title,
+    required this.value,
+    required this.hint,
+    this.actionText,
+    this.onTap,
+  });
+
+  final String title;
+  final String value;
+  final String hint;
+  final String? actionText;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SoftCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: SoftColors.text,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              color: SoftColors.text,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            hint,
+            style: const TextStyle(fontSize: 12.5, color: SoftColors.subtext),
+          ),
+          if (actionText != null && onTap != null) ...[
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: onTap,
+              child: Text(
+                actionText!,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: SoftColors.coral,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

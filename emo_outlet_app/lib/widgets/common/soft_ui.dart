@@ -72,7 +72,7 @@ class SoftHeader extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 21,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -89,8 +89,8 @@ class SoftCard extends StatelessWidget {
   const SoftCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
-    this.radius = 28,
+    this.padding = const EdgeInsets.all(15),
+    this.radius = 26,
   });
 
   final Widget child;
@@ -106,9 +106,9 @@ class SoftCard extends StatelessWidget {
         border: Border.all(color: Colors.white, width: 1.4),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1DE9C8BC),
-            blurRadius: 28,
-            offset: Offset(0, 12),
+            color: Color(0x16E9C8BC),
+            blurRadius: 22,
+            offset: Offset(0, 10),
           ),
         ],
       ),
@@ -123,8 +123,8 @@ class SoftGradientButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onTap,
-    this.height = 56,
-    this.fontSize = 16,
+    this.height = 54,
+    this.fontSize = 15.5,
   });
 
   final String text;
@@ -176,7 +176,7 @@ class SoftOutlineButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onTap,
-    this.height = 54,
+    this.height = 52,
     this.textColor = SoftColors.text,
   });
 
@@ -203,7 +203,7 @@ class SoftOutlineButton extends StatelessWidget {
             child: Text(
               text,
               style: TextStyle(
-                fontSize: 15,
+                fontSize: 14.5,
                 fontWeight: FontWeight.w600,
                 color: textColor,
               ),
@@ -276,7 +276,7 @@ class SoftListTile extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 15.5,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: SoftColors.text,
                   ),
@@ -286,7 +286,7 @@ class SoftListTile extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       height: 1.4,
                       color: SoftColors.subtext,
                     ),

@@ -127,8 +127,8 @@ class EmoSectionCard extends StatelessWidget {
   const EmoSectionCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
-    this.radius = 28,
+    this.padding = const EdgeInsets.all(15),
+    this.radius = 26,
   });
 
   final Widget child;
@@ -144,9 +144,9 @@ class EmoSectionCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.82)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x16E7B9AB),
-            blurRadius: 26,
-            offset: Offset(0, 12),
+            color: Color(0x14E7B9AB),
+            blurRadius: 22,
+            offset: Offset(0, 10),
           ),
         ],
       ),
@@ -161,7 +161,7 @@ class EmoRoundIconButton extends StatelessWidget {
     super.key,
     required this.icon,
     required this.onTap,
-    this.size = 48,
+    this.size = 46,
   });
 
   final IconData icon;

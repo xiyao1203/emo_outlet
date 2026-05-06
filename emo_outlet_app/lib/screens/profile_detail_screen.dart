@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/common/emo_ui.dart';
 import '../widgets/common/soft_ui.dart';
 
 class ProfileDetailScreen extends StatefulWidget {
@@ -56,9 +57,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       if (!mounted) return;
       setState(() => _error = '加载个人资料失败');
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -70,9 +69,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       if (!mounted) return;
       setState(() => _profile = result);
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -168,9 +165,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                 for (final option in options)
                   SoftListTile(
                     leading: SoftIconBadge(
-                      icon: option == current
-                          ? Icons.check_rounded
-                          : Icons.circle_outlined,
+                      icon: option == current ? Icons.check_rounded : Icons.circle_outlined,
                       colors: option == current
                           ? const [Color(0xFFFFD8CA), Color(0xFFFF8F66)]
                           : const [Color(0xFFE9EDF4), Color(0xFFBBC2CD)],
@@ -190,9 +185,13 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   String _stringValue(String key) {
     final value = _profile[key];
-    if (value == null) return '-';
-    final text = '$value'.trim();
-    return text.isEmpty ? '-' : text;
+    if (value == null) return '';
+    return '$value'.trim();
+  }
+
+  String _displayValue(String key, {String empty = '未设置'}) {
+    final text = _stringValue(key);
+    return text.isEmpty ? empty : text;
   }
 
   ImageProvider<Object>? _avatarProvider(String? value) {
@@ -201,30 +200,6 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
       return MemoryImage(base64Decode(value.split(',').last));
     }
     return NetworkImage(value);
-  }
-
-  Widget _trailingValue(String value, {bool withArrow = true}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 150),
-          child: Text(
-            value,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 14, color: SoftColors.subtext),
-          ),
-        ),
-        if (withArrow) ...[
-          const SizedBox(width: 10),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: Color(0xFFA3A6AE),
-            size: 22,
-          ),
-        ],
-      ],
-    );
   }
 
   Future<void> _showNicknameDialog() async {
@@ -285,7 +260,7 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
                 const SizedBox(height: 18),
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFFFFD2C2)),
                     color: Colors.white.withValues(alpha: 0.86),
                   ),
@@ -345,217 +320,244 @@ class _ProfileDetailScreenState extends State<ProfileDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SoftPage(
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontal = EmoResponsive.edgePadding(width);
+
+        return SoftPage(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _error != null
+                  ? Center(
+                      child: Text(
                         _error!,
-                        style: const TextStyle(color: SoftColors.text),
+                        style: const TextStyle(fontSize: 14, color: SoftColors.subtext),
                       ),
-                      const SizedBox(height: 12),
-                      SoftOutlineButton(text: '重试', onTap: _load),
-                    ],
-                  ),
-                )
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-                  child: Column(
-                    children: [
-                      SoftHeader(
-                        title: '个人资料',
-                        onBack: () => Navigator.of(context).pop(),
-                      ),
-                      const SizedBox(height: 22),
-                      SoftCard(
-                        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-                        child: Row(
+                    )
+                  : SingleChildScrollView(
+                      padding: EdgeInsets.fromLTRB(horizontal, 18, horizontal, 24),
+                      child: EmoResponsiveContent(
+                        width: width,
+                        maxWidth: 760,
+                        child: Column(
                           children: [
-                            InkWell(
-                              onTap: _isSaving ? null : _changeAvatar,
-                              borderRadius: BorderRadius.circular(999),
-                              child: Stack(
-                                clipBehavior: Clip.none,
+                            SoftHeader(
+                              title: '个人资料',
+                              onBack: () => Navigator.of(context).pop(),
+                            ),
+                            const SizedBox(height: 18),
+                            SoftCard(
+                              child: Row(
                                 children: [
-                                  Container(
-                                    width: 96,
-                                    height: 96,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 3,
+                                  Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 88,
+                                        height: 88,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: Colors.white, width: 3),
+                                          gradient: const LinearGradient(
+                                            colors: [Color(0xFFF8D8C8), Color(0xFFFFF1E8)],
+                                          ),
+                                          image: _avatarProvider(_stringValue('avatar_url')) != null
+                                              ? DecorationImage(
+                                                  image: _avatarProvider(_stringValue('avatar_url'))!,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : null,
+                                        ),
+                                        child: _stringValue('avatar_url').isNotEmpty
+                                            ? null
+                                            : const Icon(
+                                                Icons.person_rounded,
+                                                size: 42,
+                                                color: Color(0xFFB57A55),
+                                              ),
                                       ),
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(0xFFF9D9CB),
-                                          Color(0xFFFFF2E9),
-                                        ],
-                                      ),
-                                      image: _avatarProvider(
-                                                _profile['avatar_url']
-                                                    as String?,
-                                              ) !=
-                                              null
-                                          ? DecorationImage(
-                                              image: _avatarProvider(
-                                                _profile['avatar_url']
-                                                    as String?,
-                                              )!,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : null,
-                                    ),
-                                    child: (_profile['avatar_url'] as String?)
-                                                ?.isNotEmpty ==
-                                            true
-                                        ? null
-                                        : const Center(
-                                            child: Icon(
-                                              Icons.person_rounded,
-                                              size: 46,
-                                              color: Color(0xFFB77A55),
+                                      Positioned(
+                                        right: -2,
+                                        bottom: -2,
+                                        child: InkWell(
+                                          onTap: _isSaving ? null : _changeAvatar,
+                                          borderRadius: BorderRadius.circular(999),
+                                          child: Container(
+                                            width: 34,
+                                            height: 34,
+                                            decoration: BoxDecoration(
+                                              color: SoftColors.coral,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: Colors.white, width: 2),
+                                            ),
+                                            child: const Icon(
+                                              Icons.photo_camera_outlined,
+                                              color: Colors.white,
+                                              size: 18,
                                             ),
                                           ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Positioned(
-                                    right: -2,
-                                    bottom: 4,
-                                    child: Container(
-                                      width: 38,
-                                      height: 38,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white,
-                                      ),
-                                      child: const Icon(
-                                        Icons.camera_alt_rounded,
-                                        color: Color(0xFFFF946A),
-                                        size: 20,
-                                      ),
+                                  const SizedBox(width: 16),
+                                  const Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '头像',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w700,
+                                            color: SoftColors.text,
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          '点击头像可从相册更换，支持同步更新到你的账号资料。',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            height: 1.5,
+                                            color: SoftColors.subtext,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 14),
-                            const Expanded(
+                            const SizedBox(height: 16),
+                            SoftCard(
+                              padding: EdgeInsets.zero,
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    '头像',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: SoftColors.text,
+                                  SoftListTile(
+                                    leading: const SoftIconBadge(
+                                      icon: Icons.person_rounded,
+                                      colors: [Color(0xFFFFD8CA), Color(0xFFFF9166)],
+                                    ),
+                                    title: '昵称',
+                                    trailing: _ValueArrow(text: _displayValue('nickname', empty: '游客用户')),
+                                    onTap: _showNicknameDialog,
+                                  ),
+                                  SoftListTile(
+                                    leading: const SoftIconBadge(
+                                      icon: Icons.badge_outlined,
+                                      colors: [Color(0xFFDDEEFF), Color(0xFF7FB4FF)],
+                                    ),
+                                    title: '用户 ID',
+                                    trailing: _ValueArrow(
+                                      text: _displayValue('user_id', empty: _displayValue('id')),
+                                      withArrow: false,
                                     ),
                                   ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    '点击更换头像',
-                                    style: TextStyle(
-                                      fontSize: 13.5,
-                                      color: SoftColors.subtext,
+                                  SoftListTile(
+                                    leading: const SoftIconBadge(
+                                      icon: Icons.favorite_rounded,
+                                      colors: [Color(0xFFFFD5E2), Color(0xFFFF86A6)],
                                     ),
+                                    title: '个性签名',
+                                    subtitle: _displayValue('signature', empty: '拥抱情绪，遇见更好的自己'),
+                                    trailing: const Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: Color(0xFFA3A6AE),
+                                    ),
+                                    showDivider: false,
+                                    onTap: _showSignatureDialog,
                                   ),
                                 ],
                               ),
                             ),
-                            if (_isSaving)
-                              const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
+                            const SizedBox(height: 16),
+                            SoftCard(
+                              padding: EdgeInsets.zero,
+                              child: Column(
+                                children: [
+                                  SoftListTile(
+                                    leading: const SoftIconBadge(
+                                      icon: Icons.wc_rounded,
+                                      colors: [Color(0xFFE8D7FF), Color(0xFFB289FF)],
+                                    ),
+                                    title: '性别',
+                                    trailing: _ValueArrow(text: _displayValue('gender', empty: '未设置')),
+                                    onTap: _selectGender,
+                                  ),
+                                  SoftListTile(
+                                    leading: const SoftIconBadge(
+                                      icon: Icons.cake_rounded,
+                                      colors: [Color(0xFFFFECC7), Color(0xFFFFBC62)],
+                                    ),
+                                    title: '生日',
+                                    trailing: _ValueArrow(text: _displayValue('birthday', empty: '未设置')),
+                                    onTap: _selectBirthday,
+                                  ),
+                                  SoftListTile(
+                                    leading: const SoftIconBadge(
+                                      icon: Icons.location_on_rounded,
+                                      colors: [Color(0xFFDDF8E8), Color(0xFF65D39D)],
+                                    ),
+                                    title: '所在地区',
+                                    trailing: _ValueArrow(text: _displayValue('region', empty: '未设置')),
+                                    showDivider: false,
+                                    onTap: _selectRegion,
+                                  ),
+                                ],
                               ),
+                            ),
+                            if (_isSaving) ...[
+                              const SizedBox(height: 16),
+                              const Text(
+                                '正在保存资料...',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: SoftColors.subtext,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
-                      const SizedBox(height: 18),
-                      SoftCard(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          children: [
-                            SoftListTile(
-                              leading: const SoftIconBadge(
-                                icon: Icons.person_rounded,
-                                colors: [Color(0xFFFFC7B3), Color(0xFFFF8E66)],
-                              ),
-                              title: '昵称',
-                              trailing:
-                                  _trailingValue(_stringValue('nickname')),
-                              onTap: _showNicknameDialog,
-                            ),
-                            SoftListTile(
-                              leading: const SoftIconBadge(
-                                icon: Icons.badge_rounded,
-                                colors: [Color(0xFFD9EEFF), Color(0xFF69B6FF)],
-                              ),
-                              title: '用户ID',
-                              trailing: _trailingValue(
-                                _stringValue('user_id'),
-                                withArrow: false,
-                              ),
-                            ),
-                            SoftListTile(
-                              leading: const SoftIconBadge(
-                                icon: Icons.favorite_rounded,
-                                colors: [Color(0xFFFFDCE7), Color(0xFFFF638E)],
-                              ),
-                              title: '个性签名',
-                              trailing:
-                                  _trailingValue(_stringValue('signature')),
-                              onTap: _showSignatureDialog,
-                              showDivider: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      SoftCard(
-                        padding: EdgeInsets.zero,
-                        child: Column(
-                          children: [
-                            SoftListTile(
-                              leading: const SoftIconBadge(
-                                icon: Icons.transgender_rounded,
-                                colors: [Color(0xFFF0DFFF), Color(0xFFB170FF)],
-                              ),
-                              title: '性别',
-                              trailing: _trailingValue(_stringValue('gender')),
-                              onTap: _selectGender,
-                            ),
-                            SoftListTile(
-                              leading: const SoftIconBadge(
-                                icon: Icons.cake_rounded,
-                                colors: [Color(0xFFFFE5B8), Color(0xFFFFB548)],
-                              ),
-                              title: '生日',
-                              trailing:
-                                  _trailingValue(_stringValue('birthday')),
-                              onTap: _selectBirthday,
-                            ),
-                            SoftListTile(
-                              leading: const SoftIconBadge(
-                                icon: Icons.place_rounded,
-                                colors: [Color(0xFFD8F7E6), Color(0xFF38D57B)],
-                              ),
-                              title: '所在地区',
-                              trailing: _trailingValue(_stringValue('region')),
-                              onTap: _selectRegion,
-                              showDivider: false,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+        );
+      },
+    );
+  }
+}
+
+class _ValueArrow extends StatelessWidget {
+  const _ValueArrow({
+    required this.text,
+    this.withArrow = true,
+  });
+
+  final String text;
+  final bool withArrow;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 160),
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13.5, color: SoftColors.subtext),
+          ),
+        ),
+        if (withArrow) ...[
+          const SizedBox(width: 10),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: Color(0xFFA3A6AE),
+            size: 22,
+          ),
+        ],
+      ],
     );
   }
 }

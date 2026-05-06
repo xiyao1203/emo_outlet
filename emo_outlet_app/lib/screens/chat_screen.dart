@@ -22,6 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
   final stt.SpeechToText _speech = stt.SpeechToText();
+
   Timer? _timer;
   bool _timeoutShown = false;
   bool _isListening = false;
@@ -30,12 +31,6 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<SessionProvider>();
-      if (provider.messages.isEmpty) {
-        _seedMessages(provider);
-      }
-    });
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final provider = context.read<SessionProvider>();
       if (!provider.isRunning) return;
@@ -44,66 +39,8 @@ class _ChatScreenState extends State<ChatScreen> {
         _timeoutShown = true;
         _showTimeoutDialog();
       }
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     });
-  }
-
-  void _seedMessages(SessionProvider provider) {
-    final session = provider.currentSession;
-    if (session == null) return;
-    final id = session.id ?? 'session_local';
-    final now = DateTime.now();
-    if (session.mode == SessionMode.single) {
-      provider.seedMessages([
-        MessageModel(
-          sessionId: id,
-          content: '我真的受够了，明明我已经很努力了，还是一直被否定。',
-          sender: MessageSender.user,
-          createdAt: now.subtract(const Duration(minutes: 4)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '我在听，你可以把最想说的那句话先说出来。',
-          sender: MessageSender.ai,
-          createdAt: now.subtract(const Duration(minutes: 4)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '他们总把问题丢给我，出了事又像全是我的责任。',
-          sender: MessageSender.user,
-          createdAt: now.subtract(const Duration(minutes: 3)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '这份委屈我接住了，你继续说，我陪你把它讲完整。',
-          sender: MessageSender.ai,
-          createdAt: now.subtract(const Duration(minutes: 3)),
-        ),
-      ]);
-    } else {
-      provider.seedMessages([
-        MessageModel(
-          sessionId: id,
-          content: '最近你对我的不满，好像已经积了很久。',
-          sender: MessageSender.ai,
-          createdAt: now.subtract(const Duration(minutes: 4)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '是，你总是临时改需求，根本不考虑我这边的节奏。',
-          sender: MessageSender.user,
-          createdAt: now.subtract(const Duration(minutes: 4)),
-        ),
-        MessageModel(
-          sessionId: id,
-          content: '我听见了，你生气不是没理由的，我们可以把最刺的点讲清楚。',
-          sender: MessageSender.ai,
-          createdAt: now.subtract(const Duration(minutes: 3)),
-        ),
-      ]);
-    }
   }
 
   @override
@@ -118,9 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _toggleVoiceInput() async {
     if (_isListening) {
       await _speech.stop();
-      if (mounted) {
-        setState(() => _isListening = false);
-      }
+      if (mounted) setState(() => _isListening = false);
       return;
     }
 
@@ -149,9 +84,8 @@ class _ChatScreenState extends State<ChatScreen> {
         if (!mounted) return;
         setState(() {
           _controller.text = result.recognizedWords;
-          _controller.selection = TextSelection.fromPosition(
-            TextPosition(offset: _controller.text.length),
-          );
+          _controller.selection =
+              TextSelection.collapsed(offset: _controller.text.length);
           _isListening = !result.finalResult;
         });
       },
@@ -220,24 +154,28 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('⏰', style: TextStyle(fontSize: 62)),
+              const Text('⏰', style: TextStyle(fontSize: 52)),
               const SizedBox(height: 16),
               const Text(
                 '时间到了',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AuthPalette.textPrimary,
+                ),
               ),
               const SizedBox(height: 12),
               const Text(
-                '这次释放时间已经结束，要不要再给自己一分钟，把最后想说的话说完？',
+                '这次释放时间已经结束。要不要再给自己 1 分钟，把最后想说的话说完？',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14.5,
                   color: Color(0xFF6D6662),
                   fontWeight: FontWeight.w500,
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 22),
               OutlineSoftButton(
                 text: '延长 1 分钟',
                 onTap: () {
@@ -246,11 +184,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   Navigator.of(ctx).pop();
                 },
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               GradientPrimaryButton(
                 text: '结束释放',
                 height: 54,
-                fontSize: 17,
+                fontSize: 16.5,
                 onTap: () {
                   Navigator.of(ctx).pop();
                   _showEndConfirmDialog();
@@ -275,32 +213,36 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const EmoDecorationCloud(size: 120),
+              const EmoDecorationCloud(size: 108),
               const Text(
                 '确认结束释放？',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: AuthPalette.textPrimary,
+                ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               const Text(
-                '结束后会停止本次对话，并进入情绪总结与海报生成。',
+                '结束后会停止本次对话，并进入历史记录与情绪报告。',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 14.5,
                   height: 1.5,
                   color: Color(0xFF6D6662),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
               EmoGradientOutlineButton(
                 text: '继续释放',
                 onTap: () => Navigator.of(ctx).pop(),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               GradientPrimaryButton(
-                text: '结束并生成总结',
-                height: 58,
-                fontSize: 18,
+                text: '结束并查看记录',
+                height: 56,
+                fontSize: 16.5,
                 onTap: () {
                   provider.endSession();
                   provider.clearCurrentSession();
@@ -334,261 +276,327 @@ class _ChatScreenState extends State<ChatScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_scrollController.hasClients) return;
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 120,
+          _scrollController.position.maxScrollExtent + 140,
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOut,
         );
       });
     }
 
-    return EmoPageScaffold(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
-            child: Row(
-              children: [
-                EmoRoundIconButton(
-                  icon: Icons.chevron_left_rounded,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                const SizedBox(width: 12),
-                EmoAvatar(
-                  label: avatarEmojiByType(target?.type ?? 'boss'),
-                  background: avatarBgByType(target?.type ?? 'boss'),
-                  size: 60,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              session?.targetName ?? '未命名对象',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          EmoTypePill(
-                            text: dual ? '双向模式' : '单向模式',
-                            color: const Color(0xFFFF7D5D),
-                            background: const Color(0x14FF7D5D),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        dual ? '正在双向交流，慢慢说清楚你的感受' : '本次倾诉剩余时间',
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          color: Color(0xFF86807B),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.64),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: const Color(0x30FF7D5D)),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final horizontal = EmoResponsive.edgePadding(width);
+
+        return EmoPageScaffold(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(horizontal, 16, horizontal, 10),
+                child: EmoResponsiveContent(
+                  width: width,
+                  maxWidth: 760,
                   child: Row(
                     children: [
-                      const Icon(
-                        Icons.access_time_rounded,
-                        color: Color(0xFFFF6E53),
+                      EmoRoundIconButton(
+                        icon: Icons.chevron_left_rounded,
+                        onTap: () => Navigator.of(context).pop(),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        provider.formattedTime,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFFF6E53),
+                      const SizedBox(width: 12),
+                      EmoAvatar(
+                        label: avatarEmojiByType(target?.type ?? 'boss'),
+                        background: avatarBgByType(target?.type ?? 'boss'),
+                        size: 52,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    session?.targetName ?? '未命名对象',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: AuthPalette.textPrimary,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                EmoTypePill(
+                                  text: dual ? '双向聊天' : '单向倾诉',
+                                  color: const Color(0xFFFF7D5D),
+                                  background: const Color(0x14FF7D5D),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              dual ? '让对话慢慢变清楚，也让感受被接住' : '先把情绪说出来，不急着解决问题',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF86807B),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(width: 10),
+                      _TimerChip(timeText: provider.formattedTime),
                     ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontal),
+                child: EmoResponsiveContent(
+                  width: width,
+                  maxWidth: 760,
+                  child: EmoSectionCard(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                    child: Row(
+                      children: [
+                        Icon(
+                          dual ? Icons.forum_rounded : Icons.favorite_border_rounded,
+                          color: dual ? const Color(0xFF8D73FF) : const Color(0xFFFF8D73),
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            dual
+                                ? '双向模式进行中，AI 会带着你选择的人格来回应你。'
+                                : '单向模式进行中，AI 会先倾听和接住你的情绪。',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.45,
+                              color: Color(0xFF726964),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const EmoDecorationCloud(size: 72),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              if (provider.sendError != null) ...[
+                const SizedBox(height: 10),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontal),
+                  child: EmoResponsiveContent(
+                    width: width,
+                    maxWidth: 760,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: const Color(0x14FF6B5D),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0x33FF6B5D)),
+                      ),
+                      child: Text(
+                        provider.sendError!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFFCC5C54),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            child: EmoSectionCard(
-              padding: const EdgeInsets.fromLTRB(18, 16, 14, 16),
-              child: Row(
-                children: [
-                  Icon(
-                    dual ? Icons.forum_rounded : Icons.favorite_border_rounded,
-                    color: dual
-                        ? const Color(0xFF8D73FF)
-                        : const Color(0xFFFF8D73),
-                    size: 22,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      dual
-                          ? '双向模式进行中，Ta 会回应你，你也能听见自己的情绪被接住。'
-                          : '单向倾诉中，AI 会先倾听和接纳，不会和你争辩。',
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        height: 1.45,
-                        color: Color(0xFF726964),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const EmoDecorationCloud(size: 82),
-                ],
-              ),
-            ),
-          ),
-          if (provider.sendError != null) ...[
-            const SizedBox(height: 10),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: Container(
-                width: double.infinity,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-                decoration: BoxDecoration(
-                  color: const Color(0x14FF6B5D),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0x33FF6B5D)),
-                ),
-                child: Text(
-                  provider.sendError!,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    color: Color(0xFFCC5C54),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              itemCount: totalCount,
-              itemBuilder: (context, index) {
-                if (index >= messages.length) {
-                  return _TypingBubble(targetType: target?.type ?? 'boss');
-                }
-                final msg = messages[index];
-                return _MessageBubble(
-                  message: msg,
-                  targetType: target?.type ?? 'boss',
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              18,
-              10,
-              18,
-              MediaQuery.of(context).padding.bottom + 10,
-            ),
-            child: EmoSectionCard(
-              radius: 28,
-              padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      minLines: 1,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: _isListening ? '正在听你说话...' : '把想说的话说出来',
-                        hintStyle: const TextStyle(
-                          fontSize: 15,
-                          color: Color(0xFFBCB8B5),
-                          fontWeight: FontWeight.w500,
+              const SizedBox(height: 12),
+              Expanded(
+                child: messages.isEmpty && !provider.isSending
+                    ? Padding(
+                        padding: EdgeInsets.symmetric(horizontal: horizontal),
+                        child: EmoResponsiveContent(
+                          width: width,
+                          maxWidth: 760,
+                          child: const _ChatEmptyState(),
                         ),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  InkWell(
-                    onTap: _toggleVoiceInput,
-                    borderRadius: BorderRadius.circular(999),
-                    child: Ink(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _isListening
-                            ? const Color(0x14FF6D5E)
-                            : const Color(0x0FF2F2F2),
-                        border: Border.all(
-                          color: _isListening
-                              ? const Color(0x44FF6D5E)
-                              : Colors.transparent,
-                        ),
-                      ),
-                      child: Icon(
-                        _isListening
-                            ? Icons.graphic_eq_rounded
-                            : Icons.mic_none_rounded,
-                        color: _isListening
-                            ? const Color(0xFFFF6D5E)
-                            : const Color(0xFF8F8F8F),
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  InkWell(
-                    onTap: provider.isSending ? null : _send,
-                    borderRadius: BorderRadius.circular(999),
-                    child: Ink(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: provider.isSending
-                            ? const LinearGradient(
-                                colors: [Color(0xFFFFC0A6), Color(0xFFFF9CAA)],
-                              )
-                            : const LinearGradient(
-                                colors: [Color(0xFFFF9863), Color(0xFFFF5A6A)],
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: EdgeInsets.symmetric(horizontal: horizontal),
+                        itemCount: totalCount,
+                        itemBuilder: (context, index) {
+                          if (index >= messages.length) {
+                            return _TypingBubble(
+                              targetType: target?.type ?? 'boss',
+                              dual: dual,
+                            );
+                          }
+                          final msg = messages[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 2),
+                            child: EmoResponsiveContent(
+                              width: width,
+                              maxWidth: 760,
+                              child: _MessageBubble(
+                                message: msg,
+                                targetType: target?.type ?? 'boss',
                               ),
+                            ),
+                          );
+                        },
                       ),
-                      child: const Icon(
-                        Icons.send_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  horizontal,
+                  10,
+                  horizontal,
+                  MediaQuery.of(context).padding.bottom + 10,
+                ),
+                child: EmoResponsiveContent(
+                  width: width,
+                  maxWidth: 760,
+                  child: EmoSectionCard(
+                    radius: 24,
+                    padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            constraints: const BoxConstraints(minHeight: 52),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.82),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: const Color(0xFFEDE5E0)),
+                            ),
+                            child: TextField(
+                              controller: _controller,
+                              minLines: 1,
+                              maxLines: 4,
+                              textAlignVertical: TextAlignVertical.center,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                hintText: _isListening ? '正在听你说话...' : '把想说的话慢慢说出来',
+                                hintStyle: const TextStyle(
+                                  fontSize: 14.5,
+                                  color: Color(0xFFBCB8B5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 15,
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                                color: AuthPalette.textPrimary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        _ActionCircle(
+                          active: _isListening,
+                          icon: _isListening
+                              ? Icons.graphic_eq_rounded
+                              : Icons.mic_none_rounded,
+                          onTap: _toggleVoiceInput,
+                        ),
+                        const SizedBox(width: 10),
+                        _SendCircle(
+                          sending: provider.isSending,
+                          onTap: provider.isSending ? null : _send,
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TimerChip extends StatelessWidget {
+  const _TimerChip({required this.timeText});
+
+  final String timeText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.64),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0x30FF7D5D)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.access_time_rounded,
+            color: Color(0xFFFF6E53),
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            timeText,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFFFF6E53),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ChatEmptyState extends StatelessWidget {
+  const _ChatEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: EmoSectionCard(
+        padding: EdgeInsets.fromLTRB(22, 26, 22, 26),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            EmoDecorationCloud(size: 112),
+            SizedBox(height: 12),
+            Text(
+              '从一句真实感受开始',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AuthPalette.textPrimary,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              '不用组织得很完整。想到什么，就先说什么。',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13.5,
+                height: 1.5,
+                color: Color(0xFF7A706A),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -609,46 +617,44 @@ class _MessageBubble extends StatelessWidget {
     final time = message.createdAt ?? DateTime.now();
     final hh = time.hour.toString().padLeft(2, '0');
     final mm = time.minute.toString().padLeft(2, '0');
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
-        crossAxisAlignment:
-            user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Padding(
             padding: EdgeInsets.only(
-              left: user ? 0 : 56,
-              right: user ? 12 : 0,
+              left: user ? 0 : 54,
+              right: user ? 8 : 0,
               bottom: 8,
             ),
             child: Text(
               '$hh:$mm',
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12.5,
                 color: Color(0xFFA7A2A0),
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
           Row(
-            mainAxisAlignment:
-                user ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment: user ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!user) ...[
                 EmoAvatar(
                   label: avatarEmojiByType(targetType),
                   background: avatarBgByType(targetType),
-                  size: 42,
+                  size: 40,
                 ),
                 const SizedBox(width: 10),
               ],
               Flexible(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                   decoration: BoxDecoration(
-                    color: user ? null : Colors.white.withValues(alpha: 0.82),
+                    color: user ? null : Colors.white.withValues(alpha: 0.86),
                     gradient: user
                         ? const LinearGradient(
                             colors: [Color(0xFFFFA15B), Color(0xFFFF5D63)],
@@ -660,12 +666,21 @@ class _MessageBubble extends StatelessWidget {
                       bottomLeft: Radius.circular(user ? 24 : 8),
                       bottomRight: Radius.circular(user ? 8 : 24),
                     ),
+                    boxShadow: user
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x18FF8B73),
+                              blurRadius: 18,
+                              offset: Offset(0, 8),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Text(
                     message.content,
                     style: TextStyle(
-                      fontSize: 15,
-                      height: 1.55,
+                      fontSize: 14.5,
+                      height: 1.58,
                       color: user ? Colors.white : const Color(0xFF4F4845),
                       fontWeight: FontWeight.w500,
                     ),
@@ -680,10 +695,37 @@ class _MessageBubble extends StatelessWidget {
   }
 }
 
-class _TypingBubble extends StatelessWidget {
-  const _TypingBubble({required this.targetType});
+class _TypingBubble extends StatefulWidget {
+  const _TypingBubble({
+    required this.targetType,
+    required this.dual,
+  });
 
   final String targetType;
+  final bool dual;
+
+  @override
+  State<_TypingBubble> createState() => _TypingBubbleState();
+}
+
+class _TypingBubbleState extends State<_TypingBubble>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 950),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -693,15 +735,15 @@ class _TypingBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           EmoAvatar(
-            label: avatarEmojiByType(targetType),
-            background: avatarBgByType(targetType),
-            size: 42,
+            label: avatarEmojiByType(widget.targetType),
+            background: avatarBgByType(widget.targetType),
+            size: 40,
           ),
           const SizedBox(width: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.82),
+              color: Colors.white.withValues(alpha: 0.86),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
@@ -709,19 +751,32 @@ class _TypingBubble extends StatelessWidget {
                 bottomLeft: Radius.circular(8),
               ),
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _Dot(),
-                SizedBox(width: 6),
-                _Dot(),
-                SizedBox(width: 6),
-                _Dot(),
-                SizedBox(width: 10),
+                AnimatedBuilder(
+                  animation: _controller,
+                  builder: (context, _) => Row(
+                    children: List.generate(3, (index) {
+                      final t = ((_controller.value + index * 0.18) % 1.0);
+                      final opacity = 0.35 + (1 - (t - 0.5).abs() * 2) * 0.65;
+                      return Container(
+                        margin: EdgeInsets.only(right: index == 2 ? 0 : 6),
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF8C78).withValues(alpha: opacity),
+                          shape: BoxShape.circle,
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 10),
                 Text(
-                  '正在输入...',
-                  style: TextStyle(
-                    fontSize: 14,
+                  widget.dual ? '模型思考中...' : '正在输入...',
+                  style: const TextStyle(
+                    fontSize: 13.5,
                     color: Color(0xFF8A817C),
                     fontWeight: FontWeight.w600,
                   ),
@@ -735,17 +790,82 @@ class _TypingBubble extends StatelessWidget {
   }
 }
 
-class _Dot extends StatelessWidget {
-  const _Dot();
+class _ActionCircle extends StatelessWidget {
+  const _ActionCircle({
+    required this.active,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final bool active;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 6,
-      height: 6,
-      decoration: const BoxDecoration(
-        color: Color(0xFFFF8C78),
-        shape: BoxShape.circle,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Ink(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: active ? const Color(0x14FF6D5E) : const Color(0xFFF4F2F0),
+          border: Border.all(
+            color: active ? const Color(0x44FF6D5E) : const Color(0xFFEAE3DE),
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: active ? const Color(0xFFFF6D5E) : const Color(0xFF8F8F8F),
+          size: 22,
+        ),
+      ),
+    );
+  }
+}
+
+class _SendCircle extends StatelessWidget {
+  const _SendCircle({
+    required this.sending,
+    required this.onTap,
+  });
+
+  final bool sending;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Ink(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: sending
+              ? const LinearGradient(
+                  colors: [Color(0xFFFFC0A6), Color(0xFFFF9CAA)],
+                )
+              : const LinearGradient(
+                  colors: [Color(0xFFFF9863), Color(0xFFFF5A6A)],
+                ),
+        ),
+        child: sending
+            ? const Padding(
+                padding: EdgeInsets.all(13),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Icon(
+                Icons.send_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
       ),
     );
   }

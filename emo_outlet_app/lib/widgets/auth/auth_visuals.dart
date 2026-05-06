@@ -526,26 +526,26 @@ class SocialIconWeChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      width: 40,
-      height: 40,
+      width: 34,
+      height: 34,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned(
-            left: 2,
-            bottom: 5,
+            left: 1,
+            bottom: 4,
             child: _WeChatBubble(
-              size: 23,
-              color: Color(0xFF22C45E),
+              size: 20,
+              color: Color(0xFF2BC84A),
               tailOnLeft: true,
             ),
           ),
           Positioned(
-            right: 1,
-            top: 2,
+            right: 0,
+            top: 1,
             child: _WeChatBubble(
-              size: 21,
-              color: Color(0xFF46D56F),
+              size: 18,
+              color: Color(0xFF5ED86B),
               tailOnLeft: false,
             ),
           ),
@@ -561,8 +561,8 @@ class SocialIconQQ extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      width: 40,
-      height: 40,
+      width: 34,
+      height: 34,
       child: CustomPaint(
         painter: _QqPenguinPainter(),
       ),
@@ -576,8 +576,8 @@ class SocialIconGuest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SizedBox(
-      width: 38,
-      height: 38,
+      width: 32,
+      height: 32,
       child: CustomPaint(
         painter: _GuestProfilePainter(),
       ),
@@ -678,15 +678,16 @@ class _QqPenguinPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final bluePaint = Paint()..color = const Color(0xFF4292F4);
+    final bluePaint = Paint()..color = const Color(0xFF3A82F6);
+    final darkPaint = Paint()..color = const Color(0xFF20242B);
     final whitePaint = Paint()..color = Colors.white;
 
     final body = RRect.fromRectAndRadius(
       Rect.fromLTWH(
-        size.width * 0.22,
+        size.width * 0.26,
         size.height * 0.12,
-        size.width * 0.56,
-        size.height * 0.64,
+        size.width * 0.48,
+        size.height * 0.62,
       ),
       Radius.circular(size.width * 0.28),
     );
@@ -695,60 +696,49 @@ class _QqPenguinPainter extends CustomPainter {
     final belly = RRect.fromRectAndRadius(
       Rect.fromLTWH(
         size.width * 0.31,
-        size.height * 0.28,
+        size.height * 0.29,
         size.width * 0.38,
-        size.height * 0.34,
+        size.height * 0.32,
       ),
       Radius.circular(size.width * 0.2),
     );
     canvas.drawRRect(belly, whitePaint);
 
     canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.18),
+      size.width * 0.1,
+      darkPaint,
+    );
+
+    canvas.drawCircle(
       Offset(size.width * 0.41, size.height * 0.24),
-      size.width * 0.032,
+      size.width * 0.022,
       whitePaint,
     );
     canvas.drawCircle(
       Offset(size.width * 0.59, size.height * 0.24),
-      size.width * 0.032,
+      size.width * 0.022,
       whitePaint,
     );
 
-    final feetPaint = Paint()..color = const Color(0xFF6EAFFF);
+    final feetPaint = Paint()..color = const Color(0xFFFFA541);
     canvas.drawOval(
       Rect.fromLTWH(
-        size.width * 0.24,
-        size.height * 0.66,
-        size.width * 0.18,
-        size.height * 0.12,
+        size.width * 0.26,
+        size.height * 0.68,
+        size.width * 0.16,
+        size.height * 0.11,
       ),
       feetPaint,
     );
     canvas.drawOval(
       Rect.fromLTWH(
         size.width * 0.58,
-        size.height * 0.66,
-        size.width * 0.18,
-        size.height * 0.12,
+        size.height * 0.68,
+        size.width * 0.16,
+        size.height * 0.11,
       ),
       feetPaint,
-    );
-
-    final tail = Path()
-      ..moveTo(size.width * 0.64, size.height * 0.64)
-      ..quadraticBezierTo(
-        size.width * 0.86,
-        size.height * 0.82,
-        size.width * 0.72,
-        size.height * 0.9,
-      );
-    canvas.drawPath(
-      tail,
-      Paint()
-        ..color = const Color(0xFF4292F4)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size.width * 0.08
-        ..strokeCap = StrokeCap.round,
     );
   }
 

@@ -6,9 +6,20 @@ from contextlib import ExitStack
 from pathlib import Path
 
 TEST_DB = Path(__file__).resolve().parent / "test_emo_outlet.db"
-os.environ["SQLITE_URL"] = f"sqlite+aiosqlite:///{TEST_DB.as_posix()}"
-os.environ["DATABASE_URL"] = ""
-os.environ["LLM_PROVIDER"] = "mock"
+TEST_ENV_FILE = Path(__file__).resolve().parent / ".test.env"
+TEST_ENV_FILE.write_text(
+    "\n".join(
+        [
+            'APP_NAME="情绪释放 API"',
+            "DEBUG=True",
+            "DATABASE_URL=",
+            f'SQLITE_URL="sqlite+aiosqlite:///{TEST_DB.as_posix()}"',
+            "LLM_PROVIDER=mock",
+        ]
+    ),
+    encoding="utf-8",
+)
+os.environ["EMO_OUTLET_ENV_FILE"] = str(TEST_ENV_FILE)
 
 from fastapi.testclient import TestClient
 
@@ -28,6 +39,8 @@ class ApiSmokeTest(unittest.TestCase):
         cls._stack.close()
         if TEST_DB.exists():
             TEST_DB.unlink()
+        if TEST_ENV_FILE.exists():
+            TEST_ENV_FILE.unlink()
 
     def test_full_backend_flow(self) -> None:
         register_response = self.client.post(
@@ -55,9 +68,9 @@ class ApiSmokeTest(unittest.TestCase):
                 "name": "老板",
                 "type": "boss",
                 "appearance": "穿西装，表情严肃",
-                "personality": "强势，容易甩锅",
+                "personality": "强势，容易给人压力",
                 "relationship": "直属领导",
-                "style": "漫画",
+                "style": "Q版",
             },
         )
         self.assertEqual(target_response.status_code, 201, target_response.text)

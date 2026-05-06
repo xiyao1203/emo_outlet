@@ -137,11 +137,11 @@ class SessionProvider extends ChangeNotifier {
     String dialect = '普通话',
     int durationMinutes = 3,
   }) async {
-    final String modeStr = mode == SessionMode.single ? 'single' : 'dual';
-    final String? chatStyleStr = chatStyle != null
+    final modeStr = mode == SessionMode.single ? 'single' : 'dual';
+    final chatStyleStr = chatStyle != null
         ? AppConstants.chatStyleMap.values.elementAt(chatStyle.index)
         : null;
-    final String dialectStr = AppConstants.dialectMap[dialect] ?? 'mandarin';
+    final dialectStr = AppConstants.dialectMap[dialect] ?? 'mandarin';
 
     final result = await _api.createSession({
       'target_id': targetId,
@@ -154,15 +154,14 @@ class SessionProvider extends ChangeNotifier {
     _messages = [];
     _remainingSeconds = durationMinutes * 60;
     _isRunning = true;
+    _sendError = null;
     notifyListeners();
     return _currentSession;
   }
 
   Future<void> sendMessage(String content) async {
     final sessionId = _currentSession?.id;
-    if (sessionId == null) {
-      return;
-    }
+    if (sessionId == null) return;
 
     final optimistic = MessageModel(
       sessionId: sessionId,
@@ -189,16 +188,10 @@ class SessionProvider extends ChangeNotifier {
 
   Future<void> loadMessages(String sessionId) async {
     final result = await _api.getMessages(sessionId);
-    final messageItems = (result['messages'] as List<dynamic>? ?? <dynamic>[])
+    _messages = (result['messages'] as List<dynamic>? ?? <dynamic>[])
         .map((item) => MessageModel.fromJson(Map<String, dynamic>.from(item as Map)))
         .toList();
-    _messages = messageItems;
     _remainingSeconds = result['remaining_seconds'] as int? ?? 0;
-    notifyListeners();
-  }
-
-  void seedMessages(List<MessageModel> messages) {
-    _messages = messages;
     notifyListeners();
   }
 
