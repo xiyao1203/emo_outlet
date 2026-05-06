@@ -94,7 +94,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                           const Text(
                             '\u6211\u7684\u5bf9\u8c61',
                             style: TextStyle(
-                              fontSize: 20,
+                              fontSize: 19,
                               fontWeight: FontWeight.w800,
                               color: AuthPalette.textPrimary,
                             ),
@@ -135,13 +135,13 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                     '\u641c\u7d22\u5bf9\u8c61\u540d\u79f0\u6216\u5173\u952e\u8bcd',
                                 hintStyle: TextStyle(
                                   color: Color(0xFFB3B3B3),
-                                  fontSize: 14,
+                                  fontSize: 13.5,
                                   fontWeight: FontWeight.w500,
                                 ),
                                 border: InputBorder.none,
                               ),
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 13.5,
                                 fontWeight: FontWeight.w500,
                                 color: AuthPalette.textPrimary,
                               ),
@@ -181,7 +181,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                       const TextSpan(
                                         text: '\u5171 ',
                                         style: TextStyle(
-                                          fontSize: 15.5,
+                                          fontSize: 14.5,
                                           fontWeight: FontWeight.w600,
                                           color: AuthPalette.textPrimary,
                                         ),
@@ -189,7 +189,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                       TextSpan(
                                         text: '${targets.length}',
                                         style: const TextStyle(
-                                          fontSize: 21,
+                                          fontSize: 19,
                                           fontWeight: FontWeight.w700,
                                           color: Color(0xFFFF754C),
                                         ),
@@ -197,7 +197,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                       const TextSpan(
                                         text: ' \u4e2a\u5bf9\u8c61',
                                         style: TextStyle(
-                                          fontSize: 15.5,
+                                          fontSize: 14.5,
                                           fontWeight: FontWeight.w600,
                                           color: AuthPalette.textPrimary,
                                         ),
@@ -211,7 +211,7 @@ class _TargetListScreenState extends State<TargetListScreen> {
                                       ? '\u9009\u62e9\u5bf9\u8c61\uff0c\u5411 TA \u503e\u8bc9\u4f60\u7684\u60c5\u7eea\u5427'
                                       : '\u5df2\u627e\u5230 ${filtered.length} \u4e2a\u76f8\u5173\u5bf9\u8c61',
                                   style: const TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 12.5,
                                     color: Color(0xFF8A7D77),
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -258,8 +258,8 @@ class _TargetListScreenState extends State<TargetListScreen> {
                 maxWidth: width >= 700 ? 620 : null,
                 child: GradientPrimaryButton(
                   text: '\u002b \u65b0\u5efa\u5bf9\u8c61',
-                  height: 56,
-                  fontSize: 17,
+                  height: 54,
+                  fontSize: 16,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -298,11 +298,13 @@ class _TargetCard extends StatelessWidget {
             ),
           );
         },
-        child: Row(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 96),
+          child: Row(
           children: [
             Container(
-              width: 72,
-              height: 72,
+              width: 68,
+              height: 68,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(22),
                 gradient: LinearGradient(
@@ -315,7 +317,7 @@ class _TargetCard extends StatelessWidget {
               child: Center(
                 child: Text(
                   _avatarByType(target.type),
-                  style: const TextStyle(fontSize: 26),
+                  style: const TextStyle(fontSize: 24),
                 ),
               ),
             ),
@@ -330,7 +332,7 @@ class _TargetCard extends StatelessWidget {
                         child: Text(
                           target.name,
                           style: const TextStyle(
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: AuthPalette.textPrimary,
                           ),
@@ -349,7 +351,7 @@ class _TargetCard extends StatelessWidget {
                         child: Text(
                           target.typeLabel,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: color,
                           ),
@@ -363,7 +365,7 @@ class _TargetCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Color(0xFF837772),
                       fontWeight: FontWeight.w500,
                     ),
@@ -373,10 +375,11 @@ class _TargetCard extends StatelessWidget {
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              size: 24,
+              size: 22,
               color: Color(0xFF8C8580),
             ),
           ],
+          ),
         ),
       ),
     );

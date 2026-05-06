@@ -19,8 +19,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final _controller = TextEditingController();
-  final _scrollController = ScrollController();
+  final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final stt.SpeechToText _speech = stt.SpeechToText();
 
   Timer? _timer;
@@ -287,6 +287,7 @@ class _ChatScreenState extends State<ChatScreen> {
       builder: (context, constraints) {
         final width = constraints.maxWidth;
         final horizontal = EmoResponsive.edgePadding(width);
+        final canSend = !provider.isSending && _controller.text.trim().isNotEmpty;
 
         return EmoPageScaffold(
           child: Column(
@@ -337,7 +338,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              dual ? '让对话慢慢变清楚，也让感受被接住' : '先把情绪说出来，不急着解决问题',
+                              dual
+                                  ? '让对话慢慢变清晰，也让感受被接住'
+                                  : '先把情绪说出来，不着急解决问题',
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF86807B),
@@ -372,7 +375,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           child: Text(
                             dual
                                 ? '双向模式进行中，AI 会带着你选择的人格来回应你。'
-                                : '单向模式进行中，AI 会先倾听和接住你的情绪。',
+                                : '单向模式进行中，AI 会先倾听并接住你的情绪。',
                             style: const TextStyle(
                               fontSize: 13,
                               height: 1.45,
@@ -481,10 +484,16 @@ class _ChatScreenState extends State<ChatScreen> {
                               controller: _controller,
                               minLines: 1,
                               maxLines: 4,
+                              onChanged: (_) => setState(() {}),
+                              onSubmitted: (_) {
+                                if (canSend) _send();
+                              },
                               textAlignVertical: TextAlignVertical.center,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
-                                hintText: _isListening ? '正在听你说话...' : '把想说的话慢慢说出来',
+                                hintText: _isListening
+                                    ? '正在听你说话...'
+                                    : '把想说的话慢慢说出来',
                                 hintStyle: const TextStyle(
                                   fontSize: 14.5,
                                   color: Color(0xFFBCB8B5),
@@ -512,7 +521,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         const SizedBox(width: 10),
                         _SendCircle(
                           sending: provider.isSending,
-                          onTap: provider.isSending ? null : _send,
+                          onTap: canSend ? _send : null,
                         ),
                       ],
                     ),
@@ -837,35 +846,49 @@ class _SendCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null || sending;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(999),
-      child: Ink(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: sending
-              ? const LinearGradient(
-                  colors: [Color(0xFFFFC0A6), Color(0xFFFF9CAA)],
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 160),
+        opacity: enabled ? 1 : 0.58,
+        child: Ink(
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: sending
+                ? const LinearGradient(
+                    colors: [Color(0xFFFFC0A6), Color(0xFFFF9CAA)],
+                  )
+                : const LinearGradient(
+                    colors: [Color(0xFFFF9863), Color(0xFFFF5A6A)],
+                  ),
+            boxShadow: enabled
+                ? const [
+                    BoxShadow(
+                      color: Color(0x24FF8D75),
+                      blurRadius: 14,
+                      offset: Offset(0, 8),
+                    ),
+                  ]
+                : const [],
+          ),
+          child: sending
+              ? const Padding(
+                  padding: EdgeInsets.all(13),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
                 )
-              : const LinearGradient(
-                  colors: [Color(0xFFFF9863), Color(0xFFFF5A6A)],
+              : const Icon(
+                  Icons.send_rounded,
+                  color: Colors.white,
+                  size: 22,
                 ),
         ),
-        child: sending
-            ? const Padding(
-                padding: EdgeInsets.all(13),
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Icon(
-                Icons.send_rounded,
-                color: Colors.white,
-                size: 22,
-              ),
       ),
     );
   }

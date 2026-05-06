@@ -72,7 +72,7 @@ class SoftHeader extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 19,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -89,8 +89,8 @@ class SoftCard extends StatelessWidget {
   const SoftCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(15),
-    this.radius = 26,
+    this.padding = const EdgeInsets.all(14),
+    this.radius = 24,
   });
 
   final Widget child;
@@ -107,8 +107,8 @@ class SoftCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Color(0x16E9C8BC),
-            blurRadius: 22,
-            offset: Offset(0, 10),
+            blurRadius: 18,
+            offset: Offset(0, 8),
           ),
         ],
       ),
@@ -123,8 +123,8 @@ class SoftGradientButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onTap,
-    this.height = 54,
-    this.fontSize = 15.5,
+    this.height = 52,
+    this.fontSize = 15,
   });
 
   final String text;
@@ -134,19 +134,24 @@ class SoftGradientButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null;
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(height / 2),
-        gradient: const LinearGradient(
-          colors: [SoftColors.coral, SoftColors.orange],
+        gradient: LinearGradient(
+          colors: enabled
+              ? const [SoftColors.coral, SoftColors.orange]
+              : const [Color(0xFFFFC4B6), Color(0xFFFFD4B7)],
         ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x35FF9B78),
-            blurRadius: 24,
-            offset: Offset(0, 10),
-          ),
-        ],
+        boxShadow: enabled
+            ? const [
+                BoxShadow(
+                  color: Color(0x35FF9B78),
+                  blurRadius: 24,
+                  offset: Offset(0, 10),
+                ),
+              ]
+            : const [],
       ),
       child: Material(
         color: Colors.transparent,
@@ -161,7 +166,9 @@ class SoftGradientButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: fontSize,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: enabled
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.88),
               ),
             ),
           ),
@@ -176,7 +183,7 @@ class SoftOutlineButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onTap,
-    this.height = 52,
+    this.height = 50,
     this.textColor = SoftColors.text,
   });
 
@@ -187,6 +194,7 @@ class SoftOutlineButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -196,8 +204,14 @@ class SoftOutlineButton extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(height / 2),
-            color: Colors.white.withValues(alpha: 0.78),
-            border: Border.all(color: const Color(0xFFFFD5C8)),
+            color: enabled
+                ? Colors.white.withValues(alpha: 0.78)
+                : Colors.white.withValues(alpha: 0.56),
+            border: Border.all(
+              color: enabled
+                  ? const Color(0xFFFFD5C8)
+                  : const Color(0xFFF1DDD6),
+            ),
           ),
           child: Center(
             child: Text(
@@ -205,7 +219,9 @@ class SoftOutlineButton extends StatelessWidget {
               style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w600,
-                color: textColor,
+                color: enabled
+                    ? textColor
+                    : textColor.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -276,7 +292,7 @@ class SoftListTile extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 14.5,
                     fontWeight: FontWeight.w600,
                     color: SoftColors.text,
                   ),
@@ -286,7 +302,7 @@ class SoftListTile extends StatelessWidget {
                   Text(
                     subtitle!,
                     style: const TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 12,
                       height: 1.4,
                       color: SoftColors.subtext,
                     ),

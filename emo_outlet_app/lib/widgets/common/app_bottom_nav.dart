@@ -16,23 +16,26 @@ class AppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(40),
-        border: Border.all(color: Colors.white, width: 1.5),
+        color: Colors.white.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(34),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.94),
+          width: 1.2,
+        ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x1CE6B9AA),
-            blurRadius: 28,
-            offset: Offset(0, -8),
+            color: Color(0x18E6B9AA),
+            blurRadius: 24,
+            offset: Offset(0, -6),
           ),
         ],
       ),
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(10, 14, 10, 12),
+          padding: const EdgeInsets.fromLTRB(8, 10, 8, 10),
           child: Row(
             children: [
               _navItem(
@@ -78,20 +81,20 @@ class AppBottomNav extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         onTap: () => onTap(index),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.symmetric(vertical: 5),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 active ? activeIcon : icon,
-                size: 25,
+                size: 24,
                 color: active ? AuthPalette.coral : const Color(0xFFA7A3A3),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 5),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 11.8,
+                  fontSize: 11.3,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   color: active ? AuthPalette.coral : const Color(0xFF8F8B8B),
                   height: 1,

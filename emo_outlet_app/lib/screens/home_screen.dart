@@ -100,7 +100,7 @@ class _HomeTab extends StatelessWidget {
             ? 1.42
             : width >= 760
                 ? 1.24
-                : 1.02;
+                : 0.96;
 
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(horizontal, 8, horizontal, 12),
@@ -115,7 +115,7 @@ class _HomeTab extends StatelessWidget {
                   'Hi, ${user?.nickname ?? '\u5c0f\u592a\u9633'} \uD83D\uDC4B',
                   style: const TextStyle(
                     color: AuthPalette.textPrimary,
-                    fontSize: 20,
+                    fontSize: 18.5,
                     fontWeight: FontWeight.w700,
                     height: 1.08,
                     letterSpacing: -0.6,
@@ -125,7 +125,7 @@ class _HomeTab extends StatelessWidget {
                 const Text(
                   '\u4eca\u5929\u60f3\u628a\u54ea\u4e9b\u60c5\u7eea\u8bf4\u51fa\u6765\u5462\uff1f',
                   style: TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 13,
                     color: Color(0xFF746962),
                     fontWeight: FontWeight.w500,
                     height: 1.3,
@@ -214,7 +214,7 @@ class _HomeTopBar extends StatelessWidget {
             Text(
               '\u628a\u4e0d\u8212\u670d\u7684\u60c5\u7eea\uff0c\u8f7b\u8f7b\u653e\u51fa\u6765',
               style: TextStyle(
-                fontSize: 12.5,
+                fontSize: 12,
                 color: Color(0xFF7C6C63),
                 fontWeight: FontWeight.w500,
               ),
@@ -303,7 +303,7 @@ class _HeroReleaseCard extends StatelessWidget {
                       Text(
                         '\u628a\u4e0d\u8212\u670d\u7684\u60c5\u7eea',
                         style: TextStyle(
-                          fontSize: 18.5,
+                          fontSize: 17,
                           fontWeight: FontWeight.w800,
                           color: AuthPalette.textPrimary,
                           height: 1.12,
@@ -314,7 +314,7 @@ class _HeroReleaseCard extends StatelessWidget {
                       Text(
                         '\u8f7b\u8f7b\u653e\u51fa\u6765',
                         style: TextStyle(
-                          fontSize: 18.5,
+                          fontSize: 17,
                           fontWeight: FontWeight.w800,
                           color: Color(0xFFFF6D4C),
                           height: 1.06,
@@ -325,7 +325,7 @@ class _HeroReleaseCard extends StatelessWidget {
                       Text(
                         '\u5b89\u5168\u8868\u8fbe\u00b7\u5373\u65f6\u758f\u89e3\u00b7\u4e13\u5c5e\u966a\u4f34',
                         style: TextStyle(
-                          fontSize: 12.8,
+                          fontSize: 12.2,
                           color: Color(0xFF776B66),
                           fontWeight: FontWeight.w500,
                           height: 1.3,
@@ -347,8 +347,8 @@ class _HeroReleaseCard extends StatelessWidget {
           const SizedBox(height: 4),
           GradientPrimaryButton(
             text: '\u5f00\u59cb\u91ca\u653e\u60c5\u7eea',
-            height: 56,
-            fontSize: 17,
+            height: 54,
+            fontSize: 16,
             onTap: onTap,
           ),
         ],
@@ -408,14 +408,16 @@ class _FeatureCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(28),
         onTap: onTap,
-        child: Stack(
-          children: [
-            Row(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 146),
+          child: Stack(
+            children: [
+              Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(
-                  width: 60,
-                  height: 60,
+                  width: 56,
+                  height: 56,
                   child: Image.asset(
                     imageAsset,
                     fit: BoxFit.contain,
@@ -434,10 +436,10 @@ class _FeatureCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 14.5,
                             fontWeight: FontWeight.w800,
                             color: AuthPalette.textPrimary,
-                            height: 1.22,
+                            height: 1.2,
                           ),
                         ),
                         const SizedBox(height: 6),
@@ -446,10 +448,10 @@ class _FeatureCard extends StatelessWidget {
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 12,
                             color: Color(0xFF7C716C),
                             fontWeight: FontWeight.w500,
-                            height: 1.36,
+                            height: 1.32,
                           ),
                         ),
                       ],
@@ -457,13 +459,13 @@ class _FeatureCard extends StatelessWidget {
                   ),
                 ),
               ],
-            ),
-            Positioned(
+              ),
+              Positioned(
               right: 0,
               bottom: 2,
               child: Container(
-                width: 30,
-                height: 30,
+                width: 28,
+                height: 28,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.92),
@@ -478,11 +480,12 @@ class _FeatureCard extends StatelessWidget {
                 child: const Icon(
                   Icons.chevron_right_rounded,
                   color: Color(0xFF9B938F),
-                  size: 20,
+                  size: 18,
                 ),
               ),
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

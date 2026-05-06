@@ -33,19 +33,52 @@
 
 ## 🚀 快速开始
 
-### 后端 API
+### 一键启动（推荐）
+
+项目根目录提供了启动脚本，会自动安装依赖并启动前后端：
+
+```powershell
+# PowerShell（Windows）
+.\start.ps1
+
+# 可选参数：
+# .\start.ps1 -FrontendMode web-server   # Web 预览模式
+# .\start.ps1 -FrontendMode windows      # Windows 桌面模式
+```
+
+```cmd
+# 或双击 start.bat（CMD）
+start.bat
+```
+
+### 手动启动
+
+#### 1. 配置环境变量
+
+```bash
+cd emo_outlet_api
+
+# 复制环境变量模板（首次必须执行）
+cp .env.example .env
+# Windows PowerShell: Copy-Item .env.example .env
+
+# 默认使用 mock 模式，无需 API Key 即可启动
+# 如需接入 AI，编辑 .env 配置 API Key 和模型
+```
+
+#### 2. 启动后端 API
 
 ```bash
 cd emo_outlet_api
 pip install -r requirements.txt
 
-# 开发模式启动（无需 MySQL，自动使用 SQLite）
-python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# 开发模式启动（自动使用 SQLite）
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8686
 ```
 
-访问 http://localhost:8000/docs 查看 Swagger API 文档。
+访问 http://localhost:8686/docs 查看 Swagger API 文档。
 
-### 前端 App
+#### 3. 启动前端 App
 
 ```bash
 cd emo_outlet_app
