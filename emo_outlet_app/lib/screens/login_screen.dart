@@ -343,8 +343,8 @@ class _LoginNavBar extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: width < 380 ? 38 : 42,
-          height: width < 380 ? 38 : 42,
+          width: width < 380 ? 36 : 40,
+          height: width < 380 ? 36 : 40,
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.58),
             borderRadius: BorderRadius.circular(15),
@@ -370,8 +370,8 @@ class _LoginNavBar extends StatelessWidget {
         ),
         const SizedBox(width: 12),
         AppBrand(
-          fontSize: width < 380 ? 21 : 24,
-          logoSize: width < 380 ? 36 : 40,
+          fontSize: width < 380 ? 20 : 22,
+          logoSize: width < 380 ? 34 : 38,
           spacing: 8,
         ),
       ],
@@ -431,7 +431,7 @@ class _LoginHero extends StatelessWidget {
                             Text(
                               '\u6b22\u8fce\u56de\u6765',
                               style: TextStyle(
-                              fontSize: 25,
+                              fontSize: 23,
                                 fontWeight: FontWeight.w800,
                                 height: 1.02,
                                 color: AuthPalette.textPrimary,
@@ -450,7 +450,7 @@ class _LoginHero extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.visible,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12.5,
                             color: AuthPalette.textSecondary,
                             height: 1.2,
                             fontWeight: FontWeight.w600,
@@ -613,7 +613,7 @@ class _LoginCard extends StatelessWidget {
               controller: phoneController,
               keyboardType: TextInputType.phone,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 15,
                 color: AuthPalette.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
@@ -633,7 +633,7 @@ class _LoginCard extends StatelessWidget {
                     keyboardType: TextInputType.number,
                     maxLength: 6,
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       color: AuthPalette.textPrimary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -686,7 +686,7 @@ class _LoginCard extends StatelessWidget {
                 child: Text(
                   '\u5feb\u6377\u767b\u5f55',
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: Color(0xFF8A7E79),
                     fontWeight: FontWeight.w600,
                   ),
@@ -798,7 +798,7 @@ class _LoginCard extends StatelessWidget {
       counterText: counterText,
       hintText: hint,
       hintStyle: const TextStyle(
-        fontSize: 15.5,
+        fontSize: 14.5,
         color: Color(0xFFB2A6A0),
         fontWeight: FontWeight.w500,
       ),
@@ -838,11 +838,11 @@ class _InlineTip extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                fontSize: 13.5,
-                height: 1.35,
-                color: Color(0xFFB25E4E),
-                fontWeight: FontWeight.w600,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.35,
+                  color: Color(0xFFB25E4E),
+                  fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -935,7 +935,7 @@ class _CupertinoPrimaryButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         onTap: loading ? null : onTap,
         child: Ink(
-          height: 56,
+          height: 54,
           decoration: BoxDecoration(
             color: const Color(0xFF1F1A17),
             borderRadius: BorderRadius.circular(20),
@@ -961,7 +961,7 @@ class _CupertinoPrimaryButton extends StatelessWidget {
                     text,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 18,
+                      fontSize: 16,
                       height: 1,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -0.2,
@@ -994,8 +994,8 @@ class _IosLoginOption extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 78,
-            height: 78,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -1033,7 +1033,7 @@ class _IosLoginOption extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 12.5,
               color: Color(0xFF5E5450),
               fontWeight: FontWeight.w500,
             ),

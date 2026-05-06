@@ -93,7 +93,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                       const Text(
                         '记录详情',
                         style: TextStyle(
-                            fontSize: 22, fontWeight: FontWeight.w800),
+                            fontSize: 19, fontWeight: FontWeight.w800),
                       ),
                       const Spacer(),
                       EmoRoundIconButton(
@@ -111,7 +111,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                         Row(
                           children: [
                             _HistoryAvatar(name: record.name, size: 84),
-                            const SizedBox(width: 18),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -119,7 +119,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                   Text(
                                     record.name,
                                     style: const TextStyle(
-                                      fontSize: 22,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w800,
                                       color: Color(0xFF2D2522),
                                     ),
@@ -130,7 +130,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                     maxLines: 3,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
                                       color: Color(0xFF7B716B),
                                       height: 1.6,
                                     ),
@@ -195,7 +195,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         _circleRate(record.releaseRate),
                       ],
                     ),
@@ -226,7 +226,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                                     child: Text(
                                       item,
                                       style: const TextStyle(
-                                        fontSize: 14,
+                                        fontSize: 12.5,
                                         color: Color(0xFFFF6E57),
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -252,7 +252,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                           const Text(
                             '这次会话还没有可展示的消息内容。',
                             style: TextStyle(
-                                fontSize: 14, color: Color(0xFF6A625D)),
+                                fontSize: 12.5, color: Color(0xFF6A625D)),
                           )
                         else
                           ..._messages.take(6).map(
@@ -287,7 +287,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                           const Text(
                             '这次会话还没有生成海报。',
                             style: TextStyle(
-                                fontSize: 14, color: Color(0xFF6A625D)),
+                                fontSize: 12.5, color: Color(0xFF6A625D)),
                           ),
                       ],
                     ),
@@ -312,7 +312,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 12.5,
                     color: Color(0xFF8A807A),
                     fontWeight: FontWeight.w600,
                   ),
@@ -324,7 +324,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
               value,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 13.5,
                 color: Color(0xFF3C312D),
                 fontWeight: FontWeight.w700,
               ),
@@ -351,7 +351,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
         Text(
           title,
           style: const TextStyle(
-            fontSize: 18,
+            fontSize: 15.5,
             fontWeight: FontWeight.w700,
             color: Color(0xFF2C2522),
           ),
@@ -370,7 +370,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             child: Text(
               label,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 12.5,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF4E4742),
               ),
@@ -391,7 +391,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
           Text(
             '${(percent * 100).round()}%',
             style: const TextStyle(
-              fontSize: 14,
+              fontSize: 12.5,
               fontWeight: FontWeight.w700,
               color: Color(0xFF71665F),
             ),
@@ -419,7 +419,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
             Text(
               '$rate%',
               style: const TextStyle(
-                fontSize: 22,
+                fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFFFF6E57),
               ),
@@ -529,7 +529,7 @@ class _MessageBubble extends StatelessWidget {
               child: Text(
                 message.content,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 13.5,
                   height: 1.55,
                   color: Color(0xFF3E3631),
                 ),
@@ -590,7 +590,7 @@ class _PosterPreview extends StatelessWidget {
         Text(
           detail['summary'] as String? ?? '',
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 12.5,
             height: 1.6,
             color: Color(0xFF6E655F),
           ),

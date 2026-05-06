@@ -172,7 +172,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                     const Text(
                       '你的情绪正在慢慢变好',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: SoftColors.text,
                       ),
@@ -181,7 +181,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                     Text(
                       (_overview?['suggestion'] as String?) ?? '你已经开始认真面对自己的情绪了。',
                       style: const TextStyle(
-                        fontSize: 13.5,
+                        fontSize: 12.8,
                         height: 1.5,
                         color: SoftColors.subtext,
                       ),
@@ -249,7 +249,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                   Text(
                     '趋势变化',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: SoftColors.text,
                     ),
@@ -257,7 +257,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                   Spacer(),
                   Text(
                     '强度评分',
-                    style: TextStyle(fontSize: 13.5, color: SoftColors.subtext),
+                    style: TextStyle(fontSize: 12.8, color: SoftColors.subtext),
                   ),
                 ],
               ),
@@ -396,7 +396,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
                   Text(
                     '查看详细分析',
                     style: TextStyle(
-                      fontSize: 17,
+                      fontSize: 15.5,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -433,7 +433,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
           const Text(
             '情绪分布',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -502,7 +502,7 @@ class _EmotionReportScreenState extends State<EmotionReportScreen> {
           const Text(
             '高频关键词',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -665,7 +665,7 @@ class EmotionAnalysisDetailScreen extends StatelessWidget {
                         const Text(
                           '聊天模式分布',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: SoftColors.text,
                           ),
@@ -693,7 +693,7 @@ class EmotionAnalysisDetailScreen extends StatelessWidget {
                         const Text(
                           '对象分布',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: SoftColors.text,
                           ),
@@ -702,7 +702,7 @@ class EmotionAnalysisDetailScreen extends StatelessWidget {
                         if (targetDistribution.isEmpty)
                           const Text(
                             '还没有足够的数据形成对象分布。',
-                            style: TextStyle(fontSize: 13, color: SoftColors.subtext),
+                            style: TextStyle(fontSize: 12.5, color: SoftColors.subtext),
                           )
                         else
                           ...targetDistribution.map(
@@ -726,7 +726,7 @@ class EmotionAnalysisDetailScreen extends StatelessWidget {
                         const Text(
                           '时间分布',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: SoftColors.text,
                           ),
@@ -735,7 +735,7 @@ class EmotionAnalysisDetailScreen extends StatelessWidget {
                         if (timeDistribution.isEmpty)
                           const Text(
                             '还没有足够的数据形成时间分布。',
-                            style: TextStyle(fontSize: 13, color: SoftColors.subtext),
+                            style: TextStyle(fontSize: 12.5, color: SoftColors.subtext),
                           )
                         else
                           ...timeDistribution.map(
@@ -849,7 +849,7 @@ class _MetricBox extends StatelessWidget {
             Text(
               title,
               style: const TextStyle(
-                fontSize: 14.5,
+                fontSize: 13.5,
                 fontWeight: FontWeight.w600,
                 color: SoftColors.subtext,
               ),
@@ -859,7 +859,7 @@ class _MetricBox extends StatelessWidget {
               text: TextSpan(
                 text: value,
                 style: const TextStyle(
-                  fontSize: 19,
+                  fontSize: 17,
                   fontWeight: FontWeight.w800,
                   color: SoftColors.text,
                 ),
@@ -867,7 +867,7 @@ class _MetricBox extends StatelessWidget {
                   TextSpan(
                     text: unit,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 12.5,
                       fontWeight: FontWeight.w600,
                       color: SoftColors.subtext,
                     ),
@@ -918,7 +918,7 @@ class _LegendItem extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              fontSize: 13.5,
+              fontSize: 12.8,
               color: SoftColors.text,
               fontWeight: FontWeight.w600,
             ),
@@ -961,7 +961,7 @@ class _ProgressItem extends StatelessWidget {
               child: Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 14.5,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.w600,
                   color: SoftColors.text,
                 ),

@@ -168,7 +168,7 @@ async def send_message(
 
         ai_msg = MessageModel(
             session_id=session_id,
-            content="这次对话已经到达上限了，先休息一下。准备好了再开始下一次也可以。",
+            content="这次对话已经达到上限了，先休息一下。准备好了再开始下一次也可以。",
             sender="ai",
             dialect=session.dialect,
             emotion_type="平静",

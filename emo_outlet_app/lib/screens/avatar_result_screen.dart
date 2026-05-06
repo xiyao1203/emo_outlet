@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../config/theme.dart';
+
 import '../providers/app_providers.dart';
+import '../widgets/auth/auth_visuals.dart';
+import '../widgets/common/emo_ui.dart';
 import 'session_mode_screen.dart';
 
 class AvatarResultScreen extends StatelessWidget {
@@ -11,132 +13,118 @@ class AvatarResultScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final target = context.watch<TargetProvider>().currentTarget;
     final name = target?.name ?? '未知对象';
+    final shortName = name.characters.take(2).toString();
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('生成结果',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333))),
-        centerTitle: true,
-        backgroundColor: const Color(0xFFF8F8F8),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Color(0xFF666666)),
-          onPressed: () =>
-              Navigator.of(context).popUntil((route) => route.isFirst),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
+    return EmoPageScaffold(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
         child: Column(
           children: [
-            const Spacer(),
-            // 大号头像
-            Container(
-              width: 168,
-              height: 168,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8))
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  name.length >= 2 ? name.substring(0, 2) : name[0],
-                  style: const TextStyle(
-                      fontSize: 56,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            // 文案
-            const Text(
-              '说出来好多了！',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF333333)),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '这是 $name 的形象',
-              style: const TextStyle(fontSize: 15, color: Color(0xFF999999)),
-            ),
-            const SizedBox(height: 36),
-            // 按钮区
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (_) => const SessionModeScreen()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                  elevation: 4,
-                  shadowColor: AppColors.primary.withValues(alpha: 0.3),
-                ),
-                child: const Text('开始释放情绪',
-                    style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white)),
-              ),
-            ),
-            const SizedBox(height: 14),
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('重新生成',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
-                  ),
+                EmoRoundIconButton(
+                  icon: Icons.close_rounded,
+                  onTap: () =>
+                      Navigator.of(context).popUntil((route) => route.isFirst),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.secondary,
-                      side: const BorderSide(color: AppColors.secondary),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('分享给朋友',
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w500)),
-                  ),
+                const Spacer(),
+                const Text(
+                  '生成结果',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
                 ),
+                const Spacer(),
+                const SizedBox(width: 46),
               ],
+            ),
+            const Spacer(),
+            EmoSectionCard(
+              radius: 34,
+              padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
+              child: Column(
+                children: [
+                  Container(
+                    width: 152,
+                    height: 152,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Color(0xFFFF7A56), Color(0xFFFF9A76)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0x28FF9D82),
+                          blurRadius: 24,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        shortName.isEmpty ? '?' : shortName,
+                        style: const TextStyle(
+                          fontSize: 46,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    '形象生成完成',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AuthPalette.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '这是 $name 的当前形象预览。',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AuthPalette.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: GradientPrimaryButton(
+                      text: '开始释放情绪',
+                      height: 54,
+                      fontSize: 16,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const SessionModeScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: EmoGradientOutlineButton(
+                          text: '重新生成',
+                          onTap: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: EmoGradientOutlineButton(
+                          text: '稍后再看',
+                          onTap: () => Navigator.of(context)
+                              .popUntil((route) => route.isFirst),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const Spacer(),
           ],

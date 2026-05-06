@@ -43,14 +43,14 @@ STYLE_TRAITS: dict[str, dict[str, str]] = {
 
 DIALECT_MARKERS: dict[str, tuple[str, str]] = {
     "mandarin": ("", ""),
-    "cantonese": ("我喺度听住你，", "慢慢讲啦。"),
-    "sichuan": ("我晓得你现在窝火，", "慢慢摆哈。"),
-    "northeastern": ("我在这儿听着呢，", "你接着唠。"),
-    "shanghainese": ("我听出来侬心里蛮堵，", "阿拉慢慢讲。"),
+    "cantonese": ("我喺度听住你。", "慢慢讲啦。"),
+    "sichuan": ("我晓得你现在心头冒火。", "慢慢摆哈。"),
+    "northeastern": ("我在这儿听着呢。", "你接着唠。"),
+    "shanghainese": ("我听得出侬心里蛮堵。", "阿拉慢慢讲。"),
 }
 
 EMOTION_CUES: dict[str, list[str]] = {
-    "anger": ["气死", "火大", "烦死", "讨厌", "崩溃", "受不了", "恶心", "临时加需求"],
+    "anger": ["气死", "火大", "烦死", "讨厌", "崩溃", "受不了", "恶心", "炸了"],
     "sadness": ["难过", "委屈", "想哭", "失望", "心累", "心痛", "伤心"],
     "anxiety": ["焦虑", "担心", "害怕", "不安", "紧张", "压力", "睡不着"],
     "exhaustion": ["累", "疲惫", "撑不住", "困", "麻木", "没劲", "好烦"],
@@ -258,7 +258,7 @@ class AiService:
         if age_range == "<14":
             body += "要是方便，也可以找信任的大人陪你。"
         else:
-            body += "你不需要一个人扛着。"
+            body += "你不用一个人扛着。"
 
         return f"{prefix}{body}{suffix}".strip()[:90]
 
@@ -341,10 +341,10 @@ class AiService:
         style = STYLE_TRAITS.get(chat_style, STYLE_TRAITS["apologetic"])
         dialect_prompt = {
             "mandarin": "使用简体中文回复。",
-            "cantonese": "使用口语化粤语回复。",
-            "sichuan": "使用四川话语气回复。",
-            "northeastern": "使用东北口语回复。",
-            "shanghainese": "使用上海话语气回复。",
+            "cantonese": "使用口语化粤语回复，保持自然易懂，不要堆砌生僻字。",
+            "sichuan": "使用四川话语气回复，保持自然、克制、可读。",
+            "northeastern": "使用东北口语回复，保持自然，不要过度夸张。",
+            "shanghainese": "使用上海话语气回复，优先保证可读性和温和感。",
         }.get(dialect, "使用简体中文回复。")
 
         target_prompt = self._target_prompt(target_context)

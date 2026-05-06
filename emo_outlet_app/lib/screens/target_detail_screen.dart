@@ -45,7 +45,7 @@ class TargetDetailScreen extends StatelessWidget {
                 const Text(
                   '对象详情',
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 19,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -73,7 +73,7 @@ class TargetDetailScreen extends StatelessWidget {
                       EmoAvatar(
                         label: avatarEmojiByType(current.type),
                         background: avatarBgByType(current.type),
-                        size: 104,
+                        size: 92,
                       ),
                       const SizedBox(width: 18),
                       Expanded(
@@ -85,7 +85,7 @@ class TargetDetailScreen extends StatelessWidget {
                                 Text(
                                   current.name,
                                   style: const TextStyle(
-                                    fontSize: 24,
+                                    fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                   ),
                                 ),
@@ -101,7 +101,7 @@ class TargetDetailScreen extends StatelessWidget {
                             Text(
                               current.relationship ?? '管理你的泄愤对象',
                               style: const TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 height: 1.5,
                                 color: Color(0xFF6B625F),
                                 fontWeight: FontWeight.w500,
@@ -128,8 +128,8 @@ class TargetDetailScreen extends StatelessWidget {
                       Expanded(
                         child: GradientPrimaryButton(
                           text: '开始释放情绪',
-                          height: 60,
-                          fontSize: 20,
+                          height: 54,
+                          fontSize: 16,
                           onTap: () {
                             context
                                 .read<TargetProvider>()
@@ -199,7 +199,7 @@ class TargetDetailScreen extends StatelessWidget {
 
   Widget _softTag(IconData icon, String text, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
@@ -207,12 +207,12 @@ class TargetDetailScreen extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
+          Icon(icon, color: color, size: 18),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: 12.5,
               fontWeight: FontWeight.w600,
               color: color,
             ),
@@ -229,17 +229,19 @@ class TargetDetailScreen extends StatelessWidget {
     required Color color,
   }) {
     return EmoSectionCard(
-      child: Row(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 132),
+        child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 54,
-            height: 54,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: color.withValues(alpha: 0.12),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: 24),
           ),
           const SizedBox(width: 18),
           Expanded(
@@ -249,7 +251,7 @@ class TargetDetailScreen extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 15.5,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF211B18),
                   ),
@@ -258,7 +260,7 @@ class TargetDetailScreen extends StatelessWidget {
                 Text(
                   body,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     height: 1.5,
                     color: Color(0xFF6D6560),
                     fontWeight: FontWeight.w500,
@@ -268,6 +270,7 @@ class TargetDetailScreen extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

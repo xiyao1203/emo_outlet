@@ -118,7 +118,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                           Text(
                             '创建对象',
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 19,
                               fontWeight: FontWeight.w700,
                               color: AuthPalette.textPrimary,
                             ),
@@ -127,7 +127,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                           Text(
                             '创建一个对象，把情绪说给 Ta 听',
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 12.5,
                               color: Color(0xFF7E746E),
                               fontWeight: FontWeight.w500,
                             ),
@@ -177,7 +177,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                               const Text(
                                 '上传头像或 AI 生成形象',
                                 style: TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                   color: AuthPalette.textPrimary,
                                 ),
@@ -186,7 +186,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                               const Text(
                                 '先补全外貌和性格，再生成更贴近记忆的对象形象',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12.5,
                                   height: 1.4,
                                   color: Color(0xFF7B706B),
                                   fontWeight: FontWeight.w500,
@@ -264,7 +264,7 @@ class _CreateTargetScreenState extends State<CreateTargetScreen> {
                   GradientPrimaryButton(
                     text: _isSubmitting ? '生成中...' : '生成并保存对象',
                     height: 56,
-                    fontSize: 16.5,
+                    fontSize: 15.5,
                     onTap: _isSubmitting ? null : _handleCreate,
                   ),
                 ],
@@ -298,14 +298,14 @@ class _FormFieldCard extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 15.5,
+              fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
           Container(
-            constraints: const BoxConstraints(minHeight: 54),
+            constraints: const BoxConstraints(minHeight: 52),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             decoration: BoxDecoration(
               color: const Color(0xFFF8F8F8).withValues(alpha: 0.84),
@@ -317,7 +317,7 @@ class _FormFieldCard extends StatelessWidget {
               textAlign: TextAlign.left,
               textAlignVertical: TextAlignVertical.center,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 height: 1.35,
                 color: AuthPalette.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -325,7 +325,7 @@ class _FormFieldCard extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: Color(0xFFB4AEA8),
                   fontWeight: FontWeight.w500,
                 ),
@@ -364,7 +364,7 @@ class _ChoiceFieldCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 15.5,
+              fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
@@ -378,7 +378,8 @@ class _ChoiceFieldCard extends StatelessWidget {
               return GestureDetector(
                 onTap: () => onSelected(item.value),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  constraints: const BoxConstraints(minHeight: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                   decoration: BoxDecoration(
                     color: active
                         ? const Color(0xFFFFF1EC)
@@ -391,7 +392,7 @@ class _ChoiceFieldCard extends StatelessWidget {
                   child: Text(
                     item.label,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: active ? const Color(0xFFFF7D5E) : const Color(0xFF59504B),
                     ),

@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import '../config/constants.dart';
 import '../models/message_model.dart';
 import '../models/session_model.dart';
 import '../providers/app_providers.dart';
@@ -12,7 +15,9 @@ import '../widgets/common/emo_ui.dart';
 import 'home_screen.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  const ChatScreen({super.key, this.preferVoiceInput = false});
+
+  final bool preferVoiceInput;
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -22,15 +27,22 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final stt.SpeechToText _speech = stt.SpeechToText();
+  final FlutterTts _tts = FlutterTts();
 
   Timer? _timer;
   bool _timeoutShown = false;
   bool _isListening = false;
+  bool _isSpeaking = false;
+  bool _voiceAutoplay = true;
   int _lastMessageCount = 0;
+  String? _spokenSignature;
+  String? _speakingSignature;
 
   @override
   void initState() {
     super.initState();
+    _setupTts();
+    _loadVoicePreferences();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final provider = context.read<SessionProvider>();
       if (!provider.isRunning) return;
@@ -41,15 +53,121 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       if (mounted) setState(() {});
     });
+    if (widget.preferVoiceInput) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _toggleVoiceInput();
+      });
+    }
+  }
+
+  Future<void> _setupTts() async {
+    await _tts.awaitSpeakCompletion(false);
+    await _tts.setSpeechRate(0.42);
+    await _tts.setVolume(1.0);
+    await _tts.setPitch(1.0);
+    _tts.setStartHandler(() {
+      if (mounted) setState(() => _isSpeaking = true);
+    });
+    _tts.setCompletionHandler(() {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = false;
+          _speakingSignature = null;
+        });
+      }
+    });
+    _tts.setCancelHandler(() {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = false;
+          _speakingSignature = null;
+        });
+      }
+    });
+    _tts.setErrorHandler((_) {
+      if (mounted) {
+        setState(() {
+          _isSpeaking = false;
+          _speakingSignature = null;
+        });
+      }
+    });
+  }
+
+  Future<void> _loadVoicePreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _voiceAutoplay = prefs.getBool(AppConstants.voiceAutoplayKey) ?? true;
+    });
+  }
+
+  Future<void> _saveVoiceAutoplay(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConstants.voiceAutoplayKey, value);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     _speech.stop();
+    _tts.stop();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  String _dialectLocale(String dialect) {
+    switch (dialect) {
+      case '粤语':
+        return 'zh-HK';
+      case '四川话':
+      case '东北话':
+      case '上海话':
+      case '普通话':
+      default:
+        return 'zh-CN';
+    }
+  }
+
+  String _messageSignature(MessageModel message) {
+    return '${message.id ?? ''}|${message.createdAt?.toIso8601String() ?? ''}|${message.content}';
+  }
+
+  Future<void> _speakMessage(MessageModel message) async {
+    final session = context.read<SessionProvider>().currentSession;
+    final dialect = session?.dialect ?? '普通话';
+    final signature = _messageSignature(message);
+    setState(() => _speakingSignature = signature);
+    try {
+      await _tts.stop();
+      await _tts.setLanguage(_dialectLocale(dialect));
+      await _tts.speak(message.content);
+    } catch (_) {
+      if (!mounted) return;
+      _showTopMessage('当前设备暂不支持语音播报');
+      setState(() {
+        _isSpeaking = false;
+        _speakingSignature = null;
+      });
+    }
+  }
+
+  Future<void> _stopSpeaking() async {
+    await _tts.stop();
+    if (!mounted) return;
+    setState(() {
+      _isSpeaking = false;
+      _speakingSignature = null;
+    });
+  }
+
+  Future<void> _toggleVoiceAutoplay() async {
+    final next = !_voiceAutoplay;
+    setState(() => _voiceAutoplay = next);
+    await _saveVoiceAutoplay(next);
+    if (!mounted) return;
+    _showTopMessage(next ? '已开启 AI 回复自动播报' : '已关闭 AI 回复自动播报');
   }
 
   Future<void> _toggleVoiceInput() async {
@@ -80,6 +198,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     setState(() => _isListening = true);
     await _speech.listen(
+      localeId: 'zh_CN',
       onResult: (result) {
         if (!mounted) return;
         setState(() {
@@ -134,12 +253,16 @@ class _ChatScreenState extends State<ChatScreen> {
     Future<void>.delayed(const Duration(seconds: 2), entry.remove);
   }
 
-  void _send() {
+  Future<void> _send() async {
+    final provider = context.read<SessionProvider>();
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    context.read<SessionProvider>().sendMessage(text);
+    await _stopSpeaking();
+    await _speech.stop();
+    if (mounted) setState(() => _isListening = false);
     _controller.clear();
     setState(() {});
+    await provider.sendMessage(text);
   }
 
   Future<void> _showTimeoutDialog() async {
@@ -262,6 +385,20 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
+  void _handleNewAiMessage(List<MessageModel> messages, bool isSending) {
+    if (messages.isEmpty || isSending) return;
+    final last = messages.last;
+    if (!last.isAi) return;
+    final signature = _messageSignature(last);
+    if (_spokenSignature == signature) return;
+    _spokenSignature = signature;
+    if (_voiceAutoplay) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _speakMessage(last);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SessionProvider>();
@@ -270,6 +407,8 @@ class _ChatScreenState extends State<ChatScreen> {
     final dual = session?.mode == SessionMode.dual;
     final messages = provider.messages;
     final totalCount = messages.length + (provider.isSending ? 1 : 0);
+
+    _handleNewAiMessage(messages, provider.isSending);
 
     if (totalCount != _lastMessageCount) {
       _lastMessageCount = totalCount;
@@ -288,6 +427,7 @@ class _ChatScreenState extends State<ChatScreen> {
         final width = constraints.maxWidth;
         final horizontal = EmoResponsive.edgePadding(width);
         final canSend = !provider.isSending && _controller.text.trim().isNotEmpty;
+        final dialect = session?.dialect ?? '普通话';
 
         return EmoPageScaffold(
           child: Column(
@@ -328,7 +468,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 10),
+                                const SizedBox(width: 8),
                                 EmoTypePill(
                                   text: dual ? '双向聊天' : '单向倾诉',
                                   color: const Color(0xFFFF7D5D),
@@ -338,9 +478,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(
-                              dual
-                                  ? '让对话慢慢变清晰，也让感受被接住'
-                                  : '先把情绪说出来，不着急解决问题',
+                              '当前方言：$dialect',
                               style: const TextStyle(
                                 fontSize: 13,
                                 color: Color(0xFF86807B),
@@ -363,29 +501,67 @@ class _ChatScreenState extends State<ChatScreen> {
                   maxWidth: 760,
                   child: EmoSectionCard(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Icon(
-                          dual ? Icons.forum_rounded : Icons.favorite_border_rounded,
-                          color: dual ? const Color(0xFF8D73FF) : const Color(0xFFFF8D73),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            dual
-                                ? '双向模式进行中，AI 会带着你选择的人格来回应你。'
-                                : '单向模式进行中，AI 会先倾听并接住你的情绪。',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              height: 1.45,
-                              color: Color(0xFF726964),
-                              fontWeight: FontWeight.w500,
+                        Row(
+                          children: [
+                            Icon(
+                              dual
+                                  ? Icons.forum_rounded
+                                  : Icons.favorite_border_rounded,
+                              color: dual
+                                  ? const Color(0xFF8D73FF)
+                                  : const Color(0xFFFF8D73),
+                              size: 20,
                             ),
-                          ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                dual
+                                    ? '双向模式进行中，AI 会带着你选择的人格来回应你。'
+                                    : '单向模式进行中，AI 会先倾听并接住你的情绪。',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  height: 1.45,
+                                  color: Color(0xFF726964),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const EmoDecorationCloud(size: 72),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        const EmoDecorationCloud(size: 72),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _VoiceTogglePill(
+                                icon: _voiceAutoplay
+                                    ? Icons.volume_up_rounded
+                                    : Icons.volume_off_rounded,
+                                label: _voiceAutoplay ? '自动播报已开启' : '自动播报已关闭',
+                                active: _voiceAutoplay,
+                                onTap: _toggleVoiceAutoplay,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _VoiceTogglePill(
+                                icon: _isSpeaking
+                                    ? Icons.stop_circle_rounded
+                                    : Icons.play_circle_fill_rounded,
+                                label: _isSpeaking ? '停止播报' : '播放最新回复',
+                                active: _isSpeaking,
+                                onTap: messages.isNotEmpty && messages.last.isAi
+                                    ? () => _isSpeaking
+                                        ? _stopSpeaking()
+                                        : _speakMessage(messages.last)
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -400,7 +576,10 @@ class _ChatScreenState extends State<ChatScreen> {
                     maxWidth: 760,
                     child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 11,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0x14FF6B5D),
                         borderRadius: BorderRadius.circular(16),
@@ -435,10 +614,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         itemCount: totalCount,
                         itemBuilder: (context, index) {
                           if (index >= messages.length) {
-                            return _TypingBubble(
-                              targetType: target?.type ?? 'boss',
-                              dual: dual,
-                            );
+                            return _TypingBubble(dual: dual);
                           }
                           final msg = messages[index];
                           return Padding(
@@ -449,6 +625,14 @@ class _ChatScreenState extends State<ChatScreen> {
                               child: _MessageBubble(
                                 message: msg,
                                 targetType: target?.type ?? 'boss',
+                                isSpeaking:
+                                    _speakingSignature == _messageSignature(msg),
+                                onSpeak: msg.isAi
+                                    ? () => _speakingSignature ==
+                                            _messageSignature(msg)
+                                        ? _stopSpeaking()
+                                        : _speakMessage(msg)
+                                    : null,
                               ),
                             ),
                           );
@@ -486,7 +670,9 @@ class _ChatScreenState extends State<ChatScreen> {
                               maxLines: 4,
                               onChanged: (_) => setState(() {}),
                               onSubmitted: (_) {
-                                if (canSend) _send();
+                                if (canSend) {
+                                  _send();
+                                }
                               },
                               textAlignVertical: TextAlignVertical.center,
                               decoration: InputDecoration(
@@ -499,7 +685,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                   color: Color(0xFFBCB8B5),
                                   fontWeight: FontWeight.w500,
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
                               style: const TextStyle(
                                 fontSize: 15,
@@ -572,6 +760,64 @@ class _TimerChip extends StatelessWidget {
   }
 }
 
+class _VoiceTogglePill extends StatelessWidget {
+  const _VoiceTogglePill({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: active
+              ? const Color(0x14FF7A60)
+              : Colors.white.withValues(alpha: 0.58),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: active ? const Color(0x33FF7A60) : const Color(0x1FE5D9D4),
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: active ? const Color(0xFFFF6E53) : const Color(0xFF8B837D),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: active
+                      ? const Color(0xFFFF6E53)
+                      : const Color(0xFF6F6660),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _ChatEmptyState extends StatelessWidget {
   const _ChatEmptyState();
 
@@ -615,10 +861,14 @@ class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
     required this.message,
     required this.targetType,
+    required this.isSpeaking,
+    required this.onSpeak,
   });
 
   final MessageModel message;
   final String targetType;
+  final bool isSpeaking;
+  final VoidCallback? onSpeak;
 
   @override
   Widget build(BuildContext context) {
@@ -660,40 +910,98 @@ class _MessageBubble extends StatelessWidget {
                 const SizedBox(width: 10),
               ],
               Flexible(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
-                  decoration: BoxDecoration(
-                    color: user ? null : Colors.white.withValues(alpha: 0.86),
-                    gradient: user
-                        ? const LinearGradient(
-                            colors: [Color(0xFFFFA15B), Color(0xFFFF5D63)],
-                          )
-                        : null,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(24),
-                      topRight: const Radius.circular(24),
-                      bottomLeft: Radius.circular(user ? 24 : 8),
-                      bottomRight: Radius.circular(user ? 8 : 24),
+                child: Column(
+                  crossAxisAlignment:
+                      user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 13,
+                      ),
+                      decoration: BoxDecoration(
+                        color: user ? null : Colors.white.withValues(alpha: 0.86),
+                        gradient: user
+                            ? const LinearGradient(
+                                colors: [Color(0xFFFFA15B), Color(0xFFFF5D63)],
+                              )
+                            : null,
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(24),
+                          topRight: const Radius.circular(24),
+                          bottomLeft: Radius.circular(user ? 24 : 8),
+                          bottomRight: Radius.circular(user ? 8 : 24),
+                        ),
+                        boxShadow: user
+                            ? const [
+                                BoxShadow(
+                                  color: Color(0x18FF8B73),
+                                  blurRadius: 18,
+                                  offset: Offset(0, 8),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Text(
+                        message.content,
+                        style: TextStyle(
+                          fontSize: 14.5,
+                          height: 1.58,
+                          color: user ? Colors.white : const Color(0xFF4F4845),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                    boxShadow: user
-                        ? const [
-                            BoxShadow(
-                              color: Color(0x18FF8B73),
-                              blurRadius: 18,
-                              offset: Offset(0, 8),
+                    if (!user && onSpeak != null) ...[
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: onSpeak,
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSpeaking
+                                ? const Color(0x14FF7A60)
+                                : Colors.white.withValues(alpha: 0.78),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: isSpeaking
+                                  ? const Color(0x33FF7A60)
+                                  : const Color(0x1FE5D9D4),
                             ),
-                          ]
-                        : null,
-                  ),
-                  child: Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 14.5,
-                      height: 1.58,
-                      color: user ? Colors.white : const Color(0xFF4F4845),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isSpeaking
+                                    ? Icons.stop_circle_rounded
+                                    : Icons.volume_up_rounded,
+                                size: 16,
+                                color: isSpeaking
+                                    ? const Color(0xFFFF6E53)
+                                    : const Color(0xFF8B837D),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isSpeaking ? '停止播报' : '语音播放',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isSpeaking
+                                      ? const Color(0xFFFF6E53)
+                                      : const Color(0xFF6F6660),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -705,12 +1013,8 @@ class _MessageBubble extends StatelessWidget {
 }
 
 class _TypingBubble extends StatefulWidget {
-  const _TypingBubble({
-    required this.targetType,
-    required this.dual,
-  });
+  const _TypingBubble({required this.dual});
 
-  final String targetType;
   final bool dual;
 
   @override
@@ -743,11 +1047,7 @@ class _TypingBubbleState extends State<_TypingBubble>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          EmoAvatar(
-            label: avatarEmojiByType(widget.targetType),
-            background: avatarBgByType(widget.targetType),
-            size: 40,
-          ),
+          const EmoDecorationCloud(size: 40),
           const SizedBox(width: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -774,7 +1074,8 @@ class _TypingBubbleState extends State<_TypingBubble>
                         width: 6,
                         height: 6,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF8C78).withValues(alpha: opacity),
+                          color: const Color(0xFFFF8C78)
+                              .withValues(alpha: opacity),
                           shape: BoxShape.circle,
                         ),
                       );

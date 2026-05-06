@@ -93,7 +93,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                 const Text(
                   '我的',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 19,
                     fontWeight: FontWeight.w700,
                     color: SoftColors.text,
                   ),
@@ -146,7 +146,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 Text(
                                   nickname,
                                   style: const TextStyle(
-                                    fontSize: 18,
+                                    fontSize: 16.5,
                                     fontWeight: FontWeight.w700,
                                     color: SoftColors.text,
                                   ),
@@ -155,7 +155,7 @@ class _ProfileHomeScreenState extends State<ProfileHomeScreen> {
                                 const Text(
                                   '点击进入个人资料与头像设置',
                                   style: TextStyle(
-                                    fontSize: 13,
+                                    fontSize: 12.5,
                                     color: SoftColors.subtext,
                                     height: 1.4,
                                   ),
@@ -257,13 +257,15 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SoftCard(
-      child: Column(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 140),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
               color: SoftColors.text,
             ),
@@ -272,7 +274,7 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 19,
               fontWeight: FontWeight.w700,
               color: SoftColors.text,
             ),
@@ -280,7 +282,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             hint,
-            style: const TextStyle(fontSize: 12.5, color: SoftColors.subtext),
+            style: const TextStyle(fontSize: 12, color: SoftColors.subtext),
           ),
           if (actionText != null && onTap != null) ...[
             const SizedBox(height: 10),
@@ -289,7 +291,7 @@ class _StatCard extends StatelessWidget {
               child: Text(
                 actionText!,
                 style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w600,
                   color: SoftColors.coral,
                 ),
@@ -297,6 +299,7 @@ class _StatCard extends StatelessWidget {
             ),
           ],
         ],
+      ),
       ),
     );
   }

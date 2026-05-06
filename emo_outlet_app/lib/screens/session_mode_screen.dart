@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../config/constants.dart';
 import '../models/session_model.dart';
 import '../providers/app_providers.dart';
+import '../services/api_service.dart';
 import '../widgets/auth/auth_visuals.dart';
 import '../widgets/common/emo_ui.dart';
 import 'chat_screen.dart';
@@ -16,12 +17,42 @@ class SessionModeScreen extends StatefulWidget {
 }
 
 class _SessionModeScreenState extends State<SessionModeScreen> {
+  final ApiService _api = ApiService();
+
   SessionMode _mode = SessionMode.single;
   final String _language = '简体中文';
   String _dialect = '普通话';
-  int _duration = 5;
+  int _duration = AppConstants.defaultSessionDuration;
   bool _textInput = true;
   String _chatStyleLabel = '道歉型';
+  bool _loadingPreferences = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    try {
+      final preferences = await _api.getPreferences();
+      final savedCode = preferences['dialect']?.toString().trim();
+      final savedDialect = AppConstants.dialectLabelMap[savedCode] ?? '普通话';
+      if (!mounted) return;
+      setState(() {
+        _dialect = AppConstants.dialects.contains(savedDialect)
+            ? savedDialect
+            : '普通话';
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _dialect = '普通话');
+    } finally {
+      if (mounted) {
+        setState(() => _loadingPreferences = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -42,21 +73,29 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                 ),
                 const Spacer(),
                 const Text(
-                  '开始释放情绪',
-                  style: TextStyle(fontSize: 21, fontWeight: FontWeight.w700),
+                  '开始释放',
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
-                const EmoDecorationCloud(size: 104),
+                const EmoDecorationCloud(size: 96),
               ],
             ),
             Transform.translate(
-              offset: const Offset(0, -8),
+              offset: const Offset(0, -6),
               child: Column(
                 children: [
                   _section(
                     '选择对象',
                     child: target == null
-                        ? const SizedBox.shrink()
+                        ? const Text(
+                            '还没有可聊天的对象，先去创建一个吧。',
+                            style: TextStyle(
+                              fontSize: 13,
+                              height: 1.5,
+                              color: Color(0xFF7A706A),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          )
                         : _targetTile(target),
                   ),
                   const SizedBox(height: 14),
@@ -67,7 +106,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                         Expanded(
                           child: _modeCard(
                             title: '单向模式',
-                            subtitle: 'Ta 只倾听，不会反驳',
+                            subtitle: 'Ta 只倾听，不会回怼，适合先把情绪说出来。',
                             icon: Icons.headphones_rounded,
                             active: _mode == SessionMode.single,
                             iconColor: const Color(0xFFFF9657),
@@ -79,7 +118,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                         Expanded(
                           child: _modeCard(
                             title: '双向模式',
-                            subtitle: 'Ta 会回应，也会适度反馈',
+                            subtitle: 'Ta 会回复你，适合模拟对话或更真实地表达。',
                             icon: Icons.forum_rounded,
                             active: _mode == SessionMode.dual,
                             iconColor: const Color(0xFF8C72FF),
@@ -126,7 +165,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                           icon: Icons.location_on_outlined,
                           iconColor: const Color(0xFF8E74FF),
                           title: '方言语气',
-                          value: _dialect,
+                          value: _loadingPreferences ? '读取中...' : _dialect,
                           onTap: _pickDialect,
                         ),
                       ],
@@ -183,14 +222,12 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   const SizedBox(height: 18),
                   GradientPrimaryButton(
                     text: '开始释放',
-                    height: 68,
-                    fontSize: 18,
+                    height: 56,
+                    fontSize: 16,
                     onTap: target == null
                         ? null
                         : () async {
-                            context
-                                .read<TargetProvider>()
-                                .setCurrentTarget(target);
+                            context.read<TargetProvider>().setCurrentTarget(target);
                             final navigator = Navigator.of(context);
                             await context.read<SessionProvider>().createSession(
                                   targetId: target.id ?? 'local_target',
@@ -204,7 +241,9 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                             if (!mounted) return;
                             navigator.push(
                               MaterialPageRoute(
-                                builder: (_) => const ChatScreen(),
+                                builder: (_) => ChatScreen(
+                                  preferVoiceInput: !_textInput,
+                                ),
                               ),
                             );
                           },
@@ -258,7 +297,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                 const SizedBox(height: 14),
                 const Text(
                   '选择方言语气',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 10),
                 for (final item in AppConstants.dialects)
@@ -276,7 +315,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                             child: Text(
                               item,
                               style: const TextStyle(
-                                fontSize: 15.5,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -310,7 +349,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
             children: [
               Container(
                 width: 5,
-                height: 24,
+                height: 22,
                 decoration: BoxDecoration(
                   color: const Color(0xFFFF6B57),
                   borderRadius: BorderRadius.circular(999),
@@ -320,7 +359,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
               Text(
                 title,
                 style:
-                    const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                    const TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -343,7 +382,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
           EmoAvatar(
             label: avatarEmojiByType(target.type),
             background: avatarBgByType(target.type),
-            size: 64,
+            size: 60,
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -356,7 +395,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                       child: Text(
                         target.name,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16.5,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -376,7 +415,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    fontSize: 12.5,
                     color: Color(0xFF706760),
                     fontWeight: FontWeight.w500,
                   ),
@@ -406,6 +445,7 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
       borderRadius: BorderRadius.circular(26),
       onTap: onTap,
       child: Container(
+        constraints: const BoxConstraints(minHeight: 132),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.52),
@@ -418,97 +458,39 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
         child: Column(
           children: [
             Align(
-              alignment: Alignment.topRight,
-              child: Icon(
-                active
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                color:
-                    active ? const Color(0xFFFF6F54) : const Color(0xFFD8D0CB),
-                size: 20,
+              alignment: Alignment.centerLeft,
+              child: _CircleBadge(
+                icon: icon,
+                iconColor: iconColor,
+                colors: [
+                  iconColor.withValues(alpha: 0.18),
+                  Colors.white.withValues(alpha: 0.88),
+                ],
               ),
             ),
-            Icon(icon, color: iconColor, size: 38),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AuthPalette.textPrimary,
+                ),
+              ),
             ),
             const SizedBox(height: 8),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12.5,
-                color: Color(0xFF7B726C),
-                fontWeight: FontWeight.w500,
-                height: 1.45,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _styleChip({
-    required String label,
-    required String subtitle,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 148,
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-        decoration: BoxDecoration(
-          color: active
-              ? const Color(0x14FF7D5D)
-              : Colors.white.withValues(alpha: 0.52),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active ? const Color(0xFFFF7D5D) : const Color(0xFFF1E5DF),
-            width: active ? 1.8 : 1.0,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: active
-                          ? const Color(0xFFFF6F54)
-                          : AuthPalette.textPrimary,
-                    ),
-                  ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  height: 1.45,
+                  color: Color(0xFF7A706A),
+                  fontWeight: FontWeight.w500,
                 ),
-                Icon(
-                  active
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  size: 18,
-                  color: active
-                      ? const Color(0xFFFF6F54)
-                      : const Color(0xFFD0C8C2),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12.5,
-                height: 1.4,
-                color: Color(0xFF7A706B),
-                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -526,38 +508,105 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
-        height: 62,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 15),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.56),
+          color: Colors.white.withValues(alpha: 0.52),
           borderRadius: BorderRadius.circular(22),
         ),
         child: Row(
           children: [
-            Icon(icon, color: iconColor, size: 20),
-            const SizedBox(width: 14),
+            _CircleBadge(
+              icon: icon,
+              iconColor: iconColor,
+              colors: [
+                iconColor.withValues(alpha: 0.18),
+                Colors.white.withValues(alpha: 0.88),
+              ],
+              size: 42,
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 title,
-                style:
-                    const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w600,
+                  color: AuthPalette.textPrimary,
+                ),
               ),
             ),
             Text(
               value,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF7A706A),
+                fontWeight: FontWeight.w500,
+              ),
             ),
-            const SizedBox(width: 8),
-            Icon(
-              onTap == null
-                  ? Icons.lock_outline_rounded
-                  : Icons.chevron_right_rounded,
-              color: const Color(0xFF9A9A9A),
-              size: 20,
-            ),
+            const SizedBox(width: 6),
+            if (onTap != null)
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: Color(0xFF9E9E9E),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _styleChip({
+    required String label,
+    required String subtitle,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(22),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          color: active
+              ? const Color(0xFFFFF0EA)
+              : Colors.white.withValues(alpha: 0.52),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: active ? const Color(0xFFFF6F54) : const Color(0xFFF1E5DF),
+            width: active ? 1.6 : 1.0,
+          ),
+        ),
+        child: SizedBox(
+          width: 132,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: active
+                      ? const Color(0xFFFF6F54)
+                      : AuthPalette.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12.2,
+                  height: 1.45,
+                  color: Color(0xFF7A706A),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -565,65 +614,84 @@ class _SessionModeScreenState extends State<SessionModeScreen> {
 
   Widget _selectCapsule({
     required String text,
+    IconData? icon,
     required bool active,
     required VoidCallback onTap,
-    IconData? icon,
   }) {
     return InkWell(
-      onTap: onTap,
       borderRadius: BorderRadius.circular(999),
-      child: Container(
-        height: 54,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        height: 48,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.54),
+          color: active
+              ? const Color(0xFFFFF0EA)
+              : Colors.white.withValues(alpha: 0.52),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: active ? const Color(0xFFFF6F54) : const Color(0xFFF2E5DE),
-            width: active ? 2 : 1.2,
+            color: active ? const Color(0xFFFF6F54) : const Color(0xFFF1E5DF),
+            width: active ? 1.6 : 1.0,
           ),
         ),
-        child: Stack(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (icon != null) ...[
-                    Icon(
-                      icon,
-                      color: active
-                          ? const Color(0xFFFF6F54)
-                          : const Color(0xFF8E8E8E),
-                      size: 22,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: active
-                          ? const Color(0xFFFF6F54)
-                          : const Color(0xFF666666),
-                    ),
-                  ),
-                ],
+            if (icon != null) ...[
+              Icon(
+                icon,
+                size: 18,
+                color: active
+                    ? const Color(0xFFFF6F54)
+                    : const Color(0xFF8A817C),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              text,
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+                color: active
+                    ? const Color(0xFFFF6F54)
+                    : AuthPalette.textPrimary,
               ),
             ),
-            if (active)
-              const Positioned(
-                top: -1,
-                right: -1,
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: Color(0xFFFF6F54),
-                  size: 20,
-                ),
-              ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CircleBadge extends StatelessWidget {
+  const _CircleBadge({
+    required this.icon,
+    required this.iconColor,
+    required this.colors,
+    this.size = 48,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final List<Color> colors;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: colors,
+        ),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.86)),
+      ),
+      child: Icon(icon, color: iconColor, size: size * 0.45),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/constants.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/common/emo_ui.dart';
@@ -726,10 +728,9 @@ class DialectSettingsScreen extends StatefulWidget {
 class _DialectSettingsScreenState extends State<DialectSettingsScreen> {
   final ApiService _api = ApiService();
 
-  static const List<String> _dialects = ['普通话', '粤语', '四川话', '东北话', '上海话'];
-
   bool _loading = true;
   String _selectedDialect = '普通话';
+  bool _voiceAutoplay = true;
 
   @override
   void initState() {
@@ -741,10 +742,17 @@ class _DialectSettingsScreenState extends State<DialectSettingsScreen> {
     setState(() => _loading = true);
     try {
       final preferences = await _api.getPreferences();
-      final dialect = preferences['dialect']?.toString().trim();
+      final prefs = await SharedPreferences.getInstance();
+      final dialectCode = preferences['dialect']?.toString().trim();
+      final dialect =
+          AppConstants.dialectLabelMap[dialectCode] ?? '普通话';
       if (!mounted) return;
       setState(() {
-        _selectedDialect = _dialects.contains(dialect) ? dialect! : '普通话';
+        _selectedDialect = AppConstants.dialects.contains(dialect)
+            ? dialect
+            : '普通话';
+        _voiceAutoplay =
+            prefs.getBool(AppConstants.voiceAutoplayKey) ?? true;
       });
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -753,7 +761,16 @@ class _DialectSettingsScreenState extends State<DialectSettingsScreen> {
 
   Future<void> _save(String dialect) async {
     setState(() => _selectedDialect = dialect);
-    await _api.updatePreferences({'dialect': dialect});
+    await _api.updatePreferences({
+      'dialect': AppConstants.dialectMap[dialect] ?? 'mandarin',
+    });
+  }
+
+  Future<void> _saveVoiceAutoplay(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConstants.voiceAutoplayKey, value);
+    if (!mounted) return;
+    setState(() => _voiceAutoplay = value);
   }
 
   @override
@@ -776,7 +793,7 @@ class _DialectSettingsScreenState extends State<DialectSettingsScreen> {
               ),
               const SizedBox(height: 8),
               const Text(
-                '聊天页会优先使用你偏好的表达口吻，让对话更自然。',
+                '开始聊天时会默认带入这里的方言设置，也可以在会话页临时修改。',
                 style: TextStyle(
                   fontSize: 13.5,
                   height: 1.55,
@@ -787,7 +804,7 @@ class _DialectSettingsScreenState extends State<DialectSettingsScreen> {
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: _dialects.map((dialect) {
+                children: AppConstants.dialects.map((dialect) {
                   final selected = dialect == _selectedDialect;
                   return ChoiceChip(
                     label: Text(
@@ -816,6 +833,17 @@ class _DialectSettingsScreenState extends State<DialectSettingsScreen> {
                 }).toList(),
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        SoftCard(
+          padding: EdgeInsets.zero,
+          child: _SwitchSettingTile(
+            title: 'AI 回复自动语音播报',
+            subtitle: '开启后，聊天页收到 AI 新回复会自动播放语音，你也可以在聊天页手动关闭。',
+            value: _voiceAutoplay,
+            onChanged: _saveVoiceAutoplay,
+            showDivider: false,
           ),
         ),
       ],

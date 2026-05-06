@@ -1,3 +1,5 @@
+import '../config/constants.dart';
+
 enum SessionMode { single, dual }
 
 enum ChatStyle { stubborn, apologetic, cold, sarcastic, rational }
@@ -61,14 +63,7 @@ class SessionModel {
   }
 
   static String _parseDialect(String? value) {
-    const map = {
-      'mandarin': '普通话',
-      'cantonese': '粤语',
-      'sichuan': '四川话',
-      'northeastern': '东北话',
-      'shanghainese': '上海话',
-    };
-    return map[value] ?? value ?? '普通话';
+    return AppConstants.dialectLabelMap[value] ?? value ?? '普通话';
   }
 
   static ChatStyle? _parseChatStyle(String? value) {

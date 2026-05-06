@@ -97,7 +97,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                       const Text(
                         '编辑对象',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 19,
                           fontWeight: FontWeight.w700,
                           color: AuthPalette.textPrimary,
                         ),
@@ -151,7 +151,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                                   Text(
                                     widget.target.name,
                                     style: const TextStyle(
-                                      fontSize: 21,
+                                      fontSize: 18,
                                       fontWeight: FontWeight.w700,
                                       color: AuthPalette.textPrimary,
                                     ),
@@ -169,7 +169,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                                     ? widget.target.relationship!
                                     : '补充这个对象的关系和触发点，会让聊天更贴近你的真实感受。',
                                 style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 12.5,
                                   height: 1.45,
                                   color: Color(0xFF766B66),
                                   fontWeight: FontWeight.w500,
@@ -179,7 +179,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                               Text(
                                 '最近更新：${formatFriendlyTime(widget.target.createdAt)}',
                                 style: const TextStyle(
-                                  fontSize: 12.5,
+                                  fontSize: 12,
                                   color: Color(0xFF9B948F),
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -206,7 +206,7 @@ class _EditTargetScreenState extends State<EditTargetScreen> {
                   GradientPrimaryButton(
                     text: '保存修改',
                     height: 56,
-                    fontSize: 16.5,
+                    fontSize: 15.5,
                     onTap: _save,
                   ),
                 ],
@@ -238,14 +238,14 @@ class _EditFieldCard extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 15.5,
+              fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
           Container(
-            constraints: const BoxConstraints(minHeight: 54),
+            constraints: const BoxConstraints(minHeight: 52),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             decoration: BoxDecoration(
               color: const Color(0xFFF8F8F8).withValues(alpha: 0.84),
@@ -257,7 +257,7 @@ class _EditFieldCard extends StatelessWidget {
               textAlign: TextAlign.left,
               textAlignVertical: TextAlignVertical.center,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 height: 1.35,
                 color: AuthPalette.textPrimary,
                 fontWeight: FontWeight.w500,
@@ -294,14 +294,14 @@ class _StaticInfoCard extends StatelessWidget {
           Text(
             label,
             style: const TextStyle(
-              fontSize: 15.5,
+              fontSize: 14.5,
               fontWeight: FontWeight.w700,
               color: AuthPalette.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
           Container(
-            height: 54,
+            height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: const Color(0xFFF8F8F8).withValues(alpha: 0.84),
@@ -312,7 +312,7 @@ class _StaticInfoCard extends StatelessWidget {
             child: Text(
               value,
               style: const TextStyle(
-                fontSize: 15,
+                fontSize: 14,
                 color: Color(0xFF766B66),
                 fontWeight: FontWeight.w600,
               ),

@@ -67,7 +67,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                 const Spacer(),
                 const Text(
                   '生成形象中',
-                  style: TextStyle(fontSize: 23, fontWeight: FontWeight.w700),
+                  style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
                 const EmoDecorationCloud(size: 116),
@@ -80,8 +80,8 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
               child: Column(
                 children: [
                   Container(
-                    width: 216,
-                    height: 216,
+                    width: 196,
+                    height: 196,
                     decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
@@ -98,7 +98,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                         child: EmoAvatar(
                           label: avatarEmojiByType(current?.type ?? 'boss'),
                           background: avatarBgByType(current?.type ?? 'boss'),
-                          size: 168,
+                          size: 152,
                         ),
                       ),
                     ),
@@ -106,13 +106,13 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                   const SizedBox(height: 20),
                   const Text(
                     '正在为你生成专属形象',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     '请稍候，马上就好...',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 12.5,
                       color: Color(0xFFC8A79A),
                       fontWeight: FontWeight.w500,
                     ),
@@ -132,7 +132,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                             borderRadius: BorderRadius.circular(999),
                             child: LinearProgressIndicator(
                               value: _progress,
-                              minHeight: 22,
+                            minHeight: 20,
                               backgroundColor: const Color(0xFFF7E8E0),
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                   Color(0xFFFF7B7A)),
@@ -143,7 +143,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                         Text(
                           '${(_progress * 100).round()}%',
                           style: const TextStyle(
-                            fontSize: 15,
+                            fontSize: 13.5,
                             fontWeight: FontWeight.w700,
                             color: Color(0xFFFF7E73),
                           ),
@@ -189,7 +189,7 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
                           child: Text(
                             '小提示：形象会根据外貌、性格和关系描述进行生成',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12.5,
                               height: 1.45,
                               color: Color(0xFF8A6255),
                               fontWeight: FontWeight.w500,
@@ -205,8 +205,8 @@ class _GenerateAvatarScreenState extends State<GenerateAvatarScreen> {
             const SizedBox(height: 14),
             GradientPrimaryButton(
               text: '生成完成后查看详情',
-              height: 58,
-              fontSize: 17,
+              height: 54,
+              fontSize: 15.5,
               onTap: () {
                 if (current != null) {
                   Navigator.of(context).pushReplacement(
@@ -243,7 +243,7 @@ class _StepChip extends StatelessWidget {
             ? const Color(0xFF8E5A4E)
             : const Color(0xFF9A9A9A);
     return Container(
-      height: 50,
+      height: 46,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(18),
@@ -263,7 +263,7 @@ class _StepChip extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: 12.5,
               fontWeight: FontWeight.w600,
               color: color,
             ),

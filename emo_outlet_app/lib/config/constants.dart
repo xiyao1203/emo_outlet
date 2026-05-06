@@ -20,6 +20,14 @@ class AppConstants {
     '上海话': 'shanghainese',
   };
 
+  static const Map<String, String> dialectLabelMap = {
+    'mandarin': '普通话',
+    'cantonese': '粤语',
+    'sichuan': '四川话',
+    'northeastern': '东北话',
+    'shanghainese': '上海话',
+  };
+
   static const List<String> dialects = [
     '普通话',
     '粤语',
@@ -65,6 +73,7 @@ class AppConstants {
   static const String tokenKey = 'auth_token';
   static const String userKey = 'user_data';
   static const String onboardingKey = 'onboarding_complete';
+  static const String voiceAutoplayKey = 'voice_autoplay_enabled';
 
   static const int maxDailyFreeSessions = 3;
   static const int maxMessageLength = 5000;

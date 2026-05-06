@@ -34,15 +34,15 @@ class SplashScreen extends StatelessWidget {
               final height = constraints.maxHeight;
               final compact = height < 820;
               final horizontal = math.min(width * 0.073, 33.0);
-              final brandFontSize = width < 380 ? 21.0 : 24.0;
-              final brandLogoSize = width < 380 ? 40.0 : 44.0;
-              final titleTopSize = width < 380 ? 30.0 : 35.0;
-              final titleAccentSize = width < 380 ? 32.0 : 37.0;
-              final subtitleSize = width < 380 ? 14.0 : 15.0;
-              final primaryButtonHeight = width < 380 ? 58.0 : 64.0;
-              final secondaryButtonHeight = width < 380 ? 54.0 : 58.0;
-              final primaryButtonFontSize = width < 380 ? 19.0 : 20.0;
-              final secondaryButtonFontSize = width < 380 ? 14.5 : 15.5;
+              final brandFontSize = width < 380 ? 20.0 : 22.0;
+              final brandLogoSize = width < 380 ? 38.0 : 42.0;
+              final titleTopSize = width < 380 ? 28.0 : 31.0;
+              final titleAccentSize = width < 380 ? 29.0 : 33.0;
+              final subtitleSize = width < 380 ? 13.0 : 14.0;
+              final primaryButtonHeight = width < 380 ? 54.0 : 58.0;
+              final secondaryButtonHeight = width < 380 ? 50.0 : 54.0;
+              final primaryButtonFontSize = width < 380 ? 17.0 : 18.0;
+              final secondaryButtonFontSize = width < 380 ? 13.5 : 14.5;
 
               return Stack(
                 children: [
@@ -166,7 +166,7 @@ class SplashScreen extends StatelessWidget {
                             ),
                             SizedBox(height: compact ? 18 : 24),
                             SupportExpressionRow(
-                                fontSize: width < 380 ? 13 : 14),
+                                fontSize: width < 380 ? 12.5 : 13),
                           ],
                         ),
                       ),
