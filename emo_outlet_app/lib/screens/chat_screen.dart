@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
@@ -32,6 +33,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final stt.SpeechToText _speech = stt.SpeechToText();
   final AudioPlayer _audioPlayer = AudioPlayer();
+  final FlutterTts _flutterTts = FlutterTts();
 
   Timer? _timer;
   bool _timeoutShown = false;
@@ -45,7 +47,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    _bindPlayerState();
+    _bindAudioHandlers();
     _loadVoicePreferences();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       final provider = context.read<SessionProvider>();
@@ -55,29 +57,27 @@ class _ChatScreenState extends State<ChatScreen> {
         _timeoutShown = true;
         _showTimeoutDialog();
       }
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
     if (widget.preferVoiceInput) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _toggleVoiceInput();
+        if (mounted) {
+          _toggleVoiceInput();
+        }
       });
     }
   }
 
-  void _bindPlayerState() {
+  void _bindAudioHandlers() {
     _audioPlayer.onPlayerComplete.listen((_) {
       if (!mounted) return;
-      setState(() {
-        _speakingSignature = null;
-      });
+      setState(() => _speakingSignature = null);
     });
-    _audioPlayer.onPlayerStateChanged.listen((state) {
+    _flutterTts.setCompletionHandler(() {
       if (!mounted) return;
-      setState(() {
-        if (state != PlayerState.playing) {
-          _speakingSignature ??= null;
-        }
-      });
+      setState(() => _speakingSignature = null);
     });
   }
 
@@ -86,10 +86,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (!mounted) return;
     setState(() {
       _voiceAutoplay = prefs.getBool(AppConstants.voiceAutoplayKey) ?? true;
-      final cachedVoice = prefs.getString(AppConstants.voiceOptionKey);
-      _voice = AppConstants.ttsVoiceLabels.containsKey(cachedVoice)
-          ? cachedVoice!
-          : 'alloy';
+      _voice = prefs.getString(AppConstants.voiceOptionKey) ?? 'alloy';
+      if (!AppConstants.ttsVoiceLabels.containsKey(_voice)) {
+        _voice = 'alloy';
+      }
     });
   }
 
@@ -104,6 +104,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _timer?.cancel();
     _speech.stop();
     _audioPlayer.dispose();
+    _flutterTts.stop();
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -111,51 +112,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   String _messageSignature(MessageModel message) {
     return '${message.id ?? ''}|${message.createdAt?.toIso8601String() ?? ''}|${message.content}';
-  }
-
-  Future<void> _toggleVoiceInput() async {
-    if (_isListening) {
-      await _speech.stop();
-      if (mounted) setState(() => _isListening = false);
-      return;
-    }
-
-    final available = await _speech.initialize(
-      onStatus: (status) {
-        if (!mounted) return;
-        if (status == 'done' || status == 'notListening') {
-          setState(() => _isListening = false);
-        }
-      },
-      onError: (_) {
-        if (!mounted) return;
-        setState(() => _isListening = false);
-      },
-    );
-
-    if (!available) {
-      if (!mounted) return;
-      _showTopMessage('当前设备暂不支持语音输入');
-      return;
-    }
-
-    setState(() => _isListening = true);
-    await _speech.listen(
-      localeId: 'zh_CN',
-      onResult: (result) {
-        if (!mounted) return;
-        setState(() {
-          _controller.text = result.recognizedWords;
-          _controller.selection =
-              TextSelection.collapsed(offset: _controller.text.length);
-          _isListening = !result.finalResult;
-        });
-      },
-      listenOptions: stt.SpeechListenOptions(
-        listenMode: stt.ListenMode.confirmation,
-        partialResults: true,
-      ),
-    );
   }
 
   void _showTopMessage(String text) {
@@ -196,30 +152,123 @@ class _ChatScreenState extends State<ChatScreen> {
     Future<void>.delayed(const Duration(seconds: 2), entry.remove);
   }
 
+  String _speechLocale(String dialectCode) {
+    switch (dialectCode) {
+      case 'cantonese':
+        return 'zh-HK';
+      default:
+        return 'zh-CN';
+    }
+  }
+
+  double _speechRate() {
+    switch (_voice) {
+      case 'nova':
+        return 0.42;
+      case 'sage':
+        return 0.38;
+      case 'shimmer':
+        return 0.48;
+      case 'echo':
+        return 0.34;
+      default:
+        return 0.4;
+    }
+  }
+
+  double _speechPitch() {
+    switch (_voice) {
+      case 'nova':
+        return 1.08;
+      case 'sage':
+        return 0.96;
+      case 'shimmer':
+        return 1.12;
+      case 'echo':
+        return 0.90;
+      default:
+        return 1.0;
+    }
+  }
+
+  Future<void> _speakLocally(String text, String dialectCode) async {
+    await _audioPlayer.stop();
+    await _flutterTts.stop();
+    await _flutterTts.awaitSpeakCompletion(true);
+    await _flutterTts.setLanguage(_speechLocale(dialectCode));
+    await _flutterTts.setSpeechRate(_speechRate());
+    await _flutterTts.setPitch(_speechPitch());
+    await _flutterTts.speak(text);
+  }
+
+  Future<void> _toggleVoiceInput() async {
+    if (_isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _isListening = false);
+      return;
+    }
+
+    final available = await _speech.initialize(
+      onStatus: (status) {
+        if (!mounted) return;
+        if (status == 'done' || status == 'notListening') {
+          setState(() => _isListening = false);
+        }
+      },
+      onError: (_) {
+        if (!mounted) return;
+        setState(() => _isListening = false);
+      },
+    );
+
+    if (!available) {
+      _showTopMessage('当前设备暂不支持语音输入');
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await _speech.listen(
+      localeId: 'zh_CN',
+      onResult: (result) {
+        if (!mounted) return;
+        setState(() {
+          _controller.text = result.recognizedWords;
+          _controller.selection =
+              TextSelection.collapsed(offset: _controller.text.length);
+          _isListening = !result.finalResult;
+        });
+      },
+      listenOptions: stt.SpeechListenOptions(
+        listenMode: stt.ListenMode.confirmation,
+        partialResults: true,
+      ),
+    );
+  }
+
+  Future<void> _stopSpeaking() async {
+    await _audioPlayer.stop();
+    await _flutterTts.stop();
+    if (!mounted) return;
+    setState(() => _speakingSignature = null);
+  }
+
   Future<void> _send() async {
     final provider = context.read<SessionProvider>();
     final text = _controller.text.trim();
     if (text.isEmpty) return;
     await _stopSpeaking();
     await _speech.stop();
-    if (mounted) setState(() => _isListening = false);
+    if (mounted) {
+      setState(() => _isListening = false);
+    }
     _controller.clear();
     setState(() {});
     await provider.sendMessage(text);
   }
 
-  Future<void> _stopSpeaking() async {
-    await _audioPlayer.stop();
-    if (!mounted) return;
-    setState(() {
-      _speakingSignature = null;
-    });
-  }
-
   Future<void> _toggleVoiceAutoplay() async {
     setState(() => _voiceAutoplay = !_voiceAutoplay);
     await _saveVoicePreferences();
-    if (!mounted) return;
     _showTopMessage(_voiceAutoplay ? '已开启自动播报' : '已关闭自动播报');
   }
 
@@ -227,69 +276,66 @@ class _ChatScreenState extends State<ChatScreen> {
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return SafeArea(
-          top: false,
-          child: EmoSectionCard(
-            radius: 28,
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 42,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE7D8D0),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+      builder: (context) => SafeArea(
+        top: false,
+        child: EmoSectionCard(
+          radius: 28,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 42,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE7D8D0),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-                const SizedBox(height: 14),
-                const Text(
-                  '选择播报音色',
-                  style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 10),
-                for (final entry in AppConstants.ttsVoiceLabels.entries)
-                  InkWell(
-                    onTap: () => Navigator.of(context).pop(entry.key),
-                    borderRadius: BorderRadius.circular(18),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 14,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              entry.value,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
+              ),
+              const SizedBox(height: 14),
+              const Text(
+                '选择播报音色',
+                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 10),
+              for (final entry in AppConstants.ttsVoiceLabels.entries)
+                InkWell(
+                  onTap: () => Navigator.of(context).pop(entry.key),
+                  borderRadius: BorderRadius.circular(18),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 14,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            entry.value,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          if (_voice == entry.key)
-                            const Icon(
-                              Icons.check_circle_rounded,
-                              color: Color(0xFFFF6F54),
-                              size: 20,
-                            ),
-                        ],
-                      ),
+                        ),
+                        if (_voice == entry.key)
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            color: Color(0xFFFF6F54),
+                            size: 20,
+                          ),
+                      ],
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
     if (selected == null) return;
     setState(() => _voice = selected);
     await _saveVoicePreferences();
-    if (!mounted) return;
     _showTopMessage('已切换到 ${AppConstants.ttsVoiceLabels[selected]} 音色');
   }
 
@@ -299,6 +345,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final dialectCode =
         AppConstants.dialectMap[session?.dialect ?? '普通话'] ?? 'mandarin';
     setState(() => _speakingSignature = signature);
+
     try {
       final payload = await _api.synthesizeSpeech(
         text: message.content,
@@ -311,13 +358,16 @@ class _ChatScreenState extends State<ChatScreen> {
       }
       final bytes = Uint8List.fromList(base64Decode(audioBase64));
       await _audioPlayer.stop();
+      await _flutterTts.stop();
       await _audioPlayer.play(BytesSource(bytes));
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _speakingSignature = null;
-      });
-      _showTopMessage('语音播报生成失败，请稍后再试');
+      try {
+        await _speakLocally(message.content, dialectCode);
+      } catch (_) {
+        if (!mounted) return;
+        setState(() => _speakingSignature = null);
+        _showTopMessage('语音播报暂时不可用，请稍后再试');
+      }
     }
   }
 
@@ -422,9 +472,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 text: '结束并查看记录',
                 height: 56,
                 fontSize: 16.5,
-                onTap: () {
-                  provider.endSession();
+                onTap: () async {
+                  await provider.endSession();
                   provider.clearCurrentSession();
+                  if (!mounted || !ctx.mounted) return;
                   Navigator.of(ctx).pop();
                   Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
@@ -460,9 +511,10 @@ class _ChatScreenState extends State<ChatScreen> {
     final provider = context.watch<SessionProvider>();
     final session = provider.currentSession;
     final target = context.watch<TargetProvider>().currentTarget;
-    final dual = session?.mode == SessionMode.dual;
     final messages = provider.messages;
+    final dual = session?.mode == SessionMode.dual;
     final totalCount = messages.length + (provider.isSending ? 1 : 0);
+    final dialect = session?.dialect ?? '普通话';
 
     _handleNewAiMessage(messages, provider.isSending);
 
@@ -471,7 +523,7 @@ class _ChatScreenState extends State<ChatScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_scrollController.hasClients) return;
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 140,
+          _scrollController.position.maxScrollExtent + 120,
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOut,
         );
@@ -483,7 +535,6 @@ class _ChatScreenState extends State<ChatScreen> {
         final width = constraints.maxWidth;
         final horizontal = EmoResponsive.edgePadding(width);
         final canSend = !provider.isSending && _controller.text.trim().isNotEmpty;
-        final dialect = session?.dialect ?? '普通话';
 
         return EmoPageScaffold(
           child: Column(
@@ -493,61 +544,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: EmoResponsiveContent(
                   width: width,
                   maxWidth: 760,
-                  child: Row(
-                    children: [
-                      EmoRoundIconButton(
-                        icon: Icons.chevron_left_rounded,
-                        onTap: () => Navigator.of(context).pop(),
-                      ),
-                      const SizedBox(width: 12),
-                      EmoAvatar(
-                        label: avatarEmojiByType(target?.type ?? 'boss'),
-                        background: avatarBgByType(target?.type ?? 'boss'),
-                        imageUrl: target?.avatarUrl,
-                        size: 52,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    session?.targetName ?? '未命名对象',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                      color: AuthPalette.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                EmoTypePill(
-                                  text: dual ? '双向聊天' : '单向倾诉',
-                                  color: const Color(0xFFFF7D5D),
-                                  background: const Color(0x14FF7D5D),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              '当前方言：$dialect',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF86807B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      _TimerChip(timeText: provider.formattedTime),
-                    ],
+                  child: _ChatHeader(
+                    session: session,
+                    targetType: target?.type ?? 'boss',
+                    targetAvatarUrl: target?.avatarUrl,
+                    timeText: provider.formattedTime,
+                    onBack: () => Navigator.of(context).maybePop(),
                   ),
                 ),
               ),
@@ -558,102 +560,74 @@ class _ChatScreenState extends State<ChatScreen> {
                   maxWidth: 760,
                   child: EmoSectionCard(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                    child: Column(
+                    child: Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              dual
-                                  ? Icons.forum_rounded
-                                  : Icons.favorite_border_rounded,
-                              color: dual
-                                  ? const Color(0xFF8D73FF)
-                                  : const Color(0xFFFF8D73),
-                              size: 20,
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                dual
-                                    ? '双向模式进行中，AI 会带着你选择的人格来回应你。'
-                                    : '单向模式进行中，AI 会先倾听并接住你的情绪。',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  height: 1.45,
-                                  color: Color(0xFF726964),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const EmoDecorationCloud(size: 72),
-                          ],
+                        _VoiceTogglePill(
+                          icon: _voiceAutoplay
+                              ? Icons.volume_up_rounded
+                              : Icons.volume_off_rounded,
+                          label: _voiceAutoplay ? '自动播报已开启' : '自动播报已关闭',
+                          active: _voiceAutoplay,
+                          onTap: _toggleVoiceAutoplay,
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _VoiceTogglePill(
-                                icon: _voiceAutoplay
-                                    ? Icons.volume_up_rounded
-                                    : Icons.volume_off_rounded,
-                                label: _voiceAutoplay ? '自动播报已开启' : '自动播报已关闭',
-                                active: _voiceAutoplay,
-                                onTap: _toggleVoiceAutoplay,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: _VoiceTogglePill(
-                                icon: Icons.record_voice_over_rounded,
-                                label:
-                                    '当前音色：${AppConstants.ttsVoiceLabels[_voice] ?? '晴暖'}',
-                                active: false,
-                                onTap: _pickVoice,
-                              ),
-                            ),
-                          ],
+                        _VoiceTogglePill(
+                          icon: Icons.record_voice_over_rounded,
+                          label:
+                              '当前音色：${AppConstants.ttsVoiceLabels[_voice] ?? '晴暖'}',
+                          active: true,
+                          onTap: _pickVoice,
+                        ),
+                        _VoiceTogglePill(
+                          icon: dual
+                              ? Icons.forum_rounded
+                              : Icons.favorite_border_rounded,
+                          label: dual ? '双向聊天进行中' : '单向倾诉进行中',
+                          active: false,
+                          onTap: null,
+                        ),
+                        _VoiceTogglePill(
+                          icon: Icons.language_rounded,
+                          label: '当前方言：$dialect',
+                          active: false,
+                          onTap: null,
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
-              if (provider.sendError != null) ...[
-                const SizedBox(height: 10),
+              if (provider.sendError != null)
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontal),
+                  padding: EdgeInsets.fromLTRB(horizontal, 10, horizontal, 0),
                   child: EmoResponsiveContent(
                     width: width,
                     maxWidth: 760,
                     child: Container(
-                      width: double.infinity,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
-                        vertical: 11,
+                        vertical: 12,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0x14FF6B5D),
+                        color: const Color(0x14FF6B5F),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: const Color(0x33FF6B5D)),
+                        border: Border.all(color: const Color(0x33FF6B5F)),
                       ),
                       child: Text(
                         provider.sendError!,
                         style: const TextStyle(
-                          fontSize: 13,
-                          color: Color(0xFFCC5C54),
+                          fontSize: 13.5,
+                          color: Color(0xFFBD5548),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
-              const SizedBox(height: 12),
               Expanded(
                 child: messages.isEmpty && !provider.isSending
-                    ? Padding(
-                        padding: EdgeInsets.symmetric(horizontal: horizontal),
+                    ? Center(
                         child: EmoResponsiveContent(
                           width: width,
                           maxWidth: 760,
@@ -662,31 +636,33 @@ class _ChatScreenState extends State<ChatScreen> {
                       )
                     : ListView.builder(
                         controller: _scrollController,
-                        padding: EdgeInsets.symmetric(horizontal: horizontal),
+                        padding: EdgeInsets.fromLTRB(
+                          horizontal,
+                          18,
+                          horizontal,
+                          18,
+                        ),
                         itemCount: totalCount,
                         itemBuilder: (context, index) {
                           if (index >= messages.length) {
                             return _TypingBubble(dual: dual);
                           }
                           final msg = messages[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 2),
-                            child: EmoResponsiveContent(
-                              width: width,
-                              maxWidth: 760,
-                              child: _MessageBubble(
-                                message: msg,
-                                targetType: target?.type ?? 'boss',
-                                targetAvatarUrl: target?.avatarUrl,
-                                isSpeaking:
-                                    _speakingSignature == _messageSignature(msg),
-                                onSpeak: msg.isAi
-                                    ? () => _speakingSignature ==
-                                            _messageSignature(msg)
-                                        ? _stopSpeaking()
-                                        : _playMessage(msg)
-                                    : null,
-                              ),
+                          return EmoResponsiveContent(
+                            width: width,
+                            maxWidth: 760,
+                            child: _MessageBubble(
+                              message: msg,
+                              targetType: target?.type ?? 'boss',
+                              targetAvatarUrl: target?.avatarUrl,
+                              isSpeaking:
+                                  _speakingSignature == _messageSignature(msg),
+                              onSpeak: msg.isAi
+                                  ? () => _speakingSignature ==
+                                          _messageSignature(msg)
+                                      ? _stopSpeaking()
+                                      : _playMessage(msg)
+                                  : null,
                             ),
                           );
                         },
@@ -695,7 +671,7 @@ class _ChatScreenState extends State<ChatScreen> {
               Padding(
                 padding: EdgeInsets.fromLTRB(
                   horizontal,
-                  10,
+                  8,
                   horizontal,
                   MediaQuery.of(context).padding.bottom + 10,
                 ),
@@ -723,9 +699,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               maxLines: 4,
                               onChanged: (_) => setState(() {}),
                               onSubmitted: (_) {
-                                if (canSend) {
-                                  _send();
-                                }
+                                if (canSend) _send();
                               },
                               textAlignVertical: TextAlignVertical.center,
                               decoration: InputDecoration(
@@ -777,38 +751,77 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 }
 
-class _TimerChip extends StatelessWidget {
-  const _TimerChip({required this.timeText});
+class _ChatHeader extends StatelessWidget {
+  const _ChatHeader({
+    required this.session,
+    required this.targetType,
+    required this.targetAvatarUrl,
+    required this.timeText,
+    required this.onBack,
+  });
 
+  final SessionModel? session;
+  final String targetType;
+  final String? targetAvatarUrl;
   final String timeText;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.64),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0x30FF7D5D)),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.access_time_rounded,
-            color: Color(0xFFFF6E53),
-            size: 18,
+    final dual = session?.mode == SessionMode.dual;
+    return Row(
+      children: [
+        EmoRoundIconButton(
+          icon: Icons.chevron_left_rounded,
+          onTap: onBack,
+        ),
+        const SizedBox(width: 12),
+        EmoAvatar(
+          label: avatarEmojiByType(targetType),
+          background: avatarBgByType(targetType),
+          imageUrl: targetAvatarUrl,
+          size: 52,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      session?.targetName ?? '未命名对象',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AuthPalette.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  EmoTypePill(
+                    text: dual ? '双向聊天' : '单向倾诉',
+                    color: const Color(0xFFFF7D5D),
+                    background: const Color(0x14FF7D5D),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '剩余时间 $timeText',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF86807B),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 8),
-          Text(
-            timeText,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFFFF6E53),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -843,6 +856,7 @@ class _VoiceTogglePill extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
@@ -850,18 +864,13 @@ class _VoiceTogglePill extends StatelessWidget {
               color: active ? const Color(0xFFFF6E53) : const Color(0xFF8B837D),
             ),
             const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: active
-                      ? const Color(0xFFFF6E53)
-                      : const Color(0xFF6F6660),
-                ),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color:
+                    active ? const Color(0xFFFF6E53) : const Color(0xFF6F6660),
               ),
             ),
           ],
@@ -876,35 +885,33 @@ class _ChatEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: EmoSectionCard(
-        padding: EdgeInsets.fromLTRB(22, 26, 22, 26),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            EmoDecorationCloud(size: 112),
-            SizedBox(height: 12),
-            Text(
-              '从一句真实感受开始',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AuthPalette.textPrimary,
-              ),
+    return const EmoSectionCard(
+      padding: EdgeInsets.fromLTRB(22, 26, 22, 26),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          EmoDecorationCloud(size: 112),
+          SizedBox(height: 12),
+          Text(
+            '从一句真实感受开始',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AuthPalette.textPrimary,
             ),
-            SizedBox(height: 8),
-            Text(
-              '不用组织得很完整。想到什么，就先说什么。',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.5,
-                height: 1.5,
-                color: Color(0xFF7A706A),
-                fontWeight: FontWeight.w500,
-              ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '不用组织得很完整。想到什么，就先说什么。',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13.5,
+              height: 1.5,
+              color: Color(0xFF7A706A),
+              fontWeight: FontWeight.w500,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -935,7 +942,8 @@ class _MessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
-        crossAxisAlignment: user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment:
+            user ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
           Padding(
             padding: EdgeInsets.only(
@@ -953,7 +961,8 @@ class _MessageBubble extends StatelessWidget {
             ),
           ),
           Row(
-            mainAxisAlignment: user ? MainAxisAlignment.end : MainAxisAlignment.start,
+            mainAxisAlignment:
+                user ? MainAxisAlignment.end : MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!user) ...[

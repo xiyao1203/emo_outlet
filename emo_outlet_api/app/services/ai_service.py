@@ -5,7 +5,7 @@ import hashlib
 import html
 import json
 from pathlib import Path
-from typing import Any
+from urllib.parse import quote
 
 import httpx
 from openai import AsyncOpenAI
@@ -103,16 +103,15 @@ class AiService:
             base_url=base_url,
             http_client=httpx.AsyncClient(
                 trust_env=False,
-                timeout=httpx.Timeout(40.0, connect=20.0),
+                timeout=httpx.Timeout(45.0, connect=20.0),
+                follow_redirects=True,
             ),
         )
         return self._client
 
     def _resolve_api_key(self, api_key: str, base_url: str) -> str:
         key = api_key.strip().strip('"').strip("'")
-        if "xiaomimimo.com" not in base_url:
-            return key
-        if key.startswith("tp-"):
+        if "xiaomimimo.com" not in base_url or key.startswith("tp-"):
             return key
 
         env_path = Path(__file__).resolve().parents[2] / ".env"
@@ -152,9 +151,9 @@ class AiService:
         mode: str = "single",
         chat_style: str = "apologetic",
         dialect: str = "mandarin",
-        history: list[dict[str, Any]] | None = None,
+        history: list[dict[str, str]] | None = None,
         age_range: str | None = None,
-        target_context: dict[str, Any] | None = None,
+        target_context: dict[str, str] | None = None,
     ) -> str:
         if age_range in ("<14", "14-18"):
             return await self._junior_chat(user_message, dialect, age_range)
@@ -183,8 +182,8 @@ class AiService:
             response = await client.chat.completions.create(
                 model=settings.LLM_MODEL,
                 messages=messages,
-                max_tokens=180,
-                temperature=0.75,
+                max_tokens=220,
+                temperature=0.78,
             )
             content = (response.choices[0].message.content or "").strip()
             if not content:
@@ -224,41 +223,6 @@ class AiService:
         if self._mock_mode or client is None:
             return self._local_complete_target_profile(clean_name, clean_relationship)
 
-    async def synthesize_speech(
-        self,
-        text: str,
-        dialect: str = "mandarin",
-        voice: str = "alloy",
-        user_id: str | None = None,
-    ) -> dict[str, str]:
-        client = self._get_client()
-        if client is None:
-            raise RuntimeError("当前未配置可用的语音播报服务")
-
-        content = text.strip()
-        if not content:
-            raise RuntimeError("语音播报内容为空")
-
-        try:
-            response = await client.audio.speech.create(
-                model=settings.TTS_MODEL,
-                voice=voice or settings.TTS_VOICE,
-                input=content[:1200],
-                response_format=settings.TTS_FORMAT,
-                instructions=self._preferred_voice_prompt(dialect),
-            )
-            audio_bytes = await response.aread()
-            if not audio_bytes:
-                raise RuntimeError("语音服务未返回音频数据")
-            return {
-                "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
-                "mime_type": "audio/mpeg",
-                "voice": voice or settings.TTS_VOICE,
-                "dialect": dialect,
-            }
-        except Exception as exc:
-            raise RuntimeError(f"语音播报服务调用失败: {type(exc).__name__}") from exc
-
         prompt = (
             "你是角色设定助手。请根据对象称呼和关系，补全一个适合情绪倾诉场景的对象画像。"
             "返回严格 JSON，字段只包含 appearance、personality、style。"
@@ -291,6 +255,46 @@ class AiService:
             print(f"LLM ai-complete failed: {type(exc).__name__}: {exc}")
             return self._local_complete_target_profile(clean_name, clean_relationship)
 
+    async def synthesize_speech(
+        self,
+        text: str,
+        dialect: str = "mandarin",
+        voice: str = "alloy",
+        user_id: str | None = None,
+    ) -> dict[str, str]:
+        if settings.TTS_PROVIDER.lower().strip() in {"none", "disabled", "mock"}:
+            raise RuntimeError("当前后端语音服务不可用，请使用设备语音播放")
+
+        client = self._get_client()
+        if client is None:
+            raise RuntimeError("当前后端语音服务不可用，请使用设备语音播放")
+
+        content = text.strip()
+        if not content:
+            raise RuntimeError("语音播报内容不能为空")
+
+        try:
+            response = await client.audio.speech.create(
+                model=settings.TTS_MODEL,
+                voice=voice or settings.TTS_VOICE,
+                input=content[:1200],
+                response_format=settings.TTS_FORMAT,
+                instructions=self._preferred_voice_prompt(dialect),
+            )
+            audio_bytes = await response.aread()
+            if not audio_bytes:
+                raise RuntimeError("语音服务没有返回音频数据")
+            return {
+                "audio_base64": base64.b64encode(audio_bytes).decode("ascii"),
+                "mime_type": "audio/mpeg",
+                "voice": voice or settings.TTS_VOICE,
+                "dialect": dialect,
+            }
+        except Exception as exc:
+            raise RuntimeError(
+                f"语音播报服务调用失败: {type(exc).__name__}"
+            ) from exc
+
     async def _junior_chat(
         self,
         user_message: str,
@@ -303,7 +307,7 @@ class AiService:
         if mood == "anger":
             body = "你现在一定很委屈，我们先慢一点，不把气撒到自己身上。"
         elif mood == "sadness":
-            body = "难受也没有关系，你已经很努力了。"
+            body = "难受也没关系，你已经很努力了。"
         elif mood == "anxiety":
             body = "先照顾好呼吸，我们把最担心的一件事说出来。"
         else:
@@ -322,8 +326,8 @@ class AiService:
         mode: str,
         chat_style: str,
         dialect: str,
-        history: list[dict[str, Any]] | None,
-        target_context: dict[str, Any] | None,
+        history: list[dict[str, str]] | None,
+        target_context: dict[str, str] | None,
     ) -> str:
         style = STYLE_TRAITS.get(chat_style, STYLE_TRAITS["apologetic"])
         prefix, suffix = DIALECT_MARKERS.get(dialect, DIALECT_MARKERS["mandarin"])
@@ -380,8 +384,8 @@ class AiService:
             bridge = "我听见你的重点了。"
 
         return (
-            f"{context_hint}{style['lead']}{bridge}"
-            f" {summary}。{continuity}{style['tail']}"
+            f"{context_hint}{style['lead']}{bridge} "
+            f"{summary}。{continuity}{style['tail']}"
         )
 
     def _build_messages(
@@ -389,8 +393,8 @@ class AiService:
         mode: str,
         chat_style: str,
         dialect: str,
-        history: list[dict[str, Any]] | None,
-        target_context: dict[str, Any] | None,
+        history: list[dict[str, str]] | None,
+        target_context: dict[str, str] | None,
     ) -> list[dict[str, str]]:
         style = STYLE_TRAITS.get(chat_style, STYLE_TRAITS["apologetic"])
         dialect_prompt = {
@@ -435,11 +439,11 @@ class AiService:
                 messages.append({"role": role, "content": content})
         return messages
 
-    def _target_prompt(self, target_context: dict[str, Any] | None) -> str:
+    def _target_prompt(self, target_context: dict[str, str] | None) -> str:
         if not target_context:
             return ""
 
-        parts = []
+        parts: list[str] = []
         name = str(target_context.get("name") or "").strip()
         target_type = str(target_context.get("type") or "").strip()
         relationship = str(target_context.get("relationship") or "").strip()
@@ -522,7 +526,7 @@ class AiService:
 
     def _normalize_profile_payload(
         self,
-        payload: dict[str, Any],
+        payload: dict[str, str],
         name: str,
         relationship: str,
     ) -> dict[str, str]:
@@ -556,7 +560,7 @@ class AiService:
             return f"你一直在咬着“{clean}”这件事"
         return f"你最在意的是“{clean[:18]}...”"
 
-    def _history_hint(self, history: list[dict[str, Any]] | None) -> str:
+    def _history_hint(self, history: list[dict[str, str]] | None) -> str:
         if not history:
             return ""
         user_turns = [item for item in history if item.get("sender") == "user"]
@@ -566,7 +570,7 @@ class AiService:
             return "我记得你前面也提过这一点，"
         return ""
 
-    def _target_hint(self, target_context: dict[str, Any] | None) -> str:
+    def _target_hint(self, target_context: dict[str, str] | None) -> str:
         if not target_context:
             return ""
         relationship = str(target_context.get("relationship") or "").strip()
@@ -615,46 +619,100 @@ class ImageService:
 """.strip()
         return _svg_data_url(svg)
 
-    async def generate_avatar(
+    async def _generate_with_openai(
         self,
         appearance: str,
         personality: str,
-        style: str = "Q版",
+        style: str,
     ) -> str:
         client = ai_service._get_client()
         if client is None:
-            return self._fallback_avatar(appearance, personality, style)
+            raise RuntimeError("image client unavailable")
 
         prompt = (
             "请生成一张情绪陪伴类 App 角色头像，单人、正面、背景干净、构图居中。"
             f"{ai_service._image_style_prompt(style)}"
             f"外貌与气质：{appearance or '亲和、柔软、带一点漫画感'}。"
             f"性格感觉：{personality or '温柔、愿意倾听、容易让人放松'}。"
-            "要求高质感、可爱、适合移动端头像展示，不要文字、不要水印、不要多角色。"
+            "要求高质感、可爱、适合移动端头像展示，不要文字，不要水印，不要多角色。"
         )
 
-        try:
-            response = await client.images.generate(
-                model=settings.IMAGE_MODEL,
-                prompt=prompt,
-                size=settings.IMAGE_SIZE,
-                quality=settings.IMAGE_QUALITY,
-                style=settings.IMAGE_STYLE,
-                output_format="png",
-                response_format="b64_json",
-            )
-            item = response.data[0] if response.data else None
-            if item is None:
-                raise RuntimeError("图像服务未返回结果")
-            if getattr(item, "b64_json", None):
-                return f"data:image/png;base64,{item.b64_json}"
-            if getattr(item, "url", None):
-                return item.url
-            raise RuntimeError("图像服务返回格式不支持")
-        except Exception as exc:
-            if settings.DEBUG:
-                return self._fallback_avatar(appearance, personality, style)
-            raise RuntimeError(f"图像生成失败: {type(exc).__name__}") from exc
+        response = await client.images.generate(
+            model=settings.IMAGE_MODEL,
+            prompt=prompt,
+            size=settings.IMAGE_SIZE,
+            quality=settings.IMAGE_QUALITY,
+            style=settings.IMAGE_STYLE,
+            output_format="png",
+            response_format="b64_json",
+        )
+        item = response.data[0] if response.data else None
+        if item is None:
+            raise RuntimeError("image service returned empty data")
+        if getattr(item, "b64_json", None):
+            return f"data:image/png;base64,{item.b64_json}"
+        if getattr(item, "url", None):
+            return item.url
+        raise RuntimeError("unsupported image response")
+
+    async def _generate_with_pollinations(
+        self,
+        appearance: str,
+        personality: str,
+        style: str,
+    ) -> str:
+        prompt = (
+            "cute emotional companion app avatar, single character portrait, centered composition, "
+            "soft cinematic lighting, premium mobile app mascot, no text, no watermark, "
+            f"{ai_service._image_style_prompt(style)} "
+            f"appearance: {appearance or 'warm smile, soft pink cloud'}; "
+            f"personality: {personality or 'gentle, healing, patient listener'}"
+        )
+        url = (
+            "https://image.pollinations.ai/prompt/"
+            f"{quote(prompt)}?width=768&height=768&model=flux&nologo=true&safe=true"
+        )
+        async with httpx.AsyncClient(
+            trust_env=False,
+            timeout=httpx.Timeout(90.0, connect=20.0),
+            follow_redirects=True,
+        ) as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            content_type = response.headers.get("content-type", "image/jpeg").split(";")[0]
+            if not content_type.startswith("image/"):
+                raise RuntimeError("pollinations returned non-image content")
+            encoded = base64.b64encode(response.content).decode("ascii")
+            return f"data:{content_type};base64,{encoded}"
+
+    async def generate_avatar(
+        self,
+        appearance: str,
+        personality: str,
+        style: str = "Q版",
+    ) -> str:
+        provider = settings.IMAGE_PROVIDER.lower().strip()
+        errors: list[str] = []
+
+        if provider in {"auto", "openai", "openai_compatible"}:
+            try:
+                return await self._generate_with_openai(appearance, personality, style)
+            except Exception as exc:
+                errors.append(f"openai:{type(exc).__name__}")
+                if provider == "openai":
+                    if settings.DEBUG:
+                        return self._fallback_avatar(appearance, personality, style)
+                    raise RuntimeError("图像生成服务暂时不可用") from exc
+
+        if provider in {"auto", "pollinations"}:
+            try:
+                return await self._generate_with_pollinations(appearance, personality, style)
+            except Exception as exc:
+                errors.append(f"pollinations:{type(exc).__name__}")
+
+        if settings.DEBUG:
+            return self._fallback_avatar(appearance, personality, style)
+        raise RuntimeError("图像生成失败，请稍后重试：" + ", ".join(errors))
 
 
 ai_service = AiService()

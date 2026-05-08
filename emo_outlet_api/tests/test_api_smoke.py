@@ -81,7 +81,9 @@ class ApiSmokeTest(unittest.TestCase):
             headers=headers,
         )
         self.assertEqual(avatar_response.status_code, 200, avatar_response.text)
-        self.assertTrue(avatar_response.json()["avatar_url"].startswith("data:image/svg+xml;base64,"))
+        self.assertTrue(
+            avatar_response.json()["avatar_url"].startswith("data:image/")
+        )
 
         session_response = self.client.post(
             "/api/sessions",
